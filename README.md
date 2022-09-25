@@ -1,16 +1,17 @@
-# Discord Clone
+# Bitchat [NITRO]
 
-A real-time chat application that mimics Discord.
+A real-time chat application over Bitcoin. An alternative interface to the original Bitchat.
 
-Live Demo: [https://discord-clone-ksuen.herokuapp.com/](https://discord-clone-ksuen.herokuapp.com/)
+Website: [https://bitchatnitro.com](https://bitchatnitro.com)
 
-![demo](https://user-images.githubusercontent.com/14181114/144297551-b79aff6a-f3f0-4791-b089-14c3475778a2.gif)
+![screen](https://bitchatnitro.com/images/screen.png)
 
-## Features
+## Unimplemented Features
 
-- Show who is typing.
-- Show who is online.
-- Allow users to edit/delete their own messages.
+x Show who is typing.
+x Show who is online.
+x Allow users to edit/delete their own messages.
+x Private messaging
 
 ## Technologies
 
@@ -18,10 +19,6 @@ Live Demo: [https://discord-clone-ksuen.herokuapp.com/](https://discord-clone-ks
 - React
 - Redux
 - Styled components
-- Node.js
-- Express.js
-- Socket.io
-- PostgreSQL
 
 ## Installation
 
@@ -35,37 +32,3 @@ Live Demo: [https://discord-clone-ksuen.herokuapp.com/](https://discord-clone-ks
 - Run `npm run client` to start the client.
 - Run `npm run server` to start the server.
 - Run `npm run dev` to start the client and the server concurrently.
-
-## Deploy to Heroku
-
-Install [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
-
-Login to your Heroku account.
-
-```
-heroku login
-```
-
-Create a new Heroku app.
-
-```
-heroku create YOUR_APP_NAME
-```
-
-Setup Heroku Postgres Database. This should return a `DATABASE_URL`.
-
-```
-heroku addons:create heroku-postgresql:hobby-dev --app YOUR_APP_NAME
-```
-
-Log into the Heroku Postgre database.
-
-```
-heroku pg:psql DATABASE_URL --app YOUR_APP_NAME
-```
-
-Copy and paste the content in `server/src/db/schemas.sql` to create the tables.
-
-Copy and paste the content in `server/src/db/sample_data.sql` to create the channels.
-
-Use `\q` to quit the database.
