@@ -1,6 +1,6 @@
 import React from "react";
 
-import { FaDiscord } from "react-icons/fa";
+import { FaTerminal } from "react-icons/fa";
 import styled from "styled-components";
 
 const Wrapper = styled.div`
@@ -61,7 +61,7 @@ const Layout = ({ heading, children }) => {
     <Wrapper className="disable-select">
       <Container>
         <Header>
-          <FaDiscord />
+          <FaTerminal />
         </Header>
         <Heading>{heading}</Heading>
         {children}

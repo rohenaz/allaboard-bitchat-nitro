@@ -1,7 +1,7 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
-const SubmitButton = styled.button.attrs(() => ({ type: 'submit' }))`
-  background-color: rgb(88, 101, 242);
+const SubmitButton = styled.button.attrs(() => ({ type: "submit" }))`
+  background-color: ${(p) => p.bgcolor || "rgb(88, 101, 242)"};
   border: 0;
   border-radius: 4px;
   padding: 12px 8px;
@@ -10,9 +10,12 @@ const SubmitButton = styled.button.attrs(() => ({ type: 'submit' }))`
   font-size: 14px;
   font-weight: 500;
   font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
-    background-color: rgb(71, 82, 196);
+    background-color: ${(p) => p.bgcolorhover || "rgb(88, 101, 242)"};
     cursor: pointer;
   }
 

@@ -53,7 +53,7 @@ const WriteArea = () => {
         MAP_PREFIX, // MAP Prefix
         "SET",
         "app",
-        "bitchat",
+        "bitchatnitro.com",
         "type",
         "message",
         "paymail",
@@ -63,6 +63,23 @@ const WriteArea = () => {
         dataPayload.push("context", "channel", "channel", channelId);
       }
 
+      // check for handcash token
+      let authToken = localStorage.getItem("bitchat-nitro.hc-auth-token");
+      if (authToken) {
+        let hexArray = dataPayload.map((str) =>
+          bops.to(bops.from(str, "utf8"), "hex")
+        );
+        // .join(" ")
+
+        const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+          method: "POST",
+          body: JSON.stringify({ hexArray, authToken }),
+        });
+
+        console.log({ resp });
+        // https://bitchatnitro.com/hcsend/
+        // { hexArray, authToken}
+      }
       const script = nimble.Script.fromASM(
         "OP_0 OP_RETURN " +
           dataPayload
