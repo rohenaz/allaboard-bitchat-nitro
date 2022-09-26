@@ -77,7 +77,7 @@ const Header = () => {
       <List horizontal={true} gap="16px">
         <ArrowTooltip title="GitHub Repo">
           <IconButton
-            href="https://github.com/kingyiusuen/discord-clone"
+            href="https://github.com/rohenaz/allaboard-bitchat-nitro"
             target="blank"
           >
             <FaGithub />

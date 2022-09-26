@@ -40,8 +40,22 @@ const IconWrapper = styled.div`
   ${baseIcon};
   ${roundedBackground};
   transition: 0.3s;
-  background-color: #faa519;
-
+  ${(p) =>
+    p.color
+      ? css`
+          color: ${p.color};
+        `
+      : css`
+          color: #fff;
+        `}
+  ${(p) =>
+    p.bgcolor
+      ? css`
+          background-color: ${p.bgcolor};
+        `
+      : css`
+          background-color: #faa519;
+        `}
   &:hover {
     border-radius: 16px;
   }
@@ -61,7 +75,7 @@ const IconWrapper = styled.div`
 
 const ServerIcon = ({ children, ...delegated }) => {
   return (
-    <IconWrapper size="28px" w="48px" color="white" {...delegated}>
+    <IconWrapper size="28px" w="48px" {...delegated}>
       {children}
     </IconWrapper>
   );
@@ -98,11 +112,21 @@ const ServerList = () => {
   return (
     <Container>
       <ListItem>
-        <ArrowTooltip title="Sample Server" placement="left">
+        <ArrowTooltip title="Bitchat Nitro" placement="left">
           <ServerIcon isActive isDiscord>
             <FaTerminal />
           </ServerIcon>
+
           <Pill isActive />
+        </ArrowTooltip>
+      </ListItem>
+      <ListItem>
+        <ArrowTooltip title="Bitchat Classic" placement="left">
+          <a href="https://bitchat.allaboardbitcoin.com" target="_blank">
+            <ServerIcon color="lime" bgcolor="#000">
+              <FaTerminal />
+            </ServerIcon>
+          </a>
         </ArrowTooltip>
       </ListItem>
     </Container>

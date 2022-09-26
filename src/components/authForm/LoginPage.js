@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-import { Link } from "react-router-dom";
 
 import { useRelay } from "../../context/relay";
 import { loadChannels } from "../../reducers/channelsReducer";
@@ -70,9 +69,9 @@ const LoginPage = () => {
         <SubmitButton>Login with RelayX</SubmitButton>
         <div>
           Need an account?{" "}
-          <Link to="https://relayx.com/sign-up" target="_blank">
+          <a href="https://relayx.com/sign-up" target="_blank">
             Register
-          </Link>
+          </a>
         </div>
       </Form>
     </Layout>
