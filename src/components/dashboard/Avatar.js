@@ -1,9 +1,9 @@
 import React from "react";
 
+import { head } from "lodash";
 import { FaTerminal } from "react-icons/fa";
 import { MdFiberManualRecord } from "react-icons/md";
 import styled from "styled-components";
-
 import { baseIcon, roundedBackground } from "../../design/mixins";
 
 const Wrapper = styled.div`
@@ -44,7 +44,13 @@ const BitPicIcon = ({ ...delegated }) => {
   return (
     <Wrapper color="white" {...delegated}>
       <img
-        src={`https://bitpic.network/u/${delegated.paymail}`}
+        src={
+          delegated.paymail.includes("handcash.io")
+            ? `https://cloud.handcash.io/v2/users/profilePicture/${head(
+                delegated.paymail.split("@")
+              )}`
+            : `https://bitpic.network/u/${delegated.paymail}`
+        }
         {...delegated}
         style={{ borderRadius: "50%" }}
       />
@@ -53,19 +59,23 @@ const BitPicIcon = ({ ...delegated }) => {
 };
 
 const Avatar = ({ status, onClick, ...delegated }) => {
-  return status ? (
-    <Container onClick={onClick}>
-      {delegated.paymail ? (
+  return (
+    <div style={{ position: "relative" }}>
+      {status ? (
+        <Container onClick={onClick}>
+          {delegated.paymail ? (
+            <BitPicIcon width={delegated.w} {...delegated} />
+          ) : (
+            <CodeIcon {...delegated} />
+          )}
+          <GreenDot />
+        </Container>
+      ) : delegated.paymail ? (
         <BitPicIcon width={delegated.w} {...delegated} />
       ) : (
-        <CodeIcon {...delegated} />
+        <CodeIcon onClick={onClick} {...delegated} />
       )}
-      <GreenDot />
-    </Container>
-  ) : delegated.paymail ? (
-    <BitPicIcon width={delegated.w} {...delegated} />
-  ) : (
-    <CodeIcon onClick={onClick} {...delegated} />
+    </div>
   );
 };
 

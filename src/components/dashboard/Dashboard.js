@@ -1,44 +1,44 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 
-import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 
-import Drawer from '@mui/material/Drawer';
-import styled, { css } from 'styled-components';
+import Drawer from "@mui/material/Drawer";
+import styled, { css } from "styled-components";
 
-import { hideInDesktop } from '../../design/mixins';
-import { useWindowWidth } from '../../hooks';
-import { setActiveChannel } from '../../reducers/channelsReducer';
-import { loadMessages } from '../../reducers/chatReducer';
-import { toggleMemberList } from '../../reducers/memberListReducer';
-import { toggleSidebar } from '../../reducers/sidebarReducer';
-import ChatArea from './ChatArea';
-import Header from './Header';
-import MemberList from './MemberList';
-import Sidebar from './Sidebar';
+import { hideInDesktop } from "../../design/mixins";
+import { useWindowWidth } from "../../hooks";
+import { setActiveChannel } from "../../reducers/channelsReducer";
+import { loadMessages } from "../../reducers/chatReducer";
+import { toggleMemberList } from "../../reducers/memberListReducer";
+import { toggleSidebar } from "../../reducers/sidebarReducer";
+import ChatArea from "./ChatArea";
+import Header from "./Header";
+import MemberList from "./MemberList";
+import Sidebar from "./Sidebar";
 
 const Container = styled.div`
   display: grid;
   grid-template-columns: 312px 1fr;
   grid-template-rows: 48px 1fr;
   grid-template-areas:
-    'sidebar header'
-    'sidebar chat-area';
+    "sidebar header"
+    "sidebar chat-area";
 
   ${(p) =>
     p.$isMemberListOpen &&
     css`
       grid-template-columns: 312px 1fr 240px;
       grid-template-areas:
-        'sidebar header header'
-        'sidebar chat-area member-list';
+        "sidebar header header"
+        "sidebar chat-area member-list";
     `}
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     grid-template-areas:
-      'header'
-      'chat-area';
+      "header"
+      "chat-area";
   }
 
   #sidebar {
@@ -63,7 +63,7 @@ const MobileDrawer = styled(Drawer)`
 `;
 
 const DesktopItem = styled.div`
-  display: ${(p) => (p.$isOpen ? 'block' : 'none')};
+  display: ${(p) => (p.$isOpen ? "block" : "none")};
 
   @media (max-width: 768px) {
     display: none;

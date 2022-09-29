@@ -1,11 +1,10 @@
 import React from "react";
 
-import { FaBars, FaGithub, FaSignOutAlt, FaUserFriends } from "react-icons/fa";
+import { FaBars, FaGithub, FaSignOutAlt } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { baseIcon, hideInDesktop, interactiveColor } from "../../design/mixins";
-import { toggleMemberList } from "../../reducers/memberListReducer";
 import { logout } from "../../reducers/sessionReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ArrowTooltip from "./ArrowTooltip";
@@ -83,7 +82,7 @@ const Header = () => {
             <FaGithub />
           </IconButton>
         </ArrowTooltip>
-        <ArrowTooltip
+        {/* <ArrowTooltip
           title={`${isMemberListOpen ? "Hide" : "Show"} Member list`}
         >
           <IconButton
@@ -92,7 +91,7 @@ const Header = () => {
           >
             <FaUserFriends />
           </IconButton>
-        </ArrowTooltip>
+        </ArrowTooltip> */}
         <ArrowTooltip title="Logout">
           <IconButton onClick={() => dispatch(logout())}>
             <FaSignOutAlt />

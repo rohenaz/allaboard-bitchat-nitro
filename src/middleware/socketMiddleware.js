@@ -1,27 +1,27 @@
 import { last } from "lodash";
-import { receiveNewMessage } from "../reducers/chatReducer";
+import { receiveNewMessage, receiveNewReaction } from "../reducers/chatReducer";
 
-let channelId = last(window.location.pathname.split("/")) || null;
-
-const sockQuery = (verbose, activeChannel) => {
+const sockQuery = (verbose) => {
   let q = {
     v: 3,
     q: {
       find: {
-        "MAP.type": verbose ? { $in: ["post", "message"] } : "message",
+        "MAP.type": verbose
+          ? { $in: ["post", "message", "like"] }
+          : { $in: ["message", "like"] },
       },
     },
   };
-  if (activeChannel) {
-    q.q.find["MAP.channel"] = activeChannel;
-  } else {
-    q.q.find["MAP.channel"] = { $exists: false };
-  }
+  // if (activeChannel) {
+  //   q.q.find["MAP.channel"] = activeChannel;
+  // } else {
+  //   q.q.find["MAP.channel"] = { $exists: false };
+  // }
   return q;
 };
 
 const socketMiddleware = () => {
-  var sock_b64 = btoa(JSON.stringify(sockQuery(false, channelId)));
+  var sock_b64 = btoa(JSON.stringify(sockQuery(false)));
   var socket_url = "https://b.map.sv/s/" + sock_b64;
 
   return (storeAPI) => {
@@ -30,6 +30,8 @@ const socketMiddleware = () => {
     socket.onmessage = (e) => {
       var res = JSON.parse(e.data);
       var data = res.data[0];
+      let channelId = last(window.location.pathname.split("/")) || null;
+
       console.log(res);
       if (res.type === "push" && data.MAP.type === "message") {
         // if (!audio.muted) {
@@ -41,7 +43,12 @@ const socketMiddleware = () => {
         // data.m = `${
         //   data.MAP.paymail || data.AIP?.address
         // }: ${data.B.content.trim()}`;
-        storeAPI.dispatch(receiveNewMessage(data));
+        if (
+          (!channelId && !data.MAP.channel) ||
+          channelId === data.MAP.channel
+        ) {
+          storeAPI.dispatch(receiveNewMessage(data));
+        }
         // data.timestamp = moment(data.blk.t*1000).format('M/D, h:mm:ss a');
         // data.h = data.tx.h
         // data.url = data.MAP.type === 'post' ? 'https://blockpost.network/post/' : 'https://whatsonchain.com/tx/'
@@ -58,6 +65,9 @@ const socketMiddleware = () => {
         // if (bottom()) {
         //   document.querySelector('.container').scrollTop = document.querySelector('.container').scrollHeight
         // }
+      } else if (res.type === "push" && data.MAP.type === "like") {
+        console.log("dispatch new like", data);
+        storeAPI.dispatch(receiveNewReaction(data));
       } else if (res.type === "block") {
         // TODO: put a new block message in the chat, BSV yellow color
         // var header = `NEW BLOCK ${data.block_height}`
@@ -101,11 +111,9 @@ const socketMiddleware = () => {
       switch (action.type) {
         case "channels/setActiveChannel":
           // socket.emit("set-active-channel", JSON.stringify(action.payload));
-          console.log("todo: socket change active channel");
           break;
         case "chat/sendMessage":
           // socket.emit("send-message", action.payload);
-          console.log("delete me - docket send message");
           break;
         // case "chat/editMessage":
         //   // socket.emit("edit-message", action.payload);
@@ -126,6 +134,8 @@ const socketMiddleware = () => {
           // socket.emit("new-client", action.payload);
           break;
         case "session/logout":
+          localStorage.clear();
+          window.location.href = "https://bitchatnitro.com";
           console.log("deleteme? - socket logout");
           // socket.close();
           break;

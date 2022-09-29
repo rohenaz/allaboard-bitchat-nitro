@@ -96,7 +96,8 @@ const RelayProvider = (props) => {
 
   const authenticate = useCallback(async () => {
     if (!relayOne) {
-      throw new Error("Relay script not yet loaded");
+      console.info({ relayOne, w: window.relayone });
+      throw new Error("Relay script not yet loaded!");
     }
 
     // Test localStorage is accessible
@@ -128,10 +129,11 @@ const RelayProvider = (props) => {
   }, [authenticate, isApp]);
 
   const handleScriptLoad = useCallback(() => {
+    console.log("relay script loaded", window.relayone);
     setRelayOne(window.relayone);
     setRelayOtc(window.relayotc);
     setReady(true);
-  }, []);
+  }, [setRelayOne, setReady, setRelayOtc]);
 
   const value = useMemo(
     () => ({
@@ -183,5 +185,5 @@ export { RelayProvider, useRelay };
 // Utils
 //
 
-const paymailStorageKey = "tpow__RelayProvider_paymail";
-const runOwnerStorageKey = "tpow__RelayProvider_runOwner";
+const paymailStorageKey = "nitro__RelayProvider_paymail";
+const runOwnerStorageKey = "nitro__RelayProvider_runOwner";

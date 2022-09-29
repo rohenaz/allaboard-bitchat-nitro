@@ -1,9 +1,11 @@
+import { last } from "lodash";
 import React, { useEffect, useMemo, useRef } from "react";
-
-import { useSelector } from "react-redux";
+import { FaTerminal } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-
 import { useActiveChannel, usePopover } from "../../hooks";
+import { loadReactions } from "../../reducers/chatReducer";
+import NitroIcon from "../icons/NitroIcon";
 import Hashtag from "./Hashtag";
 import Message from "./Message";
 import UserPopover from "./UserPopover";
@@ -48,9 +50,12 @@ const ContainerBottom = styled.div``;
 
 const Messages = () => {
   const activeChannel = useActiveChannel();
-
+  const dispatch = useDispatch();
   const messages = useSelector((state) => state.chat.messages);
   const hasMessages = messages.allIds.length > 0;
+
+  const reactions = useSelector((state) => state.chat.reactions);
+  const hasReactions = reactions.allIds?.length > 0;
 
   // Scroll to bottom of the chat history whenever there is a new message
   const containerBottomRef = useRef(null);
@@ -80,10 +85,29 @@ const Messages = () => {
     return [];
   }, [hasMessages, messages]);
 
+  useEffect(() => {
+    if (messagesSorted) {
+      dispatch(loadReactions(messages.allIds));
+    }
+  }, [messagesSorted]);
+
   // hasMessages &&
   //   messages.sort((a, b) => {
   //     return !!a.timestamp && a.timestamp > b.timestamp ? -1 : 1;
   //   });
+
+  const reactionList = useMemo(() => {
+    if (hasMessages) {
+      let m = [];
+      for (let txid of Object.keys(messages.byId)) {
+        m.push(messages.byId[txid]);
+      }
+      return m.sort((a, b) => {
+        return !a.timestamp || a.timestamp < b.timestamp ? -1 : 1;
+      });
+    }
+    return [];
+  }, [hasMessages, messages]);
 
   return (
     <Wrapper className="scrollable">
@@ -95,9 +119,17 @@ const Messages = () => {
             color="white"
             bgcolor="var(--background-accent)"
           />
-          <PrimaryHeading>Welcome to #{activeChannel?.channel}!</PrimaryHeading>
+          <PrimaryHeading>
+            Welcome to #
+            {activeChannel?.channel ||
+              last(window.location.pathname.split("/"))}
+            !
+          </PrimaryHeading>
           <SecondaryHeading>
-            This is the start of #{activeChannel?.channel}.
+            This is the start of #
+            {activeChannel?.channel ||
+              last(window.location.pathname.split("/"))}
+            .
           </SecondaryHeading>
           {hasMessages && <Divider />}
         </HeaderContainer>
@@ -106,7 +138,32 @@ const Messages = () => {
             <Message
               key={m.tx.h}
               message={m}
+              reactions={hasReactions ? reactions : null}
               handleClick={(event) => handleClick(event, m)}
+              appIcon={
+                m.MAP.app === "bitchat" ? (
+                  <div
+                    style={{
+                      color: "lime",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <FaTerminal style={{ width: ".75rem", height: ".75rem" }} />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      opacity: ".25",
+                    }}
+                  >
+                    <NitroIcon style={{ width: ".75rem", height: ".75rem" }} />
+                  </div>
+                )
+              }
             />
           ))}
         <ContainerBottom ref={containerBottomRef}></ContainerBottom>

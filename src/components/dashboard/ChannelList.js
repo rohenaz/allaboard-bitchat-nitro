@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 
 import { useWindowWidth } from "../../hooks";
@@ -72,6 +73,7 @@ const ChannelList = () => {
   }, [dispatch]);
 
   const { paymail } = useRelay();
+  const { profile } = useHandcash();
   // const user = useSelector((state) => state.session.user);
   const channels = useSelector((state) => state.channels);
   const activeChannelId = useSelector((state) => state.channels.active);
@@ -108,10 +110,10 @@ const ChannelList = () => {
           // bgColor={user.avatarColor}
           bgcolor={"#000"}
           status="online"
-          paymail={paymail}
+          paymail={paymail || profile?.paymail}
         />
         {/* <Username>{user.username}</Username> */}
-        <Username>{paymail}</Username>
+        <Username>{paymail || profile?.paymail}</Username>
       </Footer>
     </Container>
   );

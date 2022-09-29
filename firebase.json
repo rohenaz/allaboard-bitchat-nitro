@@ -12,6 +12,10 @@
         "function": "hcLogin"
       },
       {
+        "source": "/hcprofile",
+        "function": "hcProfile"
+      },
+      {
         "source": "/hcsend",
         "function": "hcSendMessage"
       },

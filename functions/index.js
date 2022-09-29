@@ -19,6 +19,22 @@ exports.hcLogin = functions.https.onRequest(async (req, res) => {
   return res.redirect(redirectionLoginUrl);
 });
 
+exports.hcProfile = functions.https.onRequest(async (req, res) => {
+  await cors(req, res);
+
+  if (!req.body.authToken) {
+    return res.status(401).send();
+  }
+
+  const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
+
+  const currentProfile = await account.profile.getCurrentProfile();
+  functions.logger.info(currentProfile);
+
+  const { publicProfile, privateProfile } = currentProfile;
+  return res.status(200).send({ publicProfile, privateProfile });
+});
+
 exports.hcSendMessage = functions.https.onRequest(async (req, res) => {
   await cors(req, res);
 
@@ -37,7 +53,11 @@ exports.hcSendMessage = functions.https.onRequest(async (req, res) => {
   const account = handCashConnect.getAccountFromAuthToken(authToken);
 
   const payment = {
-    description: description || "Bitchat [NITRO] data transaction",
+    description:
+      req.body.description ||
+      `Message in ${
+        req.body.channelId ? "#" + req.body.channelId : "global chat"
+      }`,
     appAction: "data",
     attachment: { format: "hexArray", value: hexArray },
   };
@@ -47,7 +67,7 @@ exports.hcSendMessage = functions.https.onRequest(async (req, res) => {
     functions.logger.info("Payment complete:", { paymentResult });
     return res.send({ paymentResult });
   } catch (e) {
-    return res.status(500).send();
+    return res.status(500).send(e);
   }
 });
 

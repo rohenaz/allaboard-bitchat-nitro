@@ -1,9 +1,12 @@
-import React from 'react';
+import React from "react";
 
-import { Navigate } from 'react-router-dom';
-import { useRelay } from '../context/relay';
+import { Navigate } from "react-router-dom";
+import { useHandcash } from "../context/handcash";
+import { useRelay } from "../context/relay";
 
 export const RequireAuth = ({ children }) => {
   const { authenticated } = useRelay();
-  return authenticated ? children : <Navigate to="/" />;
+  const { authToken } = useHandcash();
+
+  return authenticated || authToken ? children : <Navigate to="/" />;
 };

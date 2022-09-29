@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-
+import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import { loadChannels } from "../../reducers/channelsReducer";
 import HandcashIcon from "../icons/HandcashIcon";
@@ -14,6 +13,7 @@ import SubmitButton from "./SubmitButton";
 
 const LoginPage = () => {
   const { authenticate, authenticated } = useRelay();
+  const { setAuthToken, profile, getProfile } = useHandcash();
   const dispatch = useDispatch();
   const [selectedWallet, setSelectedWallet] = useState("handcash");
 
@@ -21,51 +21,52 @@ const LoginPage = () => {
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.has("authToken")) {
       let token = searchParams.get("authToken");
-      console.log("auth token set!", token);
-      localStorage.setItem("bitchat-nitro.hc-auth-token", token);
-      // '056e924727f26304ca920683db9facc378d824d336d3d819fbbf96c490b6c640'
+      setAuthToken(token);
+      getProfile();
     }
-  }, []);
+  }, [getProfile, setAuthToken]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
 
-    if (event.target.wallet.value === "handcash") {
-      window.location.href = "https://bitchatnitro.com/hclogin";
-      return;
-    }
-    // const username = event.target.username.value;
-    // const password = event.target.password.value;
-    // if (!username) {
-    //   setUsernameError("This field is required");
-    // }
-    // if (!password) {
-    //   setPasswordError("This field is required");
-    // }
-    // if (username && password) {
-    try {
-      await authenticate();
-      console.log("authenticated");
-    } catch (e) {
-      console.error("Failed to authenticate", e);
-    }
-    // dispatch(login({ username, password }));
-    // setUsernameError("");
-    // setPasswordError("");
-    // }
-  };
+      if (event.target.wallet.value === "handcash") {
+        window.location.href = "https://bitchatnitro.com/hclogin";
+        return;
+      }
+      // const username = event.target.username.value;
+      // const password = event.target.password.value;
+      // if (!username) {
+      //   setUsernameError("This field is required");
+      // }
+      // if (!password) {
+      //   setPasswordError("This field is required");
+      // }
+      // if (username && password) {
+      try {
+        await authenticate();
+        console.log("authenticated");
+      } catch (e) {
+        console.error("Failed to authenticate", e);
+      }
+      // dispatch(login({ username, password }));
+      // setUsernameError("");
+      // setPasswordError("");
+      // }
+    },
+    [authenticate]
+  );
 
   const navigate = useNavigate();
   const session = useSelector((state) => state.session);
   useEffect(() => {
-    let authToken = localStorage.getItem("bitchat-nitro.hc-auth-token");
-
-    if (authenticated || authToken) {
+    if (authenticated || profile) {
       // dispatch(connectSocket(session.user));
+
       dispatch(loadChannels());
-      navigate("/channels");
+      navigate("/channels/nitro");
     }
-  }, [dispatch, navigate, authenticated]);
+  }, [dispatch, navigate, authenticated, profile]);
 
   const walletChanged = useCallback((e) => {
     setSelectedWallet(e.target.value);
@@ -77,7 +78,7 @@ const LoginPage = () => {
         <span className="errorMessage" style={{ textAlign: "center" }}>
           {session.error}
         </span>
-        <Label for="handcash">
+        <Label htmlFor="handcash">
           <input
             type="radio"
             name="wallet"
@@ -89,7 +90,7 @@ const LoginPage = () => {
           />
           Handcash
         </Label>
-        <Label for="relayx">
+        <Label htmlFor="relayx">
           <input
             type="radio"
             name="wallet"

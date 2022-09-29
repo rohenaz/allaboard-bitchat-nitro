@@ -1,9 +1,11 @@
 import React from "react";
 
 import { FaTerminal } from "react-icons/fa";
+import { HiPlus } from "react-icons/hi";
 import styled, { css } from "styled-components";
 
 import { baseIcon, roundedBackground } from "../../design/mixins";
+import NitroIcon from "../icons/NitroIcon";
 import ArrowTooltip from "./ArrowTooltip";
 
 const PillWrapper = styled.div`
@@ -114,7 +116,7 @@ const ServerList = () => {
       <ListItem>
         <ArrowTooltip title="Bitchat Nitro" placement="left">
           <ServerIcon isActive isDiscord>
-            <FaTerminal />
+            <NitroIcon style={{ padding: ".5rem" }} />
           </ServerIcon>
 
           <Pill isActive />
@@ -125,6 +127,18 @@ const ServerList = () => {
           <a href="https://bitchat.allaboardbitcoin.com" target="_blank">
             <ServerIcon color="lime" bgcolor="#000">
               <FaTerminal />
+            </ServerIcon>
+          </a>
+        </ArrowTooltip>
+      </ListItem>
+      <ListItem>
+        <ArrowTooltip title="Create New App" placement="left">
+          <a
+            href="https://bitcoinschema.org/#/social_schema?id=message"
+            target="_blank"
+          >
+            <ServerIcon color="#5865f2" bgcolor="#333">
+              <HiPlus />
             </ServerIcon>
           </a>
         </ArrowTooltip>

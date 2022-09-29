@@ -1,10 +1,21 @@
-import React from "react";
-
+import { IconButton } from "@mui/material";
+import nimble from "@runonbitcoin/nimble";
+import Autolinker from "autolinker";
+import bops from "bops";
+import EmojiPicker from "emoji-picker-react";
+import parse from "html-react-parser";
+import { uniqBy } from "lodash";
+import React, { useCallback, useMemo, useState } from "react";
+import { MdAddReaction } from "react-icons/md";
+import OutsideClickHandler from "react-outside-click-handler";
 import styled from "styled-components";
 import { format } from "timeago.js";
-
+import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
+import { useActiveChannel } from "../../hooks";
+import ArrowTooltip from "./ArrowTooltip";
 import Avatar from "./Avatar";
+import { MAP_PREFIX } from "./WriteArea";
 
 const MessageButtons = styled.div`
   background-color: var(--background-primary);
@@ -77,6 +88,8 @@ const Content = styled.div`
   color: var(--text-normal);
   font-size: 14px;
 `;
+
+// const autolinker = new Autolinker();
 
 // const IconWrapper = styled.button`
 //   ${baseIcon};
@@ -163,14 +176,16 @@ const Content = styled.div`
 //   );
 // };
 
-const Message = ({ message, handleClick }) => {
+const Message = ({ message, reactions, appIcon, handleClick }) => {
   //const user = useSelector((state) => state.session.user);
   // const [showTextArea, setShowTextArea] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
   // const dispatch = useDispatch();
-  // const activeChannel = useActiveChannel();
+  const activeChannel = useActiveChannel();
   // const [openDeleteMessage, setOpenPopup] = useState(false);
 
-  const { paymail } = useRelay();
+  const { paymail, relayOne } = useRelay();
+  const { profile, authToken } = useHandcash();
   // const handleSubmit = (event) => {
   //   event.preventDefault();
   //   const content = event.target.value;
@@ -213,6 +228,131 @@ const Message = ({ message, handleClick }) => {
   // const handleOpenPopup = () => setOpenPopup(true);
   // const handleClosePopup = () => setOpenPopup(false);
 
+  const toggleReactions = useCallback(() => {
+    setShowReactions(!showReactions);
+  }, [showReactions]);
+
+  const messageContent = useMemo(() => {
+    let m = { ...message };
+    // Object.defineProperties(m, {
+    //   B: {
+    //     content: {
+    //       writable: true,
+    //     },
+    //   },
+    // });
+
+    if (m.B?.content?.length > 0) {
+      let m = { ...message };
+
+      let chunks = m.B.content.split(" ");
+      let idx;
+      chunks.forEach((c, i) => {
+        if (c.startsWith("#")) {
+          idx = i;
+        }
+      });
+
+      if (idx >= 0) {
+        let text = chunks[idx];
+        chunks[
+          idx
+        ] = `<a href="https://bitchatnitro.com/channels/${text.replace(
+          "#",
+          ""
+        )}">
+            ${text}
+          </a>`;
+      }
+      let l = Autolinker.link(chunks.join(" "));
+      return l;
+    }
+    return m.B?.content;
+  }, [message]);
+
+  // useEffect(() => console.log(messageContent), [messageContent]);
+
+  const emojiClick = useCallback(
+    async (e, txId) => {
+      console.log("emoji clicked", e, txId);
+      setShowReactions(false);
+      await likeMessage(paymail || profile?.paymail, txId, e.emoji);
+    },
+    [paymail, profile, showReactions]
+  );
+
+  const likeMessage = useCallback(
+    async (pm, txId, emoji) => {
+      try {
+        let dataPayload = [
+          MAP_PREFIX, // MAP Prefix
+          "SET",
+          "app",
+          "bitchatnitro.com",
+          "type",
+          "like",
+          "context",
+          "tx",
+          "tx",
+          txId,
+          "paymail",
+          pm,
+        ];
+
+        // add channel
+        if (emoji) {
+          dataPayload.push("emoji", emoji);
+        }
+
+        // check for handcash token
+        if (authToken) {
+          let hexArray = dataPayload.map((str) =>
+            bops.to(bops.from(str, "utf8"), "hex")
+          );
+          // .join(" ")
+
+          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+            method: "POST",
+            headers: new Headers({ "Content-Type": "application/json" }),
+            body: JSON.stringify({ hexArray, authToken, activeChannel }),
+          });
+
+          console.log({ resp });
+          return;
+          // https://bitchatnitro.com/hcsend/
+          // { hexArray, authToken}
+        }
+        const script = nimble.Script.fromASM(
+          "OP_0 OP_RETURN " +
+            dataPayload
+              .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
+              .join(" ")
+        );
+        let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
+
+        let resp = await relayOne().send({ outputs });
+
+        console.log("Sent", resp);
+        // let txid = resp.txid;
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [authToken]
+  );
+
+  const emojis = useMemo(
+    () => uniqBy(reactions?.byTarget[message.tx.h], (r) => r.tx.h),
+    [reactions, message]
+  );
+
+  const hasReacted = useCallback(
+    (emoji, pm) => {
+      return emojis.some((e) => e.MAP.emoji === emoji && e.MAP.paymail === pm);
+    },
+    [reactions]
+  );
+
   return (
     <Container>
       <AvatarWrapper onClick={handleClick}>
@@ -251,26 +391,103 @@ const Message = ({ message, handleClick }) => {
             </form>
           </>
         ) : ( */}
-        <Content>{message.B.content}</Content>
+        <Content>{parse(messageContent)}</Content>
+        <div
+          style={{
+            marginTop: ".5rem",
+            display: "flex",
+          }}
+        >
+          {uniqBy(emojis, (reaction) => reaction.MAP.emoji)?.map((reaction) => (
+            <div
+              key={reaction.tx.h}
+              style={{
+                borderRadius: ".3rem",
+                color: "white",
+                fontSize: "14px",
+                border: "1px solid #333",
+                padding: ".25rem",
+                width: "fit-content",
+                marginRight: ".25rem",
+                cursor: hasReacted(
+                  reaction.MAP.emoji,
+                  paymail || profile?.paymail
+                )
+                  ? "default"
+                  : "pointer",
+              }}
+              onClick={() => {
+                if (
+                  !hasReacted(reaction.MAP.emoji, paymail || profile?.paymail)
+                ) {
+                  likeMessage(
+                    paymail || profile?.paymail,
+                    reaction.MAP.tx,
+                    reaction.MAP.emoji
+                  );
+                }
+              }}
+            >
+              {reaction.MAP.emoji}{" "}
+              {emojis.filter((e) => e.MAP.emoji === reaction.MAP.emoji)?.length}{" "}
+            </div>
+          ))}
+          <div
+            style={{ position: "absolute", bottom: "1rem", right: "1.2rem" }}
+          >
+            {appIcon}
+          </div>
+        </div>
         {/* )} */}
       </div>
 
-      {paymail === message.MAP.paymail && (
-        <>
-          {/* <MessageButtons>
-            <ArrowTooltip title="Edit" placement="top">
-              <IconButton onClick={() => setShowTextArea(true)}>
-                <MdEdit />
+      {/* {(paymail === message.MAP.paymail ||
+        profile?.paymail === message.MAP.paymail) && ( */}
+      <>
+        <MessageButtons>
+          {!showReactions && (
+            <ArrowTooltip title="Add Reaction" placement="top">
+              <IconButton
+                style={{
+                  color: "rgba(255,255,255,.5)",
+                }}
+                onClick={toggleReactions}
+              >
+                <MdAddReaction />
               </IconButton>
             </ArrowTooltip>
-            <ArrowTooltip title="Delete" placement="top">
+          )}
+          {/* <ArrowTooltip title="Delete" placement="top">
               <IconButton onClick={handleOpenPopup}>
                 <RiDeleteBin5Fill />
               </IconButton>
-            </ArrowTooltip>
-          </MessageButtons> */}
+            </ArrowTooltip> */}
+        </MessageButtons>
 
-          {/* <Modal open={openDeleteMessage} onClose={handleClosePopup}>
+        {showReactions && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "0",
+              right: "0",
+              marginBottom: ".25rem",
+              marginRight: ".5rem",
+            }}
+          >
+            <OutsideClickHandler
+              onOutsideClick={() => {
+                setShowReactions(false);
+              }}
+            >
+              <EmojiPicker
+                theme={"dark"}
+                onEmojiClick={(e) => emojiClick(e, message.tx.h)}
+              />
+            </OutsideClickHandler>
+          </div>
+        )}
+
+        {/* <Modal open={openDeleteMessage} onClose={handleClosePopup}>
             <PopupContainer className="disable-select">
               <PopupMessageContainer>
                 <h2>Delete Message</h2>
@@ -284,8 +501,8 @@ const Message = ({ message, handleClick }) => {
               </PopupButtonContainer>
             </PopupContainer>
           </Modal> */}
-        </>
-      )}
+      </>
+      {/* )} */}
     </Container>
   );
 };

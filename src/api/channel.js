@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'https://b.map.sv/q/',
+  baseURL: "https://b.map.sv/q/",
 });
 
 const verboseMode = false;
@@ -12,20 +12,20 @@ var queryChannels = {
     aggregate: [
       {
         $match: {
-          'MAP.type': 'message',
-          'MAP.channel': { $not: { $regex: '^\\s*$|^$|_enc$' } },
+          "MAP.type": "message",
+          "MAP.channel": { $not: { $regex: "^\\s*$|^$|_enc$" } },
         },
       },
       {
-        $sort: { 'blk.t': 1 },
+        $sort: { "blk.t": 1 },
       },
       {
         $group: {
-          _id: { $toLower: '$MAP.channel' },
-          channel: { $first: { $toLower: '$MAP.channel' } },
-          creator: { $first: '$MAP.paymail' },
-          last_message: { $last: '$B.content' },
-          last_message_time: { $last: '$timestamp' },
+          _id: { $toLower: "$MAP.channel" },
+          channel: { $first: { $toLower: "$MAP.channel" } },
+          creator: { $first: "$MAP.paymail" },
+          last_message: { $last: "$B.content" },
+          last_message_time: { $last: "$timestamp" },
           messages: { $sum: 1 },
         },
       },
@@ -41,20 +41,39 @@ const query = (verboseMode, channelId) => {
     v: 3,
     q: {
       find: {
-        'MAP.type': verboseMode ? { $in: ['post', 'message'] } : 'message',
+        "MAP.type": verboseMode ? { $in: ["post", "message"] } : "message",
       },
       sort: {
         timestamp: -1,
-        'blk.t': -1,
+        "blk.t": -1,
       },
       limit: 100,
     },
   };
   if (channelId) {
-    q.q.find['MAP.channel'] = channelId;
+    q.q.find["MAP.channel"] = channelId;
   } else {
-    q.q.find['MAP.channel'] = { $exists: false };
+    q.q.find["MAP.channel"] = { $exists: false };
   }
+  return btoa(JSON.stringify(q));
+};
+
+const queryReactions = (txIds) => {
+  let q = {
+    v: 3,
+    q: {
+      find: {
+        "MAP.type": "like",
+        "MAP.tx": { $in: txIds || [] },
+      },
+      sort: {
+        timestamp: -1,
+        "blk.t": -1,
+      },
+      limit: 1000,
+    },
+  };
+
   return btoa(JSON.stringify(q));
 };
 
@@ -64,4 +83,8 @@ export const getChannels = async () => {
 
 export const getMessages = async (channelId) => {
   return await api.get(query(verboseMode, channelId));
+};
+
+export const getReactions = async (txIds) => {
+  return await api.get(queryReactions(txIds));
 };

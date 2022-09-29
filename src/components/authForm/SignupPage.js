@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
-import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { Link } from "react-router-dom";
 
-import { loadChannels } from '../../reducers/channelsReducer';
-import { signup } from '../../reducers/sessionReducer';
-import Form from './Form';
-import Input from './Input';
-import Label from './Label';
-import Layout from './Layout';
-import SubmitButton from './SubmitButton';
+import { loadChannels } from "../../reducers/channelsReducer";
+import { signup } from "../../reducers/sessionReducer";
+import Form from "./Form";
+import Input from "./Input";
+import Label from "./Label";
+import Layout from "./Layout";
+import SubmitButton from "./SubmitButton";
 
 const SignupPage = () => {
-  const [usernameError, setUsernameError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const dispatch = useDispatch();
 
   const handleSubmit = (event) => {
@@ -22,20 +22,20 @@ const SignupPage = () => {
     const username = event.target.username.value;
     const password = event.target.password.value;
     let noValidationError = true;
-    setUsernameError('');
-    setPasswordError('');
+    setUsernameError("");
+    setPasswordError("");
     if (!username) {
-      setUsernameError('This field is required');
+      setUsernameError("This field is required");
       noValidationError = false;
     } else if (username.length < 2 || username.length > 32) {
-      setUsernameError('Must be between 2 and 32 in length');
+      setUsernameError("Must be between 2 and 32 in length");
       noValidationError = false;
     }
     if (!password) {
-      setPasswordError('This field is required');
+      setPasswordError("This field is required");
       noValidationError = false;
     } else if (password.length < 6 || password.length > 72) {
-      setPasswordError('Must be between 6 and 72 in length');
+      setPasswordError("Must be between 6 and 72 in length");
       noValidationError = false;
     }
     if (noValidationError) {
@@ -49,14 +49,14 @@ const SignupPage = () => {
     if (session.isAuthenticated) {
       // dispatch(connectSocket(session.user));
       dispatch(loadChannels());
-      navigate('/channels/bitchat');
+      navigate("/channels/nitro");
     }
   }, [dispatch, navigate, session]);
 
   return (
     <Layout heading="Create an Account">
       <Form onSubmit={handleSubmit}>
-        <span className="errorMessage" style={{ textAlign: 'center' }}>
+        <span className="errorMessage" style={{ textAlign: "center" }}>
           {session.error}
         </span>
         <Label error={usernameError}>
