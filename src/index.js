@@ -4,6 +4,7 @@ import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 
 import App from "./App";
+import { BapProvider } from "./context/bap";
 import { HandcashProvider } from "./context/handcash";
 import { RelayProvider } from "./context/relay";
 import "./index.css";
@@ -13,7 +14,9 @@ ReactDOM.render(
   <Provider store={store}>
     <RelayProvider>
       <HandcashProvider>
-        <App />
+        <BapProvider>
+          <App />
+        </BapProvider>
       </HandcashProvider>
     </RelayProvider>
   </Provider>,

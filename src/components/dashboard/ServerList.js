@@ -5,6 +5,7 @@ import { HiPlus } from "react-icons/hi";
 import styled, { css } from "styled-components";
 
 import { baseIcon, roundedBackground } from "../../design/mixins";
+import BlockpostIcon from "../icons/BlockpostIcon";
 import NitroIcon from "../icons/NitroIcon";
 import ArrowTooltip from "./ArrowTooltip";
 
@@ -127,6 +128,15 @@ const ServerList = () => {
           <a href="https://bitchat.allaboardbitcoin.com" target="_blank">
             <ServerIcon color="lime" bgcolor="#000">
               <FaTerminal />
+            </ServerIcon>
+          </a>
+        </ArrowTooltip>
+      </ListItem>
+      <ListItem>
+        <ArrowTooltip title="BlockPost.network" placement="left">
+          <a href="https://blockpost.network/bitchat" target="_blank">
+            <ServerIcon color="white" bgcolor="#49485a">
+              <BlockpostIcon />
             </ServerIcon>
           </a>
         </ArrowTooltip>

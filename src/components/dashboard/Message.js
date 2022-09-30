@@ -330,7 +330,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
         );
         let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
 
-        let resp = await relayOne().send({ outputs });
+        let resp = await relayOne.send({ outputs });
 
         console.log("Sent", resp);
         // let txid = resp.txid;

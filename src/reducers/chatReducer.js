@@ -1,9 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-
+import { last } from "lodash";
 import * as channelAPI from "../api/channel";
+
 var audio = new Audio("https://bitchatnitro.com/audio/notify.mp3");
 audio.volume = 0.25;
-//const searchParams = new URLSearchParams(window.location.search);
 
 export const loadMessages = createAsyncThunk(
   "chat/loadMessages",
@@ -53,7 +53,15 @@ const chatSlice = createSlice({
       const message = action.payload;
       state.messages.byId[message.tx.h] = message;
       state.messages.allIds.push(message.tx.h);
-      audio.play();
+
+      // plan audio if channel matches
+      let channelId = last(window.location.pathname.split("/")) || null;
+      if (
+        (!channelId && !message.MAP?.channel) ||
+        channelId?.toLowerCase() === message.MAP?.channel?.toLowerCase()
+      ) {
+        audio.play();
+      }
     },
     receiveEditedMessage(state, action) {
       const message = action.payload;

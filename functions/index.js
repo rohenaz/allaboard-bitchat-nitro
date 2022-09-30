@@ -1,10 +1,12 @@
 const functions = require("firebase-functions");
 const cors = require("cors-async")({ origin: true });
+const bsv = require("bsv");
 const { HandCashConnect } = require("@handcash/handcash-connect");
 const handCashConnect = new HandCashConnect({
   appId: functions.config().handcash.app_id,
   appSecret: functions.config().handcash.app_secret,
 });
+const ECIES = require("bsv/ecies");
 
 // functions.config().handcash.app_id
 // functions.config().handcash.app_secret
@@ -19,6 +21,61 @@ exports.hcLogin = functions.https.onRequest(async (req, res) => {
   return res.redirect(redirectionLoginUrl);
 });
 
+exports.hcEncrypt = functions.https.onRequest(async (req, res) => {
+  await cors(req, res);
+
+  if (!req.body.authToken) {
+    return res.status(401).send();
+  }
+
+  if (!req.body.data) {
+    return res.status(400).send();
+  }
+  const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
+  const { privateKey } = await account.profile.getEncryptionKeypair();
+
+  // encrypt
+  const ecies = new ECIES();
+  const publicKey = bsv.PrivateKey.fromWIF(privateKey).publicKey.toString();
+  ecies.publicKey(publicKey);
+  const b64encrypted = ecies
+    .encrypt(JSON.stringify(req.body.data))
+    .toString("base64");
+
+  // ecies.privateKey(privateKey).decrypt
+  return res.status(200).send({ encryptedData: b64encrypted });
+});
+
+exports.hcDecrypt = functions.https.onRequest(async (req, res) => {
+  await cors(req, res);
+
+  if (!req.body.authToken) {
+    return res.status(401).send();
+  }
+
+  if (!req.body.encryptedData) {
+    return res.status(400).send();
+  }
+
+  const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
+  const { privateKey } = await account.profile.getEncryptionKeypair();
+
+  // decrypt identity file
+  const ecies = new ECIES();
+  ecies.privateKey(bsv.PrivateKey.fromString(privateKey));
+  const identityDec = ecies
+    .decrypt(Buffer.from(req.body.encryptedData, "base64"))
+    .toString();
+
+  return res.status(200).send(JSON.parse(identityDec));
+
+  // import ECIES from 'bsv/ecies';
+
+  // ECIES().privateKey(privateKey).encrypt()
+
+  // return res.status(200).send({});
+});
+
 exports.hcProfile = functions.https.onRequest(async (req, res) => {
   await cors(req, res);
 
@@ -29,7 +86,15 @@ exports.hcProfile = functions.https.onRequest(async (req, res) => {
   const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
 
   const currentProfile = await account.profile.getCurrentProfile();
-  functions.logger.info(currentProfile);
+  functions.logger.info({ currentProfile });
+
+  // get public key from request
+  // const { publicKey, privateKey } = handCashConnect.getEncryptionKeypair(req.body.publicKey);
+  // identity = new BAP(identityDec.xprv);
+
+  // if (identityDec.ids) {
+  //   identity.importIds(identityDec.ids);
+  // }
 
   const { publicProfile, privateProfile } = currentProfile;
   return res.status(200).send({ publicProfile, privateProfile });

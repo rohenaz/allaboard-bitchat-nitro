@@ -1,10 +1,14 @@
 import React, { useCallback } from "react";
 
 import nimble from "@runonbitcoin/nimble";
+import { BAP } from "bitcoin-bap";
 import bops from "bops";
+import bsv from "bsv";
+import Buffer from "Buffer";
 import { last } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+import { useBap } from "../../context/bap";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import { useActiveChannel } from "../../hooks";
@@ -30,7 +34,8 @@ const WriteArea = () => {
   const dispatch = useDispatch();
   // const user = useSelector((state) => state.session.user);
   const { relayOne, paymail } = useRelay();
-  const { profile, authToken } = useHandcash();
+  const { profile, authToken, hcDecrypt } = useHandcash();
+  const { identity } = useBap();
 
   const activeChannel = useActiveChannel();
   const channelId = last(window.location.pathname.split("/"));
@@ -77,6 +82,62 @@ const WriteArea = () => {
           dataPayload.push("context", "channel", "channel", channel);
         }
 
+        if (identity) {
+          // decrypt and import identity
+          const decIdentity = await hcDecrypt(identity);
+          console.log("sign with", decIdentity);
+
+          console.log({ BAP });
+
+          let bapId = new BAP(decIdentity.xprv);
+          console.log("BAP id", bapId);
+          if (decIdentity.ids) {
+            bapId.importIds(decIdentity.ids);
+          }
+
+          const ids = bapId.listIds();
+          console.log({ ids });
+          const idy = bapId.getId(ids[0]); // only support for 1 id per profile now
+          console.log({
+            idy: idy.signOpReturnWithAIP,
+            getAipBuf: idy.getAIPMessageBuffer,
+          });
+          const ops = dataPayload.map((d) => Buffer.to(Buffer.from(d), "hex"));
+
+          // const aipBuff = idy.getAIPMessageBuffer();
+          // console.log({ aipBuff, apiString: aipBuff.toString("utf8") });
+
+          console.log({ ops, Buffer });
+          const signedOps = idy.signOpReturnWithAIP(
+            ops,
+            idy.currentPath,
+            bsv.HDPrivateKey.fromString(decIdentity.xprv)
+          );
+
+          // sign the payload
+          // derive a child for signing?
+          // let hdk = bsv.HDPrivateKey.fromString(decIdentity.xprv);
+          // const child = hdk.deriveChild("m/0/0");
+          // const aipSignAddress = bsv.Address.fromPrivateKey(child.privateKey);
+          // dataPayload.push(AIP_PREFIX, "BITCOIN_ECDSA", aipSignAddress);
+
+          console.log({ signedOps });
+
+          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+            method: "POST",
+            headers: new Headers({ "Content-Type": "application/json" }),
+            body: JSON.stringify({
+              hexArray: signedOps, // remove op_false op_return
+              authToken,
+              channel,
+            }),
+          });
+
+          console.log({ resp });
+
+          return;
+        }
+
         // check for handcash token
         // let authToken = localStorage.getItem("bitchat-nitro.hc-auth-token");
         if (authToken) {
@@ -112,7 +173,7 @@ const WriteArea = () => {
         console.error(e);
       }
     },
-    [relayOne, authToken]
+    [identity, relayOne, authToken]
   );
 
   const typingUser = useSelector((state) => state.chat.typingUser);
@@ -182,4 +243,104 @@ const WriteArea = () => {
 export default WriteArea;
 
 const B_PREFIX = `19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut`;
+const AIP_PREFIX = `15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva`;
 export const MAP_PREFIX = `1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5`;
+
+// /**
+//  * Sign an op_return hex array with AIP
+//  * @param opReturn {array}
+//  * @param signingPath {string}
+//  * @param outputType {string}
+//  * @return {[]}
+//  */
+// const signOpReturnWithAIP = (
+//   opReturn,
+//   currentPath,
+//   pk,
+//   signingPath = "",
+//   outputType = "hex"
+// ) => {
+//   const aipMessageBuffer = getAIPMessageBuffer(opReturn);
+
+//   const { address, signature } = signMessage(
+//     aipMessageBuffer,
+//     currentPath,
+//     pk,
+//     signingPath
+//   );
+
+//   return opReturn.concat([
+//     bops.to(bops.from("|", "utf8"), outputType),
+//     bops.to(bops.from(AIP_PREFIX, "utf8"), outputType),
+//     bops.to(bops.from("BITCOIN_ECDSA", "utf8"), outputType),
+//     bops.to(bops.from(address, "utf8"), outputType),
+//     bops.to(bops.from(signature, "base64"), outputType),
+//   ]);
+// };
+
+// /**
+//  * Construct an AIP buffer from the op return data
+//  * @param opReturn
+//  * @returns {Buffer}
+//  */
+// const getAIPMessageBuffer = (opReturn) => {
+//   const buffers = [];
+//   if (opReturn[0].replace("0x", "") !== "6a") {
+//     // include OP_RETURN in constructing the signature buffer
+//     buffers.push(bops.from("6a", "hex"));
+//   }
+//   opReturn.forEach((op) => {
+//     buffers.push(bops.from(op.replace("0x", ""), "hex"));
+//   });
+//   // add a trailing "|" - this is the AIP way
+//   buffers.push(bops.from("|"));
+
+//   return bops.join([...buffers]);
+// };
+
+// /**
+//  * Sign a message with the current signing address of this identity
+//  *
+//  * @param message
+//  * @param signingPath
+//  * @returns {{address, signature}}
+//  */
+// const signMessage = (message, currentPath, pk, signingPath = "") => {
+//   // if (!(message instanceof Buffer)) {
+//   //   message = bops.from(message, "");
+//   // }
+
+//   signingPath = signingPath || currentPath;
+//   const derivedChild = pk.deriveChild(signingPath);
+//   const address = derivedChild.privateKey.publicKey.toAddress().toString();
+
+//   console.log({ address, derivedChild });
+//   const bsvMsg = new bsv.Message(message);
+//   console.log({ bsvMsg });
+//   var hash = bsvMsg.magicHash();
+//   // return ECDSA.signWithCalcI(hash, privateKey);
+//   const signature = bsv.ECDSA.signWithCalcI(hash, derivedChild.privateKey);
+
+//   // const signature = bsv.Message(message).sign(derivedChild.privateKey);
+
+//   return { address, signature };
+// };
+
+// var sha256sha256 = bsv.crypto.Hash.sha256sha256;
+
+// const magicHash = () => {
+//   var prefix1 = bsv.util.BufferWriter.varintBufNum(
+//     bsv.Message.MAGIC_BYTES.length
+//   );
+//   var prefix2 = bsv.util.BufferWriter.varintBufNum(
+//     bsv.Message.messageBuffer.length
+//   );
+//   var buf = bops.join([
+//     prefix1,
+//     bsv.Message.MAGIC_BYTES,
+//     prefix2,
+//     bsv.Message.messageBuffer,
+//   ]);
+//   var hash = sha256sha256(buf);
+//   return hash;
+// };

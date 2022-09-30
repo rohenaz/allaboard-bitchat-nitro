@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { useActiveChannel, usePopover } from "../../hooks";
 import { loadReactions } from "../../reducers/chatReducer";
+import BlockpostIcon from "../icons/BlockpostIcon";
 import NitroIcon from "../icons/NitroIcon";
 import Hashtag from "./Hashtag";
 import Message from "./Message";
@@ -63,6 +64,10 @@ const Messages = () => {
     containerBottomRef.current.scrollIntoView(false);
   }, [messages.allIds, containerBottomRef]);
 
+  useEffect(() => {
+    console.log({ activeChannel });
+  }, [activeChannel]);
+
   const [
     user,
     anchorEl,
@@ -76,14 +81,19 @@ const Messages = () => {
     if (hasMessages) {
       let m = [];
       for (let txid of Object.keys(messages.byId)) {
-        m.push(messages.byId[txid]);
+        if (
+          (!activeChannel?.channel && !messages.byId[txid].MAP.channel) ||
+          messages.byId[txid].MAP.channel === activeChannel?.channel
+        ) {
+          m.push(messages.byId[txid]);
+        }
       }
       return m.sort((a, b) => {
         return !a.timestamp || a.timestamp < b.timestamp ? -1 : 1;
       });
     }
     return [];
-  }, [hasMessages, messages]);
+  }, [hasMessages, messages, activeChannel]);
 
   useEffect(() => {
     if (messagesSorted) {
@@ -150,6 +160,16 @@ const Messages = () => {
                     }}
                   >
                     <FaTerminal style={{ width: ".75rem", height: ".75rem" }} />
+                  </div>
+                ) : m.MAP.app === "blockpost.network" ? (
+                  <div
+                    style={{
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <BlockpostIcon style={{ width: "1rem" }} />
                   </div>
                 ) : (
                   <div

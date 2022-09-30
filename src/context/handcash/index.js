@@ -16,16 +16,13 @@ const HandcashProvider = (props) => {
     // if we dont have the paymail, get it
     if (authToken) {
       try {
-        const resp = await fetch(
-          `https://us-central1-bitchat-discord.cloudfunctions.net/hcProfile`,
-          {
-            method: "POST",
-            headers: {
-              "Content-type": "application/json",
-            },
-            body: JSON.stringify({ authToken }),
-          }
-        );
+        const resp = await fetch(`https://bitchatnitro.com/hcprofile`, {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify({ authToken }),
+        });
         const { publicProfile } = await resp.json();
         console.log({ publicProfile });
         setProfile(publicProfile);
@@ -37,6 +34,74 @@ const HandcashProvider = (props) => {
     }
   }, [authToken, setProfile]);
 
+  const hcEncrypt = useCallback(
+    (data) => {
+      return new Promise((resolve, reject) => {
+        // Test localStorage is accessible
+        if (!lsTest()) {
+          reject(new Error("localStorage is not available"));
+          return;
+        }
+
+        // if we dont have the paymail, get it
+        if (authToken) {
+          fetch(`https://bitchatnitro.com/hcencrypt`, {
+            method: "POST",
+            headers: {
+              "Content-type": "application/json",
+            },
+            body: JSON.stringify({ authToken, data }),
+          })
+            .then((resp) => {
+              resp
+                .json()
+                .then((d) => {
+                  const { encryptedData } = d;
+                  console.log({ encryptedData });
+                  resolve(encryptedData);
+                })
+                .catch((e) => reject(e));
+            })
+            .catch((e) => reject(e));
+        } else {
+          reject(new Error("no auth token"));
+        }
+      });
+    },
+    [authToken, setProfile]
+  );
+
+  const hcDecrypt = useCallback(
+    async (encryptedData) => {
+      return new Promise((resolve, reject) => {
+        // Test localStorage is accessible
+        if (!lsTest()) {
+          reject(new Error("localStorage is not available"));
+        }
+
+        // if we dont have the paymail, get it
+        if (authToken) {
+          if (encryptedData) {
+            fetch(`https://bitchatnitro.com/hcdecrypt`, {
+              method: "POST",
+              headers: {
+                "Content-type": "application/json",
+              },
+              body: JSON.stringify({ authToken, encryptedData }),
+            })
+              .then((resp) => {
+                resp.json().then(resolve);
+              })
+              .catch(reject);
+          }
+        } else {
+          reject(new Error("no auth token"));
+        }
+      });
+    },
+    [authToken, setProfile]
+  );
+
   const value = useMemo(
     () => ({
       setProfile,
@@ -44,8 +109,18 @@ const HandcashProvider = (props) => {
       getProfile,
       authToken,
       setAuthToken,
+      hcEncrypt,
+      hcDecrypt,
     }),
-    [authToken, profile, setProfile, getProfile, setAuthToken]
+    [
+      authToken,
+      profile,
+      setProfile,
+      getProfile,
+      setAuthToken,
+      hcEncrypt,
+      hcDecrypt,
+    ]
   );
 
   return (

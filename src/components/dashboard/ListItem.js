@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 
-import styled, { css } from 'styled-components';
+import styled, { css } from "styled-components";
 
 const Text = styled.span`
   font-size: 15px;
   font-weight: 500;
-  color: var(--channels-default);
+  ${(p) => `color: ${p.isActive ? "white" : "var(--channels-default)"}`};
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -39,12 +39,12 @@ const Container = styled.div`
     `}
 `;
 
-const ListItem = ({ icon, text, isActive, ...delegated }) => {
+const ListItem = ({ icon, text, isActive, hasActivity, ...delegated }) => {
   return (
     <Container isActive={isActive} {...delegated}>
       <>{icon}</>
       {text && (
-        <Text isActive={isActive} className="disable-select">
+        <Text isActive={isActive || hasActivity} className="disable-select">
           {text}
         </Text>
       )}

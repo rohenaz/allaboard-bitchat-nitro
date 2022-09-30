@@ -1,11 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { useBap } from "../../context/bap";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 
+import { head } from "lodash";
 import { useWindowWidth } from "../../hooks";
 import { loadChannels } from "../../reducers/channelsReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
@@ -73,11 +75,44 @@ const ChannelList = () => {
   }, [dispatch]);
 
   const { paymail } = useRelay();
-  const { profile } = useHandcash();
+  const { profile, hcEncrypt, authToken } = useHandcash();
+  const { setIdentity, identity } = useBap();
+
   // const user = useSelector((state) => state.session.user);
   const channels = useSelector((state) => state.channels);
   const activeChannelId = useSelector((state) => state.channels.active);
   const isInDesktop = useWindowWidth() > 768;
+
+  const messages = useSelector((state) => state.chat.messages);
+  const hasMessages = messages.allIds.length > 0;
+
+  const inputFileRef = React.useRef();
+
+  const onFileChange = useCallback(
+    async (e) => {
+      /*Selected files data can be collected here.*/
+      console.log(e.target.files);
+
+      // const encryptedData = localStorage.getItem("bitchat-nitro._bapid");
+
+      const file = head(e.target.files);
+      const text = await toText(file);
+
+      console.log({ text, authToken });
+      // encrypt the uploaded file and store it locally
+      if (authToken) {
+        // handcash
+        const encryptedData = await hcEncrypt(JSON.parse(text));
+        console.log({ encryptedData });
+        setIdentity(encryptedData);
+      }
+    },
+    [authToken, hcEncrypt, setIdentity]
+  );
+
+  const uploadIdentity = useCallback(() => {
+    inputFileRef.current.click();
+  }, []);
 
   return (
     <Container className="disable-select">
@@ -96,14 +131,28 @@ const ChannelList = () => {
                 <ListItem
                   icon={<Hashtag size="20px" />}
                   text={id || "global"}
-                  style={{ gap: "8px", padding: "8px 4px" }}
+                  style={{
+                    gap: "8px",
+                    padding: "8px 4px",
+                  }}
+                  hasActivity={
+                    (!id &&
+                      messages?.allIds?.some(
+                        (cid) =>
+                          messages.byId[cid]?.MAP &&
+                          !messages.byId[cid]?.MAP.channel
+                      )) ||
+                    messages?.allIds?.some(
+                      (cid) => messages.byId[cid]?.MAP.channel === id
+                    )
+                  }
                   isActive={id === activeChannelId || (!id && !activeChannelId)}
                 />
               </Link>
             ))}
         </List>
       </Content>
-      <Footer>
+      <Footer onClick={uploadIdentity}>
         <Avatar
           size="21px"
           w="32px"
@@ -114,9 +163,23 @@ const ChannelList = () => {
         />
         {/* <Username>{user.username}</Username> */}
         <Username>{paymail || profile?.paymail}</Username>
+        <input
+          type="file"
+          ref={inputFileRef}
+          onChange={onFileChange}
+          style={{ display: "none" }}
+        />
       </Footer>
     </Container>
   );
 };
 
 export default ChannelList;
+
+const toText = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });

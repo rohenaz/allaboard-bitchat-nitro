@@ -43,12 +43,12 @@ const socketMiddleware = () => {
         // data.m = `${
         //   data.MAP.paymail || data.AIP?.address
         // }: ${data.B.content.trim()}`;
-        if (
-          (!channelId && !data.MAP.channel) ||
-          channelId === data.MAP.channel
-        ) {
-          storeAPI.dispatch(receiveNewMessage(data));
-        }
+        // if (
+        //   (!channelId && !data.MAP.channel) ||
+        //   channelId === data.MAP.channel
+        // ) {
+        storeAPI.dispatch(receiveNewMessage(data));
+        // }
         // data.timestamp = moment(data.blk.t*1000).format('M/D, h:mm:ss a');
         // data.h = data.tx.h
         // data.url = data.MAP.type === 'post' ? 'https://blockpost.network/post/' : 'https://whatsonchain.com/tx/'

@@ -20,6 +20,14 @@
         "function": "hcSendMessage"
       },
       {
+        "source": "/hcencrypt",
+        "function": "hcEncrypt"
+      },
+      {
+        "source": "/hcdecrypt",
+        "function": "hcDecrypt"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

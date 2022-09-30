@@ -14,6 +14,7 @@
   "main": "index.js",
   "dependencies": {
     "@handcash/handcash-connect": "^0.4.3",
+    "bsv": "^1.5.4",
     "cors-async": "^0.2.1",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0"
