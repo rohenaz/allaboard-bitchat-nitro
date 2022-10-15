@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { FaBars, FaGithub, FaSignOutAlt } from "react-icons/fa";
 import { ImProfile } from "react-icons/im";
@@ -6,10 +6,12 @@ import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { baseIcon, hideInDesktop, interactiveColor } from "../../design/mixins";
+import { useActiveUser } from "../../hooks";
 import { toggleProfile } from "../../reducers/profileReducer";
 import { logout } from "../../reducers/sessionReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ArrowTooltip from "./ArrowTooltip";
+import At from "./At";
 import Hashtag from "./Hashtag";
 import List from "./List";
 
@@ -31,6 +33,10 @@ const Heading = styled.h2`
 `;
 
 const IconWrapper = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
   ${baseIcon};
   ${interactiveColor};
   background-color: transparent;
@@ -63,20 +69,36 @@ const Header = () => {
   const channels = useSelector((state) => state.channels);
   const activeChannelId = useSelector((state) => state.channels.active);
   const activeUserId = useSelector((state) => state.memberList.active);
+  const activeUser = useActiveUser();
+
+  useEffect(() => {
+    console.log({ activeUserId });
+  }, [activeUserId]);
 
   return (
     <Container id="header" className="disable-select">
       <List horizontal={true} gap="10px">
-        <IconButton onClick={() => dispatch(toggleSidebar())} $isHamburger>
-          <FaBars />
-        </IconButton>
-        <List horizontal={true} gap="6px" style={{ alignItems: "center" }}>
-          {activeChannelId && <Hashtag size="22px" w="24px" />}
-          <Heading>
-            {!channels.loading &&
-              (activeChannelId || `@${activeUserId}` || "global chat")}
-          </Heading>
-        </List>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <IconButton onClick={() => dispatch(toggleSidebar())} $isHamburger>
+            <FaBars />
+          </IconButton>
+          <List horizontal={true} gap="6px" style={{ alignItems: "center" }}>
+            {activeChannelId && <Hashtag size={`22px`} w={`22px`} />}
+            {activeUserId && <At size={`22px`} w={`22px`} h={`22px`} />}
+            <Heading>
+              {!channels.loading &&
+                (activeChannelId ||
+                  `${activeUser?.user?.alternateName || activeUserId}` ||
+                  "global chat")}
+            </Heading>
+          </List>
+        </div>
       </List>
       <List horizontal={true} gap="16px">
         <ArrowTooltip title="GitHub Repo">

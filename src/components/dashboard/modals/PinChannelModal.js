@@ -18,6 +18,16 @@ const PopupMessageContainer = styled.div`
   }
 `;
 
+const PinUntilContainer = styled.div`
+  padding: 16px;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+
+  div {
+    padding-bottom: 16px;
+  }
+`;
+
 const PopupButtonContainer = styled.div`
   background-color: var(--background-secondary);
   border-radius: 4px;
@@ -129,12 +139,12 @@ const PinChannelModal = ({ open, onClose, channel }) => {
             />
           </div>
 
-          <PopupMessageContainer>
+          <PinUntilContainer>
             Pin until:{" "}
             {moment()
               .add(units * minutesPerUnit, "minutes")
               .format("MMM Do, h:mm:ss a")}
-          </PopupMessageContainer>
+          </PinUntilContainer>
           <PopupButtonContainer>
             <CancelButton onClick={onClose}>Cancel</CancelButton>
             <PinButton

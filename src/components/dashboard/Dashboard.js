@@ -126,6 +126,7 @@ const Dashboard = () => {
   const activeChannelId = params.channel;
   const activeUserId = params.user;
   const dispatch = useDispatch();
+
   useEffect(() => {
     dispatch(setActiveChannel(activeChannelId));
     dispatch(setActiveUser(activeUserId));

@@ -202,14 +202,17 @@ const Messages = () => {
     } else if (activeUser) {
       // TODO: Hook up avatar status
       return (
-        <Avatar
-          size="21px"
-          w="32px"
-          // bgColor={user.avatarColor}
-          bgcolor={"#000"}
-          // status="online"
-          icon={activeUser.user.logo}
-        />
+        <>
+          <Avatar
+            size={72}
+            w={72}
+            h={72}
+            // bgColor={user.avatarColor}
+            bgcolor={"#000"}
+            // status="online"
+            icon={activeUser.user.logo}
+          />
+        </>
       );
     }
     return null;
@@ -223,7 +226,7 @@ const Messages = () => {
 
           <PrimaryHeading>{heading}</PrimaryHeading>
           <SecondaryHeading>{subheading}</SecondaryHeading>
-          {!pins.byChannel[activeChannel?.channel] && (
+          {!activeUser && !pins.byChannel[activeChannel?.channel] && (
             <div
               style={{
                 cursor: "pointer",

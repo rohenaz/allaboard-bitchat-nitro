@@ -42,6 +42,9 @@ const codeIconStyle = css`
 `;
 
 const IconWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   ${baseIcon};
   ${roundedBackground};
   transition: 0.3s;

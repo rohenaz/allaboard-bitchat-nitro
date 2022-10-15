@@ -26,9 +26,10 @@ export const useActiveChannel = () => {
 
 export const useActiveUser = () => {
   const loading = useSelector((state) => state.memberList.loading);
+  const activeChannelId = useSelector((state) => state.channels.active);
   const activeUserId = useSelector((state) => state.memberList.active);
   const usersById = useSelector((state) => state.memberList.byId);
-  return !loading && usersById[activeUserId];
+  return !activeChannelId && !loading && usersById[activeUserId];
 };
 
 export const usePopover = () => {
