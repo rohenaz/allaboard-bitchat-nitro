@@ -7,6 +7,7 @@ const handCashConnect = new HandCashConnect({
   appSecret: functions.config().handcash.app_secret,
 });
 const ECIES = require("bsv/ecies");
+const { BAP } = require("bitcoin-bap");
 
 // functions.config().handcash.app_id
 // functions.config().handcash.app_secret
@@ -76,6 +77,74 @@ exports.hcDecrypt = functions.https.onRequest(async (req, res) => {
   // return res.status(200).send({});
 });
 
+exports.hcSignOpReturnWithAIP = functions.https.onRequest(async (req, res) => {
+  await cors(req, res);
+
+  if (!req.body.authToken) {
+    return res.status(401).send();
+  }
+
+  if (!req.body.encryptedIdentity) {
+    return res.status(400).send();
+  }
+
+  if (!req.body.hexArray) {
+    return res.status(400).send();
+  }
+
+  let hexArray = req.body.hexArray;
+  const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
+  const { privateKey } = await account.profile.getEncryptionKeypair();
+
+  // decrypt identity file
+  const ecies = new ECIES();
+  ecies.privateKey(bsv.PrivateKey.fromString(privateKey));
+  const identityDec = ecies
+    .decrypt(Buffer.from(req.body.encryptedIdentity, "base64"))
+    .toString();
+  const decIdentity = JSON.parse(identityDec);
+
+  // const decIdentity = await hcDecrypt(identity);
+  // console.log("sign with", decIdentity);
+
+  functions.logger.info({ BAP, decIdentity });
+
+  let bapId = new BAP(decIdentity.xprv);
+  functions.logger.info("BAP id", bapId);
+  if (decIdentity.ids) {
+    bapId.importIds(decIdentity.ids);
+  }
+
+  const ids = bapId.listIds();
+  functions.logger.info({ ids });
+  const idy = bapId.getId(ids[0]); // only support for 1 id per profile now
+  console.log({
+    idy: idy.signOpReturnWithAIP,
+    getAipBuf: idy.getAIPMessageBuffer,
+  });
+
+  // const aipBuff = idy.getAIPMessageBuffer();
+  // console.log({ aipBuff, apiString: aipBuff.toString("utf8") });
+
+  functions.logger.info({ hexArray, buff: Buffer });
+  const signedOps = idy.signOpReturnWithAIP(hexArray);
+
+  // sign the payload
+  // derive a child for signing?
+  // let hdk = bsv.HDPrivateKey.fromString(decIdentity.xprv);
+  // const child = hdk.deriveChild("m/0/0");
+  // const aipSignAddress = bsv.Address.fromPrivateKey(child.privateKey);
+  // dataPayload.push(AIP_PREFIX, "BITCOIN_ECDSA", aipSignAddress);
+
+  return res.status(200).send(signedOps);
+
+  // import ECIES from 'bsv/ecies';
+
+  // ECIES().privateKey(privateKey).encrypt()
+
+  // return res.status(200).send({});
+});
+
 exports.hcProfile = functions.https.onRequest(async (req, res) => {
   await cors(req, res);
 
@@ -120,13 +189,26 @@ exports.hcSendMessage = functions.https.onRequest(async (req, res) => {
   const payment = {
     description:
       req.body.description ||
-      `Message in ${
-        req.body.channelId ? "#" + req.body.channelId : "global chat"
+      `Message ${
+        req.body.channelId
+          ? "in #" + req.body.channelId
+          : req.body.userId
+          ? "to @" + req.body.userId
+          : "global chat"
       }`,
     appAction: "data",
     attachment: { format: "hexArray", value: hexArray },
   };
 
+  if (req.body.to && req.body.currency && req.body.amount) {
+    payment.payments = [
+      {
+        to: req.body.to,
+        currencyCode: req.body.currency,
+        amount: req.body.amount,
+      },
+    ];
+  }
   try {
     const paymentResult = await account.wallet.pay(payment);
     functions.logger.info("Payment complete:", { paymentResult });

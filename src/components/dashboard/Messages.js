@@ -1,14 +1,31 @@
-import { last } from "lodash";
-import React, { useEffect, useMemo, useRef } from "react";
+import { head } from "lodash";
+import moment from "moment";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { AiFillPushpin } from "react-icons/ai";
 import { FaTerminal } from "react-icons/fa";
+import { GiUnicorn } from "react-icons/gi";
+import { MdChat } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import { useActiveChannel, usePopover } from "../../hooks";
-import { loadReactions } from "../../reducers/chatReducer";
+import { useActiveChannel, useActiveUser, usePopover } from "../../hooks";
+import {
+  loadDiscordReactions,
+  loadReactions,
+} from "../../reducers/chatReducer";
+import "../common/slider.less";
 import BlockpostIcon from "../icons/BlockpostIcon";
 import NitroIcon from "../icons/NitroIcon";
+import RetrofeedIcon from "../icons/RetrofeedIcon";
+import Avatar from "./Avatar";
 import Hashtag from "./Hashtag";
 import Message from "./Message";
+import PinChannelModal from "./modals/PinChannelModal";
 import UserPopover from "./UserPopover";
 
 const Wrapper = styled.div`
@@ -51,22 +68,26 @@ const ContainerBottom = styled.div``;
 
 const Messages = () => {
   const activeChannel = useActiveChannel();
+  const activeUser = useActiveUser();
   const dispatch = useDispatch();
   const messages = useSelector((state) => state.chat.messages);
+  const pins = useSelector((state) => state.channels.pins);
   const hasMessages = messages.allIds.length > 0;
 
   const reactions = useSelector((state) => state.chat.reactions);
-  const hasReactions = reactions.allIds?.length > 0;
+  const hasReactions =
+    (reactions.allTxIds || []).concat(reactions.allMessageIds)?.length > 0;
+  const [showPinChannelModal, setShowPinChannelModal] = useState(false);
 
   // Scroll to bottom of the chat history whenever there is a new message
+  // or when messages finish loading
   const containerBottomRef = useRef(null);
   useEffect(() => {
-    containerBottomRef.current.scrollIntoView(false);
-  }, [messages.allIds, containerBottomRef]);
-
-  useEffect(() => {
-    console.log({ activeChannel });
-  }, [activeChannel]);
+    console.log({ activeUser });
+    if (messages.loading === false && containerBottomRef.current) {
+      setTimeout(containerBottomRef.current.scrollIntoView(false), 0);
+    }
+  }, [containerBottomRef.current, messages.loading, messages.allIds]);
 
   const [
     user,
@@ -83,6 +104,7 @@ const Messages = () => {
       for (let txid of Object.keys(messages.byId)) {
         if (
           (!activeChannel?.channel && !messages.byId[txid].MAP.channel) ||
+          messages.byId[txid].AIP?.bapId === activeUser?._id ||
           messages.byId[txid].MAP.channel === activeChannel?.channel
         ) {
           m.push(messages.byId[txid]);
@@ -93,11 +115,12 @@ const Messages = () => {
       });
     }
     return [];
-  }, [hasMessages, messages, activeChannel]);
+  }, [activeUser, hasMessages, messages, activeChannel]);
 
   useEffect(() => {
     if (messagesSorted) {
       dispatch(loadReactions(messages.allIds));
+      dispatch(loadDiscordReactions(messages.allMessageIds));
     }
   }, [messagesSorted]);
 
@@ -106,41 +129,119 @@ const Messages = () => {
   //     return !!a.timestamp && a.timestamp > b.timestamp ? -1 : 1;
   //   });
 
-  const reactionList = useMemo(() => {
-    if (hasMessages) {
-      let m = [];
-      for (let txid of Object.keys(messages.byId)) {
-        m.push(messages.byId[txid]);
-      }
-      return m.sort((a, b) => {
-        return !a.timestamp || a.timestamp < b.timestamp ? -1 : 1;
-      });
+  // const reactionList = useMemo(() => {
+  //   if (hasMessages) {
+  //     let m = [];
+  //     for (let txid of Object.keys(messages.byId)) {
+  //       m.push(messages.byId[txid]);
+  //     }
+  //     return m.sort((a, b) => {
+  //       return !a.timestamp || a.timestamp < b.timestamp ? -1 : 1;
+  //     });
+  //   }
+  //   return [];
+  // }, [hasMessages, messages]);
+
+  // let unix = +new Date() / 1000;
+  const expiresIn = useMemo(() => {
+    const ps = [...(pins.byChannel[activeChannel?.channel] || [])];
+    if (!ps) {
+      return ``;
     }
-    return [];
-  }, [hasMessages, messages]);
+    const channelPin = head(
+      ps.sort((a, b) => (a?.timestamp > b?.timestamp ? -1 : 1))
+    );
+    if (!channelPin || !channelPin?.expiresAt) {
+      return ``;
+    }
+
+    let mins = moment.unix(channelPin?.expiresAt).diff(moment(), "minutes");
+    if (mins > 60) {
+      return `${Math.floor(mins / 60)} hours and ${mins % 60} minutes`;
+    }
+    return `${mins} minutes`;
+  }, [pins, activeChannel]);
+
+  const togglePinChannelModal = useCallback(() => {
+    setShowPinChannelModal(!showPinChannelModal);
+  }, [showPinChannelModal]);
+
+  const heading = useMemo(() => {
+    if (activeChannel) {
+      return <>Welcome to #{activeChannel?.channel}!</>;
+    } else if (activeUser) {
+      return <>{activeUser?.user?.alternateName}</>;
+    }
+    return null;
+  }, [activeChannel, activeUser]);
+
+  const subheading = useMemo(() => {
+    if (activeChannel) {
+      return <>This is the start of #{activeChannel?.channel}.</>;
+    } else if (activeUser) {
+      return (
+        <>
+          This is the beginning of your direct message history with{" "}
+          {activeUser?.user?.alternateName}
+        </>
+      );
+    }
+    return null;
+  }, [activeChannel, activeUser]);
+
+  const icon = useMemo(() => {
+    if (activeChannel) {
+      return (
+        <Hashtag
+          size="36px"
+          w="68px"
+          color="white"
+          bgcolor="var(--background-accent)"
+        />
+      );
+    } else if (activeUser) {
+      // TODO: Hook up avatar status
+      return (
+        <Avatar
+          size="21px"
+          w="32px"
+          // bgColor={user.avatarColor}
+          bgcolor={"#000"}
+          // status="online"
+          icon={activeUser.user.logo}
+        />
+      );
+    }
+    return null;
+  }, [activeChannel, activeUser]);
 
   return (
     <Wrapper className="scrollable">
       <Container>
         <HeaderContainer className="disable-select">
-          <Hashtag
-            size="36px"
-            w="68px"
-            color="white"
-            bgcolor="var(--background-accent)"
-          />
-          <PrimaryHeading>
-            Welcome to #
-            {activeChannel?.channel ||
-              last(window.location.pathname.split("/"))}
-            !
-          </PrimaryHeading>
-          <SecondaryHeading>
-            This is the start of #
-            {activeChannel?.channel ||
-              last(window.location.pathname.split("/"))}
-            .
-          </SecondaryHeading>
+          {icon}
+
+          <PrimaryHeading>{heading}</PrimaryHeading>
+          <SecondaryHeading>{subheading}</SecondaryHeading>
+          {!pins.byChannel[activeChannel?.channel] && (
+            <div
+              style={{
+                cursor: "pointer",
+                alignItems: "center",
+                display: "flex",
+                color: "gold",
+              }}
+              onClick={togglePinChannelModal}
+            >
+              <AiFillPushpin style={{ marginRight: ".5rem" }} /> Pin this
+              Channel
+            </div>
+          )}
+          {pins.allChannels.includes(activeChannel?.channel) && (
+            <div style={{ color: "#777" }}>
+              This channel is pinned for another {expiresIn}
+            </div>
+          )}
           {hasMessages && <Divider />}
         </HeaderContainer>
         {hasMessages &&
@@ -171,7 +272,7 @@ const Messages = () => {
                   >
                     <BlockpostIcon style={{ width: "1rem" }} />
                   </div>
-                ) : (
+                ) : m.MAP.app === "bitchatnitro.com" ? (
                   <div
                     style={{
                       color: "white",
@@ -182,11 +283,44 @@ const Messages = () => {
                   >
                     <NitroIcon style={{ width: ".75rem", height: ".75rem" }} />
                   </div>
+                ) : m.MAP.app === "retrofeed.me" ? (
+                  <div style={{ color: "#F42B2C" }}>
+                    <RetrofeedIcon
+                      style={{
+                        width: ".75rem",
+                        height: ".75rem",
+                        opacity: "0.5",
+                      }}
+                    />
+                  </div>
+                ) : m.MAP.app === "pewnicornsocial.club" ? (
+                  <div style={{ color: "pink" }}>
+                    <GiUnicorn
+                      style={{
+                        width: ".75rem",
+                        height: ".75rem",
+                        opacity: "0.5",
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      color: "white",
+                      display: "flex",
+                      alignItems: "center",
+                      opacity: ".25",
+                    }}
+                  >
+                    <MdChat style={{ width: ".75rem", height: ".75rem" }} />
+                  </div>
                 )
               }
             />
           ))}
-        <ContainerBottom ref={containerBottomRef}></ContainerBottom>
+        {hasMessages && (
+          <ContainerBottom ref={containerBottomRef}></ContainerBottom>
+        )}
         <UserPopover
           open={showPopover}
           anchorEl={anchorEl}
@@ -194,6 +328,11 @@ const Messages = () => {
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           user={user}
           setShowPopover={setShowPopover}
+        />
+        <PinChannelModal
+          open={showPinChannelModal}
+          onClose={() => setShowPinChannelModal(false)}
+          channel={activeChannel?.channel}
         />
       </Container>
     </Wrapper>

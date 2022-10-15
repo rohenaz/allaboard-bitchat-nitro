@@ -129,7 +129,6 @@ const RelayProvider = (props) => {
   }, [authenticate, isApp]);
 
   const handleScriptLoad = useCallback(() => {
-    console.log("relay script loaded", window.relayone);
     setRelayOne(window.relayone);
     setRelayOtc(window.relayotc);
     setReady(true);

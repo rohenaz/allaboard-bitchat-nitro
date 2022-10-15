@@ -1,10 +1,12 @@
 import React from "react";
 
 import { FaBars, FaGithub, FaSignOutAlt } from "react-icons/fa";
+import { ImProfile } from "react-icons/im";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { baseIcon, hideInDesktop, interactiveColor } from "../../design/mixins";
+import { toggleProfile } from "../../reducers/profileReducer";
 import { logout } from "../../reducers/sessionReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ArrowTooltip from "./ArrowTooltip";
@@ -57,8 +59,10 @@ const IconButton = ({ children, href, ...delegated }) => {
 const Header = () => {
   const dispatch = useDispatch();
   const isMemberListOpen = useSelector((state) => state.memberList.isOpen);
+  const isProfileOpen = useSelector((state) => state.profile.isOpen);
   const channels = useSelector((state) => state.channels);
   const activeChannelId = useSelector((state) => state.channels.active);
+  const activeUserId = useSelector((state) => state.memberList.active);
 
   return (
     <Container id="header" className="disable-select">
@@ -69,7 +73,8 @@ const Header = () => {
         <List horizontal={true} gap="6px" style={{ alignItems: "center" }}>
           {activeChannelId && <Hashtag size="22px" w="24px" />}
           <Heading>
-            {!channels.loading && (activeChannelId || "global chat")}
+            {!channels.loading &&
+              (activeChannelId || `@${activeUserId}` || "global chat")}
           </Heading>
         </List>
       </List>
@@ -92,6 +97,14 @@ const Header = () => {
             <FaUserFriends />
           </IconButton>
         </ArrowTooltip> */}
+        <ArrowTooltip title={`${isProfileOpen ? "Hide" : "Show"} Profile`}>
+          <IconButton
+            onClick={() => dispatch(toggleProfile())}
+            isActive={isProfileOpen}
+          >
+            <ImProfile />
+          </IconButton>
+        </ArrowTooltip>
         <ArrowTooltip title="Logout">
           <IconButton onClick={() => dispatch(logout())}>
             <FaSignOutAlt />

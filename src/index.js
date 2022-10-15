@@ -5,6 +5,8 @@ import { Provider } from "react-redux";
 
 import App from "./App";
 import { BapProvider } from "./context/bap";
+import { BitcoinProvider } from "./context/bitcoin";
+import { BmapProvider } from "./context/bmap";
 import { HandcashProvider } from "./context/handcash";
 import { RelayProvider } from "./context/relay";
 import "./index.css";
@@ -14,9 +16,13 @@ ReactDOM.render(
   <Provider store={store}>
     <RelayProvider>
       <HandcashProvider>
-        <BapProvider>
-          <App />
-        </BapProvider>
+        <BmapProvider>
+          <BapProvider>
+            <BitcoinProvider>
+              <App />
+            </BitcoinProvider>
+          </BapProvider>
+        </BmapProvider>
       </HandcashProvider>
     </RelayProvider>
   </Provider>,

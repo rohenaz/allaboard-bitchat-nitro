@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 
-import styled from 'styled-components';
+import styled from "styled-components";
 
-import WriteArea from './WriteArea';
-import Messages from './Messages';
+import Messages from "./Messages";
+import WriteArea from "./WriteArea";
 
 const Container = styled.div`
   background-color: white;

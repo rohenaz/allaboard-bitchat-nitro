@@ -1,4 +1,5 @@
 import React from "react";
+import { AiFillPushpin } from "react-icons/ai";
 
 import styled, { css } from "styled-components";
 
@@ -9,6 +10,20 @@ const Text = styled.span`
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+`;
+
+const Icon = styled.div`
+  color: #777;
+  &:hover {
+    color: gold;
+  }
+`;
+
+const Wrapper = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const Container = styled.div`
@@ -24,7 +39,11 @@ const Container = styled.div`
   &:hover > ${Text} {
     color: var(--interactive-hover);
   }
-
+  ${(p) =>
+    p.isPinned &&
+    css`
+      border: 1px solid gold;
+    `}
   ${(p) =>
     p.isActive &&
     css`
@@ -39,15 +58,37 @@ const Container = styled.div`
     `}
 `;
 
-const ListItem = ({ icon, text, isActive, hasActivity, ...delegated }) => {
+const ListItem = ({
+  icon,
+  text,
+  isPinned,
+  showPin,
+  isActive,
+  hasActivity,
+  onClickPin,
+  ...delegated
+}) => {
   return (
-    <Container isActive={isActive} {...delegated}>
+    <Container isActive={isActive} isPinned={isPinned} {...delegated}>
       <>{icon}</>
-      {text && (
-        <Text isActive={isActive || hasActivity} className="disable-select">
-          {text}
-        </Text>
-      )}
+      <Wrapper>
+        {text && (
+          <Text isActive={isActive || hasActivity} className="disable-select">
+            {text}
+          </Text>
+        )}
+        {!isPinned && showPin && (
+          <Icon
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onClickPin();
+            }}
+          >
+            <AiFillPushpin />
+          </Icon>
+        )}
+      </Wrapper>
     </Container>
   );
 };

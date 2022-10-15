@@ -1,9 +1,11 @@
-import React from 'react';
+import React from "react";
+import { useSelector } from "react-redux";
 
-import styled from 'styled-components';
+import styled from "styled-components";
 
-import ServerList from './ServerList';
-import ChannelList from './ChannelList';
+import ChannelList from "./ChannelList";
+import ServerList from "./ServerList";
+import UserList from "./UserList";
 
 const Container = styled.div`
   display: flex;
@@ -12,10 +14,12 @@ const Container = styled.div`
 `;
 
 const Sidebar = () => {
+  const activeUserId = useSelector((state) => state.memberList.active);
   return (
     <Container>
       <ServerList />
-      <ChannelList />
+      {!activeUserId && <ChannelList />}
+      {activeUserId && <UserList />}
     </Container>
   );
 };

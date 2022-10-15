@@ -40,12 +40,35 @@ const CodeIcon = ({ ...delegated }) => {
   );
 };
 
+export const bitfsUrl = "https://x.bitfs.network/";
+export const bicoinFilesUrl = "https://doge.bitcoinfiles.org/";
+
+const IdentityIcon = ({ ...delegated }) => {
+  return (
+    delegated.icon && (
+      <Wrapper color="white" {...delegated}>
+        <img
+          src={
+            delegated.icon.startsWith("bitfs://")
+              ? `${bicoinFilesUrl}${head(
+                  delegated.icon.replace("bitfs://", "").split(".")
+                )}`
+              : delegated.icon
+          }
+          {...delegated}
+          style={{ borderRadius: "50%" }}
+        />
+      </Wrapper>
+    )
+  );
+};
+
 const BitPicIcon = ({ ...delegated }) => {
   return (
     <Wrapper color="white" {...delegated}>
       <img
         src={
-          delegated.paymail.includes("handcash.io")
+          delegated.paymail?.includes("handcash.io")
             ? `https://cloud.handcash.io/v2/users/profilePicture/${head(
                 delegated.paymail.split("@")
               )}`
@@ -63,15 +86,27 @@ const Avatar = ({ status, onClick, ...delegated }) => {
     <div style={{ position: "relative" }}>
       {status ? (
         <Container onClick={onClick}>
-          {delegated.paymail ? (
-            <BitPicIcon width={delegated.w} {...delegated} />
+          {delegated.icon ? (
+            <IdentityIcon
+              width={delegated.w}
+              height={delegated.h}
+              {...delegated}
+            />
+          ) : delegated.paymail ? (
+            <BitPicIcon
+              width={delegated.w}
+              height={delegated.h}
+              {...delegated}
+            />
           ) : (
             <CodeIcon {...delegated} />
           )}
           <GreenDot />
         </Container>
+      ) : delegated.icon ? (
+        <IdentityIcon width={delegated.w} height={delegated.h} {...delegated} />
       ) : delegated.paymail ? (
-        <BitPicIcon width={delegated.w} {...delegated} />
+        <BitPicIcon width={delegated.w} height={delegated.h} {...delegated} />
       ) : (
         <CodeIcon onClick={onClick} {...delegated} />
       )}

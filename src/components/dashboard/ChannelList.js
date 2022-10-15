@@ -1,20 +1,21 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
+import { head } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { useBap } from "../../context/bap";
+import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
-
-import { head } from "lodash";
 import { useWindowWidth } from "../../hooks";
-import { loadChannels } from "../../reducers/channelsReducer";
+import { loadChannels, unpinChannel } from "../../reducers/channelsReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
+import { FetchStatus } from "../../utils/common";
 import Avatar from "./Avatar";
 import Hashtag from "./Hashtag";
 import List from "./List";
 import ListItem from "./ListItem";
+import PinChannelModal from "./modals/PinChannelModal";
 
 const Container = styled.div`
   width: 240px;
@@ -75,44 +76,114 @@ const ChannelList = () => {
   }, [dispatch]);
 
   const { paymail } = useRelay();
-  const { profile, hcEncrypt, authToken } = useHandcash();
-  const { setIdentity, identity } = useBap();
+  const { profile } = useHandcash();
 
   // const user = useSelector((state) => state.session.user);
   const channels = useSelector((state) => state.channels);
   const activeChannelId = useSelector((state) => state.channels.active);
   const isInDesktop = useWindowWidth() > 768;
-
+  const [unpinsSet, setUnpinsSet] = useState(false);
   const messages = useSelector((state) => state.chat.messages);
+  const { sendPin, pinStatus } = useBitcoin();
+  const [pendingPin, setPendingPin] = useState(false);
+
   const hasMessages = messages.allIds.length > 0;
+  const [hoveringChannel, setHoveringChannel] = useState();
 
-  const inputFileRef = React.useRef();
-
-  const onFileChange = useCallback(
-    async (e) => {
-      /*Selected files data can be collected here.*/
-      console.log(e.target.files);
-
-      // const encryptedData = localStorage.getItem("bitchat-nitro._bapid");
-
-      const file = head(e.target.files);
-      const text = await toText(file);
-
-      console.log({ text, authToken });
-      // encrypt the uploaded file and store it locally
-      if (authToken) {
-        // handcash
-        const encryptedData = await hcEncrypt(JSON.parse(text));
-        console.log({ encryptedData });
-        setIdentity(encryptedData);
+  const mouseOver = useCallback(
+    (id) => {
+      if (id) {
+        setHoveringChannel(id);
       }
     },
-    [authToken, hcEncrypt, setIdentity]
+    [hoveringChannel]
   );
 
-  const uploadIdentity = useCallback(() => {
-    inputFileRef.current.click();
-  }, []);
+  const mouseOut = useCallback(
+    (id) => {
+      if (hoveringChannel === id) {
+        setHoveringChannel(undefined);
+      }
+    },
+    [hoveringChannel]
+  );
+
+  useEffect(() => {
+    if (
+      !unpinsSet &&
+      channels.pins?.allChannels &&
+      channels.pins.allChannels?.length > 0 &&
+      !channels.pins.loading
+    ) {
+      setUnpinsSet(true);
+      channels.pins.allChannels.forEach((c) => {
+        console.log(
+          "unpins at",
+          new Date(head(channels.pins.byChannel[c]).expiresAt * 1000)
+        );
+        setTimeout(() => {
+          dispatch(unpinChannel, c);
+        }, head(channels.pins.byChannel[c]).expiresAt * 1000);
+      });
+    }
+  }, [unpinsSet, channels.pins?.allChannels]);
+
+  // const pinChannel = useCallback(
+  //   async (id) => {
+  //     if (id) {
+  //       try {
+  //         await sendPin(paymail || profile?.paymail, id, units);
+  //         setShowPinChannelModal(false);
+  //       } catch (e) {
+  //         console.error(e);
+  //       }
+  //     }
+  //   },
+  //   [units, paymail, profile, sendPin]
+  // );
+
+  const renderChannel = useCallback(
+    (id) => {
+      return (
+        <Link
+          key={id}
+          to={`/channels/${id}`}
+          onClick={() => !isInDesktop && dispatch(toggleSidebar())}
+        >
+          <ListItem
+            icon={<Hashtag size="20px" />}
+            text={id || "global"}
+            style={{
+              gap: "8px",
+              padding: "8px 4px",
+            }}
+            id={id}
+            isPinned={channels.pins.byChannel[id]}
+            onMouseEnter={(e) => mouseOver(e.target.id)}
+            onMouseLeave={(e) => mouseOut(e.target.id)}
+            hasActivity={
+              (!id &&
+                messages?.allIds?.some(
+                  (cid) =>
+                    messages.byId[cid]?.MAP && !messages.byId[cid]?.MAP.channel
+                )) ||
+              messages?.allIds?.some(
+                (cid) => messages.byId[cid]?.MAP.channel === id
+              )
+            }
+            isActive={id === activeChannelId || (!id && !activeChannelId)}
+            showPin={
+              pinStatus !== FetchStatus.Loading && id && hoveringChannel === id
+            }
+            onClickPin={() => {
+              setPendingPin(id);
+            }}
+          />
+        </Link>
+      );
+    },
+    [hoveringChannel, messages, isInDesktop, activeChannelId, channels]
+  );
 
   return (
     <Container className="disable-select">
@@ -121,38 +192,22 @@ const ChannelList = () => {
       </Header>
       <Content className="scrollable">
         <List gap="2px">
+          {!channels.pins.loading &&
+            channels.pins.allChannels
+              // .sort((a, b) => {
+              //   //   const timeA = a && channels.byId[a]?.last_message_time;
+              //   //   const timeB = b && channels.byId[b]?.last_message_time;
+              //   //   console.log({ timeA, timeB });
+              //   //   return timeA > timeB ? -1 : 1;
+              // })
+              .map(renderChannel)}
           {!channels.loading &&
-            channels.allIds.map((id) => (
-              <Link
-                key={id}
-                to={`/channels/${id}`}
-                onClick={() => !isInDesktop && dispatch(toggleSidebar())}
-              >
-                <ListItem
-                  icon={<Hashtag size="20px" />}
-                  text={id || "global"}
-                  style={{
-                    gap: "8px",
-                    padding: "8px 4px",
-                  }}
-                  hasActivity={
-                    (!id &&
-                      messages?.allIds?.some(
-                        (cid) =>
-                          messages.byId[cid]?.MAP &&
-                          !messages.byId[cid]?.MAP.channel
-                      )) ||
-                    messages?.allIds?.some(
-                      (cid) => messages.byId[cid]?.MAP.channel === id
-                    )
-                  }
-                  isActive={id === activeChannelId || (!id && !activeChannelId)}
-                />
-              </Link>
-            ))}
+            channels.allIds
+              .filter((id) => !channels.pins.byChannel[id])
+              .map(renderChannel)}
         </List>
       </Content>
-      <Footer onClick={uploadIdentity}>
+      <Footer>
         <Avatar
           size="21px"
           w="32px"
@@ -163,23 +218,14 @@ const ChannelList = () => {
         />
         {/* <Username>{user.username}</Username> */}
         <Username>{paymail || profile?.paymail}</Username>
-        <input
-          type="file"
-          ref={inputFileRef}
-          onChange={onFileChange}
-          style={{ display: "none" }}
-        />
       </Footer>
+      <PinChannelModal
+        open={!!pendingPin}
+        channel={pendingPin}
+        onClose={() => setPendingPin(undefined)}
+      />
     </Container>
   );
 };
 
 export default ChannelList;
-
-const toText = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsText(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });

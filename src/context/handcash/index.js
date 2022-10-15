@@ -102,6 +102,37 @@ const HandcashProvider = (props) => {
     [authToken, setProfile]
   );
 
+  const hcSignOpReturnWithAIP = useCallback(
+    async (encryptedIdentity, hexArray) => {
+      return new Promise((resolve, reject) => {
+        // Test localStorage is accessible
+        if (!lsTest()) {
+          reject(new Error("localStorage is not available"));
+        }
+
+        // if we dont have the paymail, get it
+        if (authToken) {
+          if (encryptedIdentity) {
+            fetch(`https://bitchatnitro.com/hcsignops`, {
+              method: "POST",
+              headers: {
+                "Content-type": "application/json",
+              },
+              body: JSON.stringify({ authToken, encryptedIdentity, hexArray }),
+            })
+              .then((resp) => {
+                resp.json().then(resolve);
+              })
+              .catch(reject);
+          }
+        } else {
+          reject(new Error("no auth token"));
+        }
+      });
+    },
+    [authToken, setProfile]
+  );
+
   const value = useMemo(
     () => ({
       setProfile,
@@ -110,10 +141,12 @@ const HandcashProvider = (props) => {
       authToken,
       setAuthToken,
       hcEncrypt,
+      hcSignOpReturnWithAIP,
       hcDecrypt,
     }),
     [
       authToken,
+      hcSignOpReturnWithAIP,
       profile,
       setProfile,
       getProfile,

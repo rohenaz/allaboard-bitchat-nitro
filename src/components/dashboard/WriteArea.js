@@ -1,19 +1,21 @@
-import React, { useCallback } from "react";
-
 import nimble from "@runonbitcoin/nimble";
-import { BAP } from "bitcoin-bap";
 import bops from "bops";
-import bsv from "bsv";
-import Buffer from "Buffer";
 import { last } from "lodash";
+import React, { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
+import { useBmap } from "../../context/bmap";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import { useActiveChannel } from "../../hooks";
+import { FetchStatus } from "../../utils/common";
 import ChannelTextArea from "./ChannelTextArea";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
+// if (typeof Buffer === "undefined") {
+//   /*global Buffer:writable*/
+//   Buffer = require("buffer").Buffer;
+// }
 
 const Container = styled.div`
   background-color: var(--background-primary);
@@ -33,12 +35,18 @@ const TypingStatus = styled.span`
 const WriteArea = () => {
   const dispatch = useDispatch();
   // const user = useSelector((state) => state.session.user);
+  const [postStatus, setPostStatus] = useState(FetchStatus.Idle);
   const { relayOne, paymail } = useRelay();
-  const { profile, authToken, hcDecrypt } = useHandcash();
+  const { profile, authToken, hcDecrypt, hcSignOpReturnWithAIP } =
+    useHandcash();
+  const { notifyIndexer } = useBmap();
   const { identity } = useBap();
-
   const activeChannel = useActiveChannel();
-  const channelId = last(window.location.pathname.split("/"));
+  const activeUserId = useSelector((state) => state.memberList.active);
+  const channelName =
+    activeChannel?.channel ||
+    activeUserId ||
+    last(window.location.pathname.split("/"));
   let timeout = undefined;
 
   const handleSubmit = useCallback(
@@ -50,16 +58,18 @@ const WriteArea = () => {
         sendMessage(
           paymail || profile?.paymail,
           content,
-          activeChannel?.channel || channelId || null
+          activeChannel?.channel,
+          activeUserId
         );
         event.target.reset();
       }
     },
-    [activeChannel, paymail, profile]
+    [activeUserId, activeChannel, paymail, profile]
   );
 
   const sendMessage = useCallback(
-    async (pm, content, channel) => {
+    async (pm, content, channel, userId) => {
+      setPostStatus(FetchStatus.Loading);
       try {
         let dataPayload = [
           B_PREFIX, // B Prefix
@@ -80,46 +90,17 @@ const WriteArea = () => {
         // add channel
         if (channel) {
           dataPayload.push("context", "channel", "channel", channel);
+        } else if (userId) {
+          dataPayload.push("context", "bapID", "bapID", userId);
+          // encrypt the content with shared ecies between the two identities
+          // dataPayload[1] = encrypt(dataPayload[1]);
         }
-
+        const hexArray = dataPayload.map((d) =>
+          Buffer.from(d, "utf8").toString("hex")
+        );
         if (identity) {
           // decrypt and import identity
-          const decIdentity = await hcDecrypt(identity);
-          console.log("sign with", decIdentity);
-
-          console.log({ BAP });
-
-          let bapId = new BAP(decIdentity.xprv);
-          console.log("BAP id", bapId);
-          if (decIdentity.ids) {
-            bapId.importIds(decIdentity.ids);
-          }
-
-          const ids = bapId.listIds();
-          console.log({ ids });
-          const idy = bapId.getId(ids[0]); // only support for 1 id per profile now
-          console.log({
-            idy: idy.signOpReturnWithAIP,
-            getAipBuf: idy.getAIPMessageBuffer,
-          });
-          const ops = dataPayload.map((d) => Buffer.to(Buffer.from(d), "hex"));
-
-          // const aipBuff = idy.getAIPMessageBuffer();
-          // console.log({ aipBuff, apiString: aipBuff.toString("utf8") });
-
-          console.log({ ops, Buffer });
-          const signedOps = idy.signOpReturnWithAIP(
-            ops,
-            idy.currentPath,
-            bsv.HDPrivateKey.fromString(decIdentity.xprv)
-          );
-
-          // sign the payload
-          // derive a child for signing?
-          // let hdk = bsv.HDPrivateKey.fromString(decIdentity.xprv);
-          // const child = hdk.deriveChild("m/0/0");
-          // const aipSignAddress = bsv.Address.fromPrivateKey(child.privateKey);
-          // dataPayload.push(AIP_PREFIX, "BITCOIN_ECDSA", aipSignAddress);
+          const signedOps = await hcSignOpReturnWithAIP(identity, hexArray);
 
           console.log({ signedOps });
 
@@ -130,11 +111,24 @@ const WriteArea = () => {
               hexArray: signedOps, // remove op_false op_return
               authToken,
               channel,
+              userId,
             }),
           });
 
-          console.log({ resp });
+          const { paymentResult } = await resp.json();
 
+          console.log({ paymentResult });
+          if (paymentResult?.rawTransactionHex) {
+            try {
+              await notifyIndexer(paymentResult.rawTransactionHex);
+              setPostStatus(FetchStatus.Success);
+            } catch (e) {
+              console.log("failed to notify indexer", e);
+              setPostStatus(FetchStatus.Error);
+
+              return;
+            }
+          }
           return;
         }
 
@@ -166,14 +160,27 @@ const WriteArea = () => {
         let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
 
         let resp = await relayOne.send({ outputs });
-
         console.log("Sent", resp);
-        let txid = resp.txid;
+        // interface SendResult {
+        //   txid: string;
+        //   rawTx: string;
+        //   amount: number; // amount spent in button currency
+        //   currency: string; // button currency
+        //   satoshis: number; // amount spent in sats
+        //   paymail: string; // user paymail deprecated
+        //   identity: string; // user pki deprecated
+        // }
+        try {
+          await notifyIndexer(resp.rawTx);
+        } catch (e) {
+          console.log("failed to notify indexer", e);
+          return;
+        }
       } catch (e) {
         console.error(e);
       }
     },
-    [identity, relayOne, authToken]
+    [activeUserId, identity, relayOne, authToken, notifyIndexer]
   );
 
   const typingUser = useSelector((state) => state.chat.typingUser);
@@ -222,11 +229,17 @@ const WriteArea = () => {
           type="text"
           name="msg_content"
           autocomplete="off"
-          placeholder={`Message ${
-            activeChannel?.channel
-              ? "#" + activeChannel.channel
-              : "in global chat"
-          }`}
+          placeholder={
+            postStatus === FetchStatus.Loading
+              ? "Posting..."
+              : `Message ${
+                  activeChannel?.channel
+                    ? "#" + activeChannel.channel
+                    : activeUserId
+                    ? "to @" + activeUserId
+                    : "in global chat"
+                }`
+          }
           onKeyUp={handleKeyUp}
           onKeyDown={handleKeyDown}
           onFocus={(e) => console.log(e.target)}

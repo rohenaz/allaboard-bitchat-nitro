@@ -6,6 +6,9 @@ import LoginPage from "./components/authForm/LoginPage";
 import SignupPage from "./components/authForm/SignupPage";
 import Dashboard from "./components/dashboard/Dashboard";
 import { RequireAuth } from "./routes";
+if (typeof window !== "undefined") {
+  window.Buffer = window.Buffer || require("buffer").Buffer;
+}
 
 const App = () => {
   return (
@@ -25,6 +28,14 @@ const App = () => {
         />
         <Route
           path="/channels/:channel"
+          element={
+            <RequireAuth>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/@/:user"
           element={
             <RequireAuth>
               <Dashboard />

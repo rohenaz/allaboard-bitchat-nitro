@@ -20,6 +20,10 @@
         "function": "hcSendMessage"
       },
       {
+        "source": "/hcsignops",
+        "function": "hcSignOpReturnWithAIP"
+      },
+      {
         "source": "/hcencrypt",
         "function": "hcEncrypt"
       },

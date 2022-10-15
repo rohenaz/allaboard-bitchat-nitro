@@ -1,15 +1,17 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { last } from "lodash";
 import * as channelAPI from "../api/channel";
+import { validateEmail } from "../utils/strings.js";
 
 var audio = new Audio("https://bitchatnitro.com/audio/notify.mp3");
 audio.volume = 0.25;
 
 export const loadMessages = createAsyncThunk(
   "chat/loadMessages",
-  async (channelId, { rejectWithValue }) => {
+  async ({ channelId, userId }, { rejectWithValue }) => {
     try {
-      const response = await channelAPI.getMessages(channelId);
+      console.log("loading messages", { channelId, userId });
+      const response = await channelAPI.getMessages(channelId, userId);
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response);
@@ -29,9 +31,29 @@ export const loadReactions = createAsyncThunk(
   }
 );
 
+export const loadDiscordReactions = createAsyncThunk(
+  "chat/loadDiscordReactions",
+  async (messageIds, { rejectWithValue }) => {
+    try {
+      const response = await channelAPI.getDiscordReactions(messageIds);
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(err.response);
+    }
+  }
+);
+
 const initialState = {
-  messages: { byId: {}, allIds: [], loading: true },
-  reactions: { byTarget: {}, allIds: [], allTargets: [], loading: true },
+  messages: { byId: {}, allIds: [], allMessageIds: [], loading: true },
+  reactions: {
+    byTxTarget: {},
+    byMessageTarget: {},
+    allMessageIds: [],
+    allTxIds: [],
+    allTxTargets: [],
+    allMessageTargets: [],
+    loading: true,
+  },
   typingUser: null,
 };
 
@@ -42,18 +64,33 @@ const chatSlice = createSlice({
     receiveNewReaction(state, action) {
       const reaction = action.payload;
       // state.reactions.byId[reaction.tx.h] = reaction;
-      if (!state.reactions.byTarget[reaction.MAP.tx]) {
-        state.reactions.byTarget[reaction.MAP.tx] = [];
+      if (reaction.MAP.context === "tx") {
+        if (!state.reactions.byTxTarget[reaction.MAP.tx]) {
+          state.reactions.byTxTarget[reaction.MAP.tx] = [];
+        }
+        state.reactions.byTxTarget[reaction.MAP.tx].push(reaction);
+        state.reactions.allTxTargets.push(reaction.MAP.tx);
+        state.reactions.allTxIds.push(reaction.tx.h);
+      } else if (reaction.MAP.context === "messageID") {
+        if (!state.reactions.byMessageTarget[reaction.MAP.messageID]) {
+          state.reactions.byMessageTarget[reaction.MAP.messageID] = [];
+        }
+        state.reactions.byMessageTarget[reaction.MAP.messageID].push(reaction);
+        state.reactions.allMessageTargets.push(reaction.MAP.messageID);
+        state.reactions.allMessageIds.push(reaction.tx.h);
       }
-      state.reactions.byTarget[reaction.MAP.tx].push(reaction);
-      state.reactions.allIds.push(reaction.tx.h);
-      state.reactions.allTargets.push(reaction.MAP.tx);
     },
     receiveNewMessage(state, action) {
       const message = action.payload;
+      if (message.MAP.paymail && !validateEmail(message.MAP.paymail)) {
+        return;
+      }
       state.messages.byId[message.tx.h] = message;
       state.messages.allIds.push(message.tx.h);
 
+      if (message.MAP.messageID) {
+        state.messages.allMessageIds.push(message.MAP.messageID);
+      }
       // plan audio if channel matches
       let channelId = last(window.location.pathname.split("/")) || null;
       if (
@@ -91,16 +128,33 @@ const chatSlice = createSlice({
         state.messages.loading = true;
       })
       .addCase(loadReactions.fulfilled, (state, action) => {
-        state.reactions.byId = {};
-        state.reactions.allTargets = [];
+        state.reactions.byTxTarget = {};
+        state.reactions.byMessageTarget = {};
+        state.reactions.allTxTargets = [];
+        state.reactions.allMessageTargets = [];
         state.reactions.loading = false;
         action.payload.c.forEach((reaction) => {
-          if (!state.reactions.byTarget[reaction.MAP.tx]) {
-            state.reactions.byTarget[reaction.MAP.tx] = [];
+          if (!state.reactions.byTxTarget[reaction.MAP.tx]) {
+            state.reactions.byTxTarget[reaction.MAP.tx] = [];
           }
-          state.reactions.byTarget[reaction.MAP.tx].push(reaction);
-          state.reactions.allIds.push(reaction.tx.h);
-          state.reactions.allTargets.push(reaction.MAP.tx);
+          state.reactions.byTxTarget[reaction.MAP.tx].push(reaction);
+          state.reactions.allTxTargets.push(reaction.MAP.tx);
+          state.reactions.allTxIds.push(reaction.tx.h);
+        });
+      })
+      .addCase(loadDiscordReactions.fulfilled, (state, action) => {
+        state.reactions.byMessageTarget = {};
+        state.reactions.allMessageTargets = [];
+        state.reactions.loading = false;
+        action.payload.c.forEach((reaction) => {
+          if (!state.reactions.byMessageTarget[reaction.MAP.messageID]) {
+            state.reactions.byMessageTarget[reaction.MAP.messageID] = [];
+          }
+          state.reactions.byMessageTarget[reaction.MAP.messageID].push(
+            reaction
+          );
+          state.reactions.allMessageTargets.push(reaction.MAP.messageID);
+          state.reactions.allMessageIds.push(reaction.tx.h);
         });
       })
       .addCase(loadMessages.fulfilled, (state, action) => {
@@ -108,15 +162,20 @@ const chatSlice = createSlice({
         state.messages.allIds = [];
         state.messages.loading = false;
         action.payload.c.forEach((message) => {
+          if (message.MAP.paymail && !validateEmail(message.MAP.paymail)) {
+            return;
+          }
           state.messages.byId[message.tx.h] = message;
           state.messages.allIds.push(message.tx.h);
+          if (message.MAP.messageID) {
+            state.messages.allMessageIds.push(message.MAP.messageID);
+          }
         });
       });
   },
 });
 
 export const {
-  setActiveChannel,
   receiveNewMessage,
   receiveNewReaction,
   receiveEditedMessage,

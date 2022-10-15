@@ -5,11 +5,13 @@ import bops from "bops";
 import EmojiPicker from "emoji-picker-react";
 import parse from "html-react-parser";
 import { uniqBy } from "lodash";
+import moment from "moment";
 import React, { useCallback, useMemo, useState } from "react";
+import { FaLock } from "react-icons/fa";
 import { MdAddReaction } from "react-icons/md";
 import OutsideClickHandler from "react-outside-click-handler";
 import styled from "styled-components";
-import { format } from "timeago.js";
+import { useBmap } from "../../context/bmap";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import { useActiveChannel } from "../../hooks";
@@ -42,6 +44,7 @@ const Container = styled.div`
   margin: 8px 0;
   padding: 8px 16px 12px 0;
   position: relative;
+  overflow-wrap: anywhere;
 
   &:hover {
     background-color: #32353a;
@@ -183,7 +186,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   // const dispatch = useDispatch();
   const activeChannel = useActiveChannel();
   // const [openDeleteMessage, setOpenPopup] = useState(false);
-
+  const { notifyIndexer } = useBmap();
   const { paymail, relayOne } = useRelay();
   const { profile, authToken } = useHandcash();
   // const handleSubmit = (event) => {
@@ -246,19 +249,19 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
       let m = { ...message };
 
       let chunks = m.B.content.split(" ");
-      let idx;
+      let idxs = [];
       chunks.forEach((c, i) => {
         if (c.startsWith("#")) {
-          idx = i;
+          idxs.push(i);
         }
       });
 
-      if (idx >= 0) {
+      for (let idx of idxs) {
         let text = chunks[idx];
         chunks[
           idx
         ] = `<a href="https://bitchatnitro.com/channels/${text.replace(
-          "#",
+          /[^a-zA-Z\-\d\s:]/g,
           ""
         )}">
             ${text}
@@ -276,13 +279,13 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     async (e, txId) => {
       console.log("emoji clicked", e, txId);
       setShowReactions(false);
-      await likeMessage(paymail || profile?.paymail, txId, e.emoji);
+      await likeMessage(paymail || profile?.paymail, "tx", txId, e.emoji);
     },
     [paymail, profile, showReactions]
   );
 
   const likeMessage = useCallback(
-    async (pm, txId, emoji) => {
+    async (pm, contextName, contextValue, emoji) => {
       try {
         let dataPayload = [
           MAP_PREFIX, // MAP Prefix
@@ -292,9 +295,9 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
           "type",
           "like",
           "context",
-          "tx",
-          "tx",
-          txId,
+          contextName,
+          contextName,
+          contextValue,
           "paymail",
           pm,
         ];
@@ -316,8 +319,13 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({ hexArray, authToken, activeChannel }),
           });
+          const { paymentResult } = await resp.json();
 
-          console.log({ resp });
+          console.log({ paymentResult });
+          if (paymentResult) {
+            await notifyIndexer(paymentResult.rawTransactionHex);
+          }
+
           return;
           // https://bitchatnitro.com/hcsend/
           // { hexArray, authToken}
@@ -333,6 +341,8 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
         let resp = await relayOne.send({ outputs });
 
         console.log("Sent", resp);
+
+        await notifyIndexer(resp.rawTx);
         // let txid = resp.txid;
       } catch (e) {
         console.error(e);
@@ -341,10 +351,13 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     [authToken]
   );
 
-  const emojis = useMemo(
-    () => uniqBy(reactions?.byTarget[message.tx.h], (r) => r.tx.h),
-    [reactions, message]
-  );
+  const emojis = useMemo(() => {
+    let allReactions = [
+      ...(reactions?.byMessageTarget[message.MAP.messageID] || []),
+      ...(reactions?.byTxTarget[message.tx.h] || []),
+    ];
+    return uniqBy(allReactions, (r) => r.tx.h);
+  }, [reactions, message]);
 
   const hasReacted = useCallback(
     (emoji, pm) => {
@@ -361,18 +374,61 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
           w="40px"
           //bgColor={message.user.avatarColor}
           bgcolor={`#000`}
-          paymail={message.MAP.paymail}
+          paymail={message.AIP?.identity?.paymail || message.MAP.paymail}
+          logo={message.AIP?.identity?.logo}
         />
       </AvatarWrapper>
       <div style={{ width: "100%" }}>
         <Header>
-          <Username onClick={handleClick}>{message.MAP.paymail}</Username>
-          <Timestamp>
-            {message.timestamp
-              ? format(new Date(message.timestamp * 1000))
-              : format(new Date(message.blk.t * 1000))}
-            {/* {message.editedAt ? " (edited)" : ""} */}
-          </Timestamp>
+          <Username onClick={handleClick}>
+            {message.AIP?.identity?.alternateName || message.MAP.paymail}
+          </Username>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {message.AIP?.verified && (
+              <div
+                onClick={() =>
+                  window.open(
+                    `https://whatsonchain.com/tx/${message.tx.h}`,
+                    "_blank"
+                  )
+                }
+                style={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <FaLock
+                  style={{
+                    width: ".6rem",
+                    marginRight: ".5rem",
+                    color: "#777",
+                  }}
+                />
+                <div
+                  style={{
+                    fontSize: ".75rem",
+                    color: "#777",
+                    marginRight: ".5rem",
+                  }}
+                >
+                  {message.AIP.bapId ? message.AIP.bapId.slice(0, 8) : ""}
+                </div>
+              </div>
+            )}
+            <Timestamp>
+              {message.timestamp
+                ? moment.unix(message.timestamp).fromNow()
+                : moment.unix(message.blk.t).fromNow()}
+              {/* {message.editedAt ? " (edited)" : ""} */}
+            </Timestamp>
+          </div>
         </Header>
         {/* {showTextArea ? (
           <>
@@ -422,7 +478,8 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                 ) {
                   likeMessage(
                     paymail || profile?.paymail,
-                    reaction.MAP.tx,
+                    reaction.MAP.context,
+                    reaction.MAP[reaction.MAP.context],
                     reaction.MAP.emoji
                   );
                 }

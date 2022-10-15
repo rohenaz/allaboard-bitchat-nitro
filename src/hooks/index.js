@@ -1,6 +1,6 @@
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from "react";
 
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 
 // Detect window width
 export const useWindowWidth = () => {
@@ -10,9 +10,9 @@ export const useWindowWidth = () => {
     function updateSize() {
       setWidth(window.innerWidth);
     }
-    window.addEventListener('resize', updateSize);
+    window.addEventListener("resize", updateSize);
     updateSize();
-    return () => window.removeEventListener('resize', updateSize);
+    return () => window.removeEventListener("resize", updateSize);
   }, []);
   return width;
 };
@@ -24,9 +24,16 @@ export const useActiveChannel = () => {
   return !loading && channelsById[activeChannelId];
 };
 
+export const useActiveUser = () => {
+  const loading = useSelector((state) => state.memberList.loading);
+  const activeUserId = useSelector((state) => state.memberList.active);
+  const usersById = useSelector((state) => state.memberList.byId);
+  return !loading && usersById[activeUserId];
+};
+
 export const usePopover = () => {
   const [showPopover, setShowPopover] = useState(false);
-  const [user, setUser] = useState('');
+  const [user, setUser] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event, user) => {
@@ -36,7 +43,7 @@ export const usePopover = () => {
   };
 
   const handleClickAway = () => {
-    setUser('');
+    setUser("");
     setShowPopover(false);
     setAnchorEl(null);
   };

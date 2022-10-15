@@ -10,11 +10,15 @@ import { hideInDesktop } from "../../design/mixins";
 import { useWindowWidth } from "../../hooks";
 import { setActiveChannel } from "../../reducers/channelsReducer";
 import { loadMessages } from "../../reducers/chatReducer";
-import { toggleMemberList } from "../../reducers/memberListReducer";
+import {
+  setActiveUser,
+  toggleMemberList,
+} from "../../reducers/memberListReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ChatArea from "./ChatArea";
 import Header from "./Header";
 import MemberList from "./MemberList";
+import ImportIDModal from "./modals/ImportIDModal";
 import Sidebar from "./Sidebar";
 
 const Container = styled.div`
@@ -120,11 +124,15 @@ const Dashboard = () => {
 
   const params = useParams();
   const activeChannelId = params.channel;
+  const activeUserId = params.user;
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(setActiveChannel(activeChannelId));
-    dispatch(loadMessages(activeChannelId));
-  }, [activeChannelId, dispatch]);
+    dispatch(setActiveUser(activeUserId));
+    dispatch(
+      loadMessages({ channelId: activeChannelId, userId: activeUserId })
+    );
+  }, [loadMessages, activeUserId, activeChannelId, dispatch]);
 
   return (
     <Container $isMemberListOpen={isMemberListOpen}>
@@ -132,6 +140,7 @@ const Dashboard = () => {
       <Header />
       <ChatArea />
       <ResponsiveMemberList />
+      <ImportIDModal />
     </Container>
   );
 };

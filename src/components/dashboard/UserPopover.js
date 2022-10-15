@@ -3,6 +3,7 @@ import React from "react";
 import Popover from "@mui/material/Popover";
 import styled from "styled-components";
 
+import { useNavigate } from "react-router-dom";
 import Avatar, { GreenDotWrapper } from "./Avatar";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
 
@@ -88,12 +89,14 @@ const Input = styled.input`
 `;
 
 const UserPopover = ({ user, setShowPopover, ...delegated }) => {
+  const navigate = useNavigate();
   const handleSubmit = (event) => {
     event.preventDefault();
     const content = event.target.content.value;
     if (content !== "") {
       event.target.reset();
       setShowPopover(false);
+      navigate(`/@/${user.AIP.bapId}`);
     }
   };
 

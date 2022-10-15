@@ -1,4 +1,5 @@
 import { last } from "lodash";
+import { receiveNewPin } from "../reducers/channelsReducer";
 import { receiveNewMessage, receiveNewReaction } from "../reducers/chatReducer";
 
 const sockQuery = (verbose) => {
@@ -7,8 +8,8 @@ const sockQuery = (verbose) => {
     q: {
       find: {
         "MAP.type": verbose
-          ? { $in: ["post", "message", "like"] }
-          : { $in: ["message", "like"] },
+          ? { $in: ["post", "message", "like", "pin_channel"] }
+          : { $in: ["message", "like", "pin_channel"] },
       },
     },
   };
@@ -33,49 +34,19 @@ const socketMiddleware = () => {
       let channelId = last(window.location.pathname.split("/")) || null;
 
       console.log(res);
-      if (res.type === "push" && data.MAP.type === "message") {
-        // if (!audio.muted) {
-        //   audio.play()
-        // }
-        // var i = document.querySelector("#chat")
-        // i.setAttribute("placeholder", "")
-        // i.removeAttribute("readonly")
-        // data.m = `${
-        //   data.MAP.paymail || data.AIP?.address
-        // }: ${data.B.content.trim()}`;
-        // if (
-        //   (!channelId && !data.MAP.channel) ||
-        //   channelId === data.MAP.channel
-        // ) {
-        storeAPI.dispatch(receiveNewMessage(data));
-        // }
-        // data.timestamp = moment(data.blk.t*1000).format('M/D, h:mm:ss a');
-        // data.h = data.tx.h
-        // data.url = data.MAP.type === 'post' ? 'https://blockpost.network/post/' : 'https://whatsonchain.com/tx/'
-        // var html = template2(data)
-        // var d = document.createElement("div")
-        // d.innerHTML = html
-        // if (data.MAP.type === 'post') {
-        //   d.classList = "row post"
-        // } else {
-        //   d.className = "row"
-        // }
-        // document.querySelector(".container").appendChild(d)
-
-        // if (bottom()) {
-        //   document.querySelector('.container').scrollTop = document.querySelector('.container').scrollHeight
-        // }
-      } else if (res.type === "push" && data.MAP.type === "like") {
-        console.log("dispatch new like", data);
-        storeAPI.dispatch(receiveNewReaction(data));
-      } else if (res.type === "block") {
-        // TODO: put a new block message in the chat, BSV yellow color
-        // var header = `NEW BLOCK ${data.block_height}`
-        // figlet(header, '3D-ASCII', function(err, text) {
-        //   if (err) {
-        //     return
-        //   }
-        // })
+      if (res.type === "push") {
+        switch (data.MAP.type) {
+          case "like":
+            console.log("dispatch new like", data);
+            storeAPI.dispatch(receiveNewReaction(data));
+            break;
+          case "message":
+            storeAPI.dispatch(receiveNewMessage(data));
+            break;
+          case "pin_channel":
+            storeAPI.dispatch(receiveNewPin(data));
+            break;
+        }
       }
     };
 

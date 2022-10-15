@@ -1,12 +1,14 @@
 import React from "react";
 
 import { FaTerminal } from "react-icons/fa";
+import { GiUnicorn } from "react-icons/gi";
 import { HiPlus } from "react-icons/hi";
 import styled, { css } from "styled-components";
 
 import { baseIcon, roundedBackground } from "../../design/mixins";
 import BlockpostIcon from "../icons/BlockpostIcon";
 import NitroIcon from "../icons/NitroIcon";
+import RetrofeedIcon from "../icons/RetrofeedIcon";
 import ArrowTooltip from "./ArrowTooltip";
 
 const PillWrapper = styled.div`
@@ -135,8 +137,38 @@ const ServerList = () => {
       <ListItem>
         <ArrowTooltip title="BlockPost.network" placement="left">
           <a href="https://blockpost.network/bitchat" target="_blank">
-            <ServerIcon color="white" bgcolor="#49485a">
+            <ServerIcon
+              color="white"
+              bgcolor="#49485a"
+              style={{ padding: ".25rem" }}
+            >
               <BlockpostIcon />
+            </ServerIcon>
+          </a>
+        </ArrowTooltip>
+      </ListItem>
+      <ListItem>
+        <ArrowTooltip title="Pewnicorn Social Club" placement="left">
+          <a href="https://www.pewnicornsocial.club" target="_blank">
+            <ServerIcon
+              color="pink"
+              bgcolor="#49485a"
+              style={{ padding: ".5rem" }}
+            >
+              <GiUnicorn />
+            </ServerIcon>
+          </a>
+        </ArrowTooltip>
+      </ListItem>
+      <ListItem>
+        <ArrowTooltip title="Retrofeed" placement="left">
+          <a href="https://retrofeed.me/chat" target="_blank">
+            <ServerIcon
+              color="#F42B2C"
+              bgcolor="#49485a"
+              style={{ padding: ".5rem" }}
+            >
+              <RetrofeedIcon />
             </ServerIcon>
           </a>
         </ArrowTooltip>
