@@ -5,7 +5,6 @@ import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 
 import { loadChannels } from "../../reducers/channelsReducer";
-import { signup } from "../../reducers/sessionReducer";
 import Form from "./Form";
 import Input from "./Input";
 import Label from "./Label";
@@ -39,7 +38,7 @@ const SignupPage = () => {
       noValidationError = false;
     }
     if (noValidationError) {
-      dispatch(signup({ username, password }));
+      // dispatch(signup({ username, password }));
     }
   };
 

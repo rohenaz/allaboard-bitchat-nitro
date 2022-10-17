@@ -1,17 +1,16 @@
-import nimble from "@runonbitcoin/nimble";
-import bops from "bops";
 import { last } from "lodash";
-import React, { useCallback, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useCallback } from "react";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
-import { useBmap } from "../../context/bmap";
+import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
-import { useActiveChannel } from "../../hooks";
+import { useActiveChannel, useActiveUser } from "../../hooks";
 import { FetchStatus } from "../../utils/common";
 import ChannelTextArea from "./ChannelTextArea";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
+
 // if (typeof Buffer === "undefined") {
 //   /*global Buffer:writable*/
 //   Buffer = require("buffer").Buffer;
@@ -33,21 +32,23 @@ const TypingStatus = styled.span`
 `;
 
 const WriteArea = () => {
-  const dispatch = useDispatch();
   // const user = useSelector((state) => state.session.user);
-  const [postStatus, setPostStatus] = useState(FetchStatus.Idle);
-  const { relayOne, paymail } = useRelay();
-  const { profile, authToken, hcDecrypt, hcSignOpReturnWithAIP } =
-    useHandcash();
-  const { notifyIndexer } = useBmap();
-  const { identity } = useBap();
+  const { paymail } = useRelay();
+  const { decryptStatus, profile, signStatus } = useHandcash();
+  const { sendMessage, postStatus } = useBitcoin();
   const activeChannel = useActiveChannel();
+  const { decIdentity } = useBap();
+  const activeUser = useActiveUser();
   const activeUserId = useSelector((state) => state.memberList.active);
+  const loadingMembers = useSelector((state) => state.memberList.loading);
+  const loadingPins = useSelector((state) => state.channels.pins.loading);
+  const loadingChannels = useSelector((state) => state.channels.loading);
+  const loadingMessages = useSelector((state) => state.chat.messages.loading);
+
   const channelName =
     activeChannel?.channel ||
     activeUserId ||
     last(window.location.pathname.split("/"));
-  let timeout = undefined;
 
   const handleSubmit = useCallback(
     async (event) => {
@@ -67,121 +68,31 @@ const WriteArea = () => {
     [activeUserId, activeChannel, paymail, profile]
   );
 
-  const sendMessage = useCallback(
-    async (pm, content, channel, userId) => {
-      setPostStatus(FetchStatus.Loading);
-      try {
-        let dataPayload = [
-          B_PREFIX, // B Prefix
-          content,
-          "text/plain",
-          "utf-8",
-          "|",
-          MAP_PREFIX, // MAP Prefix
-          "SET",
-          "app",
-          "bitchatnitro.com",
-          "type",
-          "message",
-          "paymail",
-          pm,
-        ];
+  // const enablePublicComms = useCallback(async () => {
+  //   try {
+  //     const decIdentity = await hcDecrypt(identity);
 
-        // add channel
-        if (channel) {
-          dataPayload.push("context", "channel", "channel", channel);
-        } else if (userId) {
-          dataPayload.push("context", "bapID", "bapID", userId);
-          // encrypt the content with shared ecies between the two identities
-          // dataPayload[1] = encrypt(dataPayload[1]);
-        }
-        const hexArray = dataPayload.map((d) =>
-          Buffer.from(d, "utf8").toString("hex")
-        );
-        if (identity) {
-          // decrypt and import identity
-          const signedOps = await hcSignOpReturnWithAIP(identity, hexArray);
+  //     const hdPK = bsv.HDPrivateKey.fromString(decIdentity.xprv);
 
-          console.log({ signedOps });
+  //     const privateKey = hdPK.privateKey.toString();
 
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
-            method: "POST",
-            headers: new Headers({ "Content-Type": "application/json" }),
-            body: JSON.stringify({
-              hexArray: signedOps, // remove op_false op_return
-              authToken,
-              channel,
-              userId,
-            }),
-          });
+  //     // only add the attribute if its needed
+  //     if (!decIdentity.commsPublicKey) {
+  //       const hexString = `<TODO: hash of user's id key>`;
+  //       const signingPath = getSigningPathFromHex(hexString, true);
 
-          const { paymentResult } = await resp.json();
+  //       // TODO: Add the commsPublicKey attribute to ALIAS doc
 
-          console.log({ paymentResult });
-          if (paymentResult?.rawTransactionHex) {
-            try {
-              await notifyIndexer(paymentResult.rawTransactionHex);
-              setPostStatus(FetchStatus.Success);
-            } catch (e) {
-              console.log("failed to notify indexer", e);
-              setPostStatus(FetchStatus.Error);
-
-              return;
-            }
-          }
-          return;
-        }
-
-        // check for handcash token
-        // let authToken = localStorage.getItem("bitchat-nitro.hc-auth-token");
-        if (authToken) {
-          let hexArray = dataPayload.map((str) =>
-            bops.to(bops.from(str, "utf8"), "hex")
-          );
-          // .join(" ")
-
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
-            method: "POST",
-            headers: new Headers({ "Content-Type": "application/json" }),
-            body: JSON.stringify({ hexArray, authToken, channel }),
-          });
-
-          console.log({ resp });
-          return;
-          // https://bitchatnitro.com/hcsend/
-          // { hexArray, authToken}
-        }
-        const script = nimble.Script.fromASM(
-          "OP_0 OP_RETURN " +
-            dataPayload
-              .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
-              .join(" ")
-        );
-        let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
-
-        let resp = await relayOne.send({ outputs });
-        console.log("Sent", resp);
-        // interface SendResult {
-        //   txid: string;
-        //   rawTx: string;
-        //   amount: number; // amount spent in button currency
-        //   currency: string; // button currency
-        //   satoshis: number; // amount spent in sats
-        //   paymail: string; // user paymail deprecated
-        //   identity: string; // user pki deprecated
-        // }
-        try {
-          await notifyIndexer(resp.rawTx);
-        } catch (e) {
-          console.log("failed to notify indexer", e);
-          return;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    [activeUserId, identity, relayOne, authToken, notifyIndexer]
-  );
+  //       // newId.addAttribute(
+  //       //   "commsPublicKey",
+  //       //   privateKey.deriveChild(signingPath).publicKey.toString()
+  //       // );
+  //       // newId.addAttribute("email", "john@doe.com");
+  //     }
+  //   } catch (e) {
+  //     throw e;
+  //   }
+  // }, [identity, hcDecrypt]);
 
   const typingUser = useSelector((state) => state.chat.typingUser);
 
@@ -222,6 +133,8 @@ const WriteArea = () => {
     }
   };
 
+  // TODO: When loading the page show what is loading in the placeholder
+
   return (
     <Container>
       <Form onSubmit={handleSubmit} autocomplete="off">
@@ -230,7 +143,19 @@ const WriteArea = () => {
           name="msg_content"
           autocomplete="off"
           placeholder={
-            postStatus === FetchStatus.Loading
+            activeUser && loadingMembers
+              ? `Loading members...`
+              : loadingPins
+              ? `Loading pinned channels...`
+              : loadingChannels
+              ? `Loading channels...`
+              : loadingMessages
+              ? `Loading messages...`
+              : decryptStatus === FetchStatus.Loading
+              ? `Decrypting...`
+              : signStatus === FetchStatus.Loading
+              ? `Signing...`
+              : postStatus === FetchStatus.Loading
               ? "Posting..."
               : `Message ${
                   activeChannel?.channel
@@ -243,6 +168,11 @@ const WriteArea = () => {
           onKeyUp={handleKeyUp}
           onKeyDown={handleKeyDown}
           onFocus={(e) => console.log(e.target)}
+          disabled={
+            activeUser &&
+            !activeUser.isFriend &&
+            !decIdentity?.result?.commsPublicKey
+          }
         />
         <InvisibleSubmitButton />
       </Form>
@@ -254,10 +184,6 @@ const WriteArea = () => {
 };
 
 export default WriteArea;
-
-const B_PREFIX = `19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut`;
-const AIP_PREFIX = `15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva`;
-export const MAP_PREFIX = `1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5`;
 
 // /**
 //  * Sign an op_return hex array with AIP

@@ -47,6 +47,15 @@ exports.hcEncrypt = functions.https.onRequest(async (req, res) => {
   return res.status(200).send({ encryptedData: b64encrypted });
 });
 
+exports.login = functions.https.onRequest(async (req, res) => {
+  await cors(req, res);
+
+  // load identity and
+  req.body.identity;
+  req.body.authToken;
+
+  res.send({ ALIAS });
+});
 exports.hcDecrypt = functions.https.onRequest(async (req, res) => {
   await cors(req, res);
 
@@ -68,13 +77,48 @@ exports.hcDecrypt = functions.https.onRequest(async (req, res) => {
     .decrypt(Buffer.from(req.body.encryptedData, "base64"))
     .toString();
 
-  return res.status(200).send(JSON.parse(identityDec));
+  return res.status(200).send({ identity: JSON.parse(identityDec), idKey });
 
   // import ECIES from 'bsv/ecies';
 
   // ECIES().privateKey(privateKey).encrypt()
 
   // return res.status(200).send({});
+});
+
+exports.bapLoadID = functions.https.onRequest(async (req, res) => {
+  await cors(req, res);
+
+  if (!req.body.authToken) {
+    return res.status(401).send();
+  }
+
+  if (!req.body.encryptedIdentity) {
+    return res.status(400).send();
+  }
+
+  const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
+  const { privateKey } = await account.profile.getEncryptionKeypair();
+
+  // decrypt identity file
+  const ecies = new ECIES();
+  ecies.privateKey(bsv.PrivateKey.fromString(privateKey));
+  const identityDec = ecies
+    .decrypt(Buffer.from(req.body.encryptedIdentity, "base64"))
+    .toString();
+  const decIdentity = JSON.parse(identityDec);
+
+  let bapId = new BAP(decIdentity.xprv);
+  functions.logger.info("BAP id", bapId);
+  if (decIdentity.ids) {
+    bapId.importIds(decIdentity.ids);
+  }
+
+  const ids = bapId.listIds();
+  functions.logger.info({ ids });
+  const idy = bapId.getId(ids[0]);
+
+  res.status(200).send({ identity: idy });
 });
 
 exports.hcSignOpReturnWithAIP = functions.https.onRequest(async (req, res) => {

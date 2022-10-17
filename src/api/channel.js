@@ -58,6 +58,37 @@ var queryUsers = {
 };
 var queryUsersB64 = btoa(JSON.stringify(queryUsers));
 
+var queryFriends = (idKey) => {
+  return {
+    v: 3,
+    q: {
+      aggregate: [
+        {
+          $match: {
+            "MAP.type": "friend",
+            "AIP.bapId": idKey,
+          },
+        },
+        {
+          $sort: { timestamp: -1 },
+        },
+        {
+          $group: {
+            _id: "$AIP.bapId",
+            requester: { $first: "$AIP.bapId" },
+            recipient: { $first: "$MAP.bapID" },
+            last_message_time: { $last: "$timestamp" },
+            actions: { $sum: 1 },
+          },
+        },
+      ],
+      sort: { last_message_time: -1 },
+      limit: 100,
+    },
+  };
+};
+var queryFriendsB64 = (idKey) => btoa(JSON.stringify(queryFriends(idKey)));
+
 var queryChannels = {
   v: 3,
   q: {
@@ -106,10 +137,18 @@ const query = (verboseMode, channelId, userId, myId) => {
   if (channelId) {
     q.q.find["MAP.channel"] = channelId;
   } else if (userId && myId) {
-    q.q.find["AIP.bapId"] = { $in: [userId, myId] };
+    q.q.find["$and"] = [
+      { $or: [{ "MAP.bapID": myId }, { "MAP.bapID": userId }] },
+      { $or: [{ "AIP.bapId": myId }, { "AIP.bapId": userId }] },
+    ];
+    // stuff added by indexer uses camelCase
+    // stuff in the protocol uses caps ID
     //TODO: q.q.find["MAP.encrypted"] = true;
   } else {
-    q.q.find["MAP.channel"] = { $exists: false };
+    q.q.find["$and"] = [
+      { "MAP.context": { $exists: false } },
+      { "MAP.channel": { $exists: false } },
+    ];
   }
   return btoa(JSON.stringify(q));
 };
@@ -153,31 +192,37 @@ const queryDiscordReactions = (messageIds) => {
 };
 
 export const getPinnedChannels = async () => {
-  return await api.get(queryPinnedChannelsB64);
+  return await api.get(`${queryPinnedChannelsB64}?d-pins`);
 };
 
 export const getChannels = async () => {
-  return await api.get(queryChannelsB64);
+  return await api.get(`${queryChannelsB64}?d-channels`);
 };
 
 export const getUsers = async () => {
-  return await api.get(queryUsersB64);
+  return await api.get(`${queryUsersB64}?d=users`);
+};
+
+export const getFriends = async (idKey) => {
+  return await api.get(`${queryFriendsB64(idKey)}?d=friends`);
 };
 
 export const getMessages = async (channelId, userId, myId) => {
-  return await api.get(query(verboseMode, channelId, userId, myId));
+  return await api.get(
+    `${query(verboseMode, channelId, userId, myId)}?d=messages`
+  );
 };
 
 export const getReactions = async (txIds) => {
   if (!txIds?.length) {
     return;
   }
-  return await api.get(queryReactions(txIds));
+  return await api.get(`${queryReactions(txIds)}?d=reactions`);
 };
 
 export const getDiscordReactions = async (messageIds) => {
   if (!messageIds?.length) {
     return;
   }
-  return await api.get(queryDiscordReactions(messageIds));
+  return await api.get(`${queryDiscordReactions(messageIds)}?d-disc-react`);
 };

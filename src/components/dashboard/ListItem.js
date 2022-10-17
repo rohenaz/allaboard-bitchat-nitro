@@ -4,8 +4,9 @@ import { AiFillPushpin } from "react-icons/ai";
 import styled, { css } from "styled-components";
 
 const Text = styled.span`
-  font-size: 15px;
   font-weight: 500;
+  ${(p) =>
+    `font-size: ${p.textStyle?.fontSize ? p.textStyle.fontSize : "15px"}`};
   ${(p) => `color: ${p.isActive ? "white" : "var(--channels-default)"}`};
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -66,6 +67,7 @@ const ListItem = ({
   isActive,
   hasActivity,
   onClickPin,
+  textStyle,
   ...delegated
 }) => {
   return (
@@ -73,7 +75,11 @@ const ListItem = ({
       <>{icon}</>
       <Wrapper>
         {text && (
-          <Text isActive={isActive || hasActivity} className="disable-select">
+          <Text
+            isActive={isActive || hasActivity}
+            style={textStyle}
+            className="disable-select"
+          >
             {text}
           </Text>
         )}

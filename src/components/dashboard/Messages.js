@@ -13,11 +13,15 @@ import { GiUnicorn } from "react-icons/gi";
 import { MdChat } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
+import { useBap } from "../../context/bap";
+import { useBitcoin } from "../../context/bitcoin";
+import { useHandcash } from "../../context/handcash";
 import { useActiveChannel, useActiveUser, usePopover } from "../../hooks";
 import {
   loadDiscordReactions,
   loadReactions,
 } from "../../reducers/chatReducer";
+import { FetchStatus } from "../../utils/common";
 import "../common/slider.less";
 import BlockpostIcon from "../icons/BlockpostIcon";
 import NitroIcon from "../icons/NitroIcon";
@@ -27,6 +31,7 @@ import Hashtag from "./Hashtag";
 import Message from "./Message";
 import PinChannelModal from "./modals/PinChannelModal";
 import UserPopover from "./UserPopover";
+const { BAP } = require("bitcoin-bap");
 
 const Wrapper = styled.div`
   background-color: var(--background-primary);
@@ -34,6 +39,16 @@ const Wrapper = styled.div`
   flex: 1;
   overflow: auto;
   height: calc(100vh - 48px - 68px);
+`;
+
+const AddFriendButton = styled.button`
+  border-radius: 0.25rem;
+  background-color: var(--brand);
+  color: white;
+  padding: 1rem;
+  &:disabled {
+    background: var(--background-secondary);
+  }
 `;
 
 const Container = styled.div`
@@ -70,24 +85,35 @@ const Messages = () => {
   const activeChannel = useActiveChannel();
   const activeUser = useActiveUser();
   const dispatch = useDispatch();
+  const { identity, decIdentity, setDecIdentity, getIdentity, bapProfile } =
+    useBap();
+  const { friendRequestStatus, sendFriendRequest } = useBitcoin();
+  const { hcDecrypt, decryptStatus } = useHandcash();
   const messages = useSelector((state) => state.chat.messages);
   const pins = useSelector((state) => state.channels.pins);
   const hasMessages = messages.allIds.length > 0;
-
   const reactions = useSelector((state) => state.chat.reactions);
   const hasReactions =
     (reactions.allTxIds || []).concat(reactions.allMessageIds)?.length > 0;
   const [showPinChannelModal, setShowPinChannelModal] = useState(false);
-
+  const friendRequests = useSelector(
+    (state) => state.memberList.friendRequests
+  );
   // Scroll to bottom of the chat history whenever there is a new message
   // or when messages finish loading
   const containerBottomRef = useRef(null);
   useEffect(() => {
-    console.log({ activeUser });
     if (messages.loading === false && containerBottomRef.current) {
       setTimeout(containerBottomRef.current.scrollIntoView(false), 0);
     }
   }, [containerBottomRef.current, messages.loading, messages.allIds]);
+
+  useEffect(() => {
+    if (decIdentity && !bapProfile) {
+      const bp = getIdentity();
+      console.log({ bp });
+    }
+  }, [decIdentity, bapProfile, getIdentity]);
 
   const [
     user,
@@ -189,6 +215,13 @@ const Messages = () => {
     return null;
   }, [activeChannel, activeUser]);
 
+  const addFriend = useCallback(() => {
+    if (activeUser) {
+      console.log("add friend", activeUser);
+      sendFriendRequest(activeUser._id, decIdentity.xprv);
+    }
+  }, [decIdentity, sendFriendRequest, activeUser]);
+
   const icon = useMemo(() => {
     if (activeChannel) {
       return (
@@ -218,6 +251,136 @@ const Messages = () => {
     return null;
   }, [activeChannel, activeUser]);
 
+  useEffect(() => {
+    console.log(
+      activeUser,
+      !decIdentity?.result?.commsPublicKey,
+      !activeUser?.isFriend
+    );
+  }, [activeUser, decIdentity]);
+
+  if (activeUser && friendRequests.loading) {
+    return (
+      <Wrapper className="scrollable">
+        <Container>
+          <HeaderContainer>
+            <SecondaryHeading>Loading...</SecondaryHeading>
+          </HeaderContainer>
+        </Container>
+      </Wrapper>
+    );
+  }
+
+  if (
+    activeUser &&
+    friendRequests &&
+    friendRequests.incoming.includes(activeUser._id) &&
+    !activeUser.isFriend
+  ) {
+    return (
+      <Wrapper className="scrollable">
+        <Container>
+          <HeaderContainer className="disable-select">
+            {icon}
+
+            <PrimaryHeading>{heading}</PrimaryHeading>
+            <SecondaryHeading>
+              You have a friend request from {activeUser.user?.alternateName}
+            </SecondaryHeading>
+
+            <AddFriendButton
+              onClick={addFriend}
+              disabled={friendRequestStatus === FetchStatus.Loading}
+            >
+              Accept
+            </AddFriendButton>
+          </HeaderContainer>
+        </Container>
+      </Wrapper>
+    );
+  }
+
+  if (
+    activeUser &&
+    friendRequests &&
+    friendRequests.outgoing.includes(activeUser._id) &&
+    !activeUser.isFriend
+  ) {
+    return (
+      <Wrapper className="scrollable">
+        <Container>
+          <HeaderContainer className="disable-select">
+            {icon}
+
+            <PrimaryHeading>{heading}</PrimaryHeading>
+            <SecondaryHeading>
+              Waiting for a response to your friend request.
+            </SecondaryHeading>
+          </HeaderContainer>
+        </Container>
+      </Wrapper>
+    );
+  }
+
+  if (
+    activeUser &&
+    !decIdentity?.result?.commsPublicKey &&
+    !activeUser?.isFriend &&
+    !friendRequests.loading
+  ) {
+    return (
+      <Wrapper className="scrollable">
+        <Container>
+          <HeaderContainer className="disable-select">
+            {icon}
+
+            <PrimaryHeading>{heading}</PrimaryHeading>
+            <SecondaryHeading>
+              You are not currently accepting new messages from non-friends.
+            </SecondaryHeading>
+
+            {!self && (
+              <AddFriendButton
+                onClick={addFriend}
+                disabled={friendRequestStatus === FetchStatus.Loading}
+              >
+                Add Friend
+              </AddFriendButton>
+            )}
+          </HeaderContainer>
+          <br />
+          <br />
+          <br />
+        </Container>
+      </Wrapper>
+    );
+  }
+
+  if (
+    activeUser &&
+    !activeUser?.user?.commsPublicKey &&
+    !activeUser?.isFriend &&
+    !friendRequests.loading
+  ) {
+    return (
+      <Wrapper className="scrollable">
+        <Container>
+          <HeaderContainer className="disable-select">
+            {icon}
+
+            <PrimaryHeading>{heading}</PrimaryHeading>
+            <SecondaryHeading>
+              This user is not currently accepting new messages from
+              non-friends.
+            </SecondaryHeading>
+
+            <AddFriendButton onClick={addFriend}>Add Friend</AddFriendButton>
+          </HeaderContainer>
+        </Container>
+      </Wrapper>
+    );
+  }
+
   return (
     <Wrapper className="scrollable">
       <Container>
@@ -226,20 +389,24 @@ const Messages = () => {
 
           <PrimaryHeading>{heading}</PrimaryHeading>
           <SecondaryHeading>{subheading}</SecondaryHeading>
-          {!activeUser && !pins.byChannel[activeChannel?.channel] && (
-            <div
-              style={{
-                cursor: "pointer",
-                alignItems: "center",
-                display: "flex",
-                color: "gold",
-              }}
-              onClick={togglePinChannelModal}
-            >
-              <AiFillPushpin style={{ marginRight: ".5rem" }} /> Pin this
-              Channel
-            </div>
-          )}
+          {activeUser && activeUser.isFriend && <div>FRIENDS</div>}
+          {decryptStatus !== FetchStatus.Loading &&
+            activeChannel &&
+            !activeUser &&
+            !pins.byChannel[activeChannel?.channel] && (
+              <div
+                style={{
+                  cursor: "pointer",
+                  alignItems: "center",
+                  display: "flex",
+                  color: "gold",
+                }}
+                onClick={togglePinChannelModal}
+              >
+                <AiFillPushpin style={{ marginRight: ".5rem" }} /> Pin this
+                Channel
+              </div>
+            )}
           {pins.allChannels.includes(activeChannel?.channel) && (
             <div style={{ color: "#777" }}>
               This channel is pinned for another {expiresIn}
@@ -276,16 +443,7 @@ const Messages = () => {
                     <BlockpostIcon style={{ width: "1rem" }} />
                   </div>
                 ) : m.MAP.app === "bitchatnitro.com" ? (
-                  <div
-                    style={{
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      opacity: ".25",
-                    }}
-                  >
-                    <NitroIcon style={{ width: ".75rem", height: ".75rem" }} />
-                  </div>
+                  <NitroIcon style={{ width: ".75rem", height: ".75rem" }} />
                 ) : m.MAP.app === "retrofeed.me" ? (
                   <div style={{ color: "#F42B2C" }}>
                     <RetrofeedIcon

@@ -4,3 +4,19 @@ export const FetchStatus = {
   Error: 2,
   Success: 3,
 };
+
+export const defaultAlias = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  alternateName: "",
+  logo: "",
+  image: "",
+  homeLocation: {
+    "@type": "Place",
+    name: "",
+  },
+  description: "",
+  url: "",
+  paymail: "",
+  bitcoinAddress: "",
+};

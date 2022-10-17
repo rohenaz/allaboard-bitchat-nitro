@@ -1,15 +1,59 @@
 import { head } from "lodash";
-import React, { useCallback, useContext, useMemo } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useActiveUser } from "../../hooks";
+import { login } from "../../reducers/sessionReducer";
+import { FetchStatus } from "../../utils/common";
 import { useLocalStorage } from "../../utils/storage";
 import { useHandcash } from "../handcash";
+const { BAP } = require("bitcoin-bap");
 
 const BapContext = React.createContext(undefined);
 
 const BapProvider = (props) => {
   const [identity, setIdentity] = useLocalStorage(idStorageKey);
-  // const [profile, setProfile] = useLocalStorage(profileStorageKey);
+  const [decIdentity, setDecIdentity] = useState();
+  const [bapProfile, setBapProfile] = useLocalStorage(profileStorageKey);
+  const [bapProfileStatus, setBapProfileStatus] = useState(FetchStatus.Loading);
+  const { authToken, hcEncrypt, hcDecrypt, decryptStatus } = useHandcash();
+  const session = useSelector((state) => state.session);
+  const activeUser = useActiveUser();
+  const dispatch = useDispatch();
 
-  const { authToken, hcEncrypt } = useHandcash();
+  useEffect(() => {
+    const fire = async () => {
+      const decIdentity = await hcDecrypt(identity);
+
+      let bapId = new BAP(decIdentity.xprv);
+      console.log("BAP id", bapId);
+      if (decIdentity.ids) {
+        bapId.importIds(decIdentity.ids);
+      }
+      let bid = head(bapId.listIds());
+      console.log({ bid });
+      decIdentity.bapId = bid;
+
+      setDecIdentity(decIdentity);
+      dispatch(login({ bapId: bid }));
+    };
+
+    console.log({ activeUser, decryptStatus, decIdentity });
+    if (
+      identity &&
+      decryptStatus === FetchStatus.Idle &&
+      !decIdentity &&
+      activeUser
+    ) {
+      console.log("FIRE");
+      fire();
+    }
+  }, [identity, hcDecrypt, activeUser, decryptStatus, decIdentity]);
 
   const onFileChange = useCallback(
     async (e) => {
@@ -33,15 +77,50 @@ const BapProvider = (props) => {
     [authToken, hcEncrypt, setIdentity]
   );
 
+  const getIdentity = useCallback(async () => {
+    if (bapProfile) {
+      return bapProfile;
+    }
+    setBapProfileStatus(FetchStatus.Loading);
+    console.log("get identity");
+
+    const payload = {
+      idKey: ``,
+    };
+    const res = await fetch(`https://bap-api.com/v1/getIdentity`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const resp = { idKey: "something" };
+    setBapProfileStatus(FetchStatus.Success);
+    setBapProfile(resp);
+    return resp;
+  }, [bapProfileStatus, bapProfile]);
+
   const value = useMemo(
     () => ({
       identity,
       setIdentity,
-      // profile,
-      // setProfile,
+      decIdentity,
+      setDecIdentity,
+      getIdentity,
+      bapProfileStatus,
+      bapProfile,
       onFileChange,
     }),
-    [identity, setIdentity, onFileChange]
+    [
+      identity, // encrypted identity file
+      getIdentity,
+      decIdentity,
+      setDecIdentity,
+      bapProfileStatus,
+      setIdentity,
+      onFileChange,
+      bapProfile,
+    ]
   );
 
   return (
@@ -66,7 +145,7 @@ export { BapProvider, useBap };
 //
 
 const idStorageKey = "nitro__BapProvider_id";
-// const profileStorageKey = "nitro__BapProvider_profile";
+const profileStorageKey = "nitro__BapProvider_profile";
 
 const toText = (file) =>
   new Promise((resolve, reject) => {

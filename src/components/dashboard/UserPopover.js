@@ -96,6 +96,7 @@ const UserPopover = ({ user, setShowPopover, ...delegated }) => {
     if (content !== "") {
       event.target.reset();
       setShowPopover(false);
+      // TODO: sendMessage;
       navigate(`/@/${user.AIP.bapId}`);
     }
   };

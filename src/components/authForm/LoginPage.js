@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
+import { useBap } from "../../context/bap";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import { loadChannels } from "../../reducers/channelsReducer";
@@ -15,6 +16,7 @@ const LoginPage = () => {
   const { authenticate, authenticated } = useRelay();
   const { setAuthToken, profile, getProfile } = useHandcash();
   const dispatch = useDispatch();
+  const { identity } = useBap();
   const [selectedWallet, setSelectedWallet] = useState("handcash");
 
   useEffect(() => {
@@ -29,7 +31,9 @@ const LoginPage = () => {
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
-
+      // if (identity) {
+      //   dispatch(login({ identity }));
+      // }
       if (event.target.wallet.value === "handcash") {
         window.location.href = "https://bitchatnitro.com/hclogin";
         return;
@@ -49,12 +53,11 @@ const LoginPage = () => {
       } catch (e) {
         console.error("Failed to authenticate", e);
       }
-      // dispatch(login({ username, password }));
+
       // setUsernameError("");
       // setPasswordError("");
-      // }
     },
-    [authenticate]
+    [authenticate, identity]
   );
 
   const navigate = useNavigate();

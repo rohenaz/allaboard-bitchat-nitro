@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { FaPlus, FaUserFriends } from "react-icons/fa";
 
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { useBap } from "../../context/bap";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import { useWindowWidth } from "../../hooks";
@@ -11,6 +13,8 @@ import { toggleSidebar } from "../../reducers/sidebarReducer";
 import Avatar from "./Avatar";
 import List from "./List";
 import ListItem from "./ListItem";
+
+const { BAP } = require("bitcoin-bap");
 
 const Container = styled.div`
   width: 240px;
@@ -65,10 +69,18 @@ const Username = styled.div`
 `;
 
 const UserList = () => {
+  const { decIdentity } = useBap();
+
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(loadUsers());
   }, [dispatch]);
+
+  // useEffect(() => {
+  //   if (decIdentity) {
+  //     dispatch(loadFriends(decIdentity.bapId));
+  //   }
+  // }, [decIdentity, dispatch]);
 
   const { paymail } = useRelay();
   const { profile } = useHandcash();
@@ -102,7 +114,7 @@ const UserList = () => {
 
   const renderUser = useCallback(
     (id) => {
-      console.log({ member: memberList.byId[id] });
+      // console.log({ member: memberList.byId[id] });
       const member = memberList.byId[id];
       return (
         <Link
@@ -142,9 +154,65 @@ const UserList = () => {
   return (
     <Container className="disable-select">
       <Header>
-        <Heading>Bitchat [Nitro]</Heading>
+        <Heading>
+          <Link to={`/channels`}>Bitchat [Nitro]</Link>
+        </Heading>
       </Header>
       <Content className="scrollable">
+        <List gap={`2px`} style={{ width: "100%" }}>
+          <Link
+            key={`friends-menu-item-link`}
+            to={`/friends`}
+            onClick={() => !isInDesktop && dispatch(toggleSidebar())}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: " space-between",
+            }}
+          >
+            <ListItem
+              showPin={false}
+              style={{
+                gap: "8px",
+                padding: "8px 4px",
+                width: "100%",
+              }}
+              icon={
+                <FaUserFriends
+                  width={`32px`}
+                  height={`32px`}
+                  style={{ margin: "0 .5rem" }}
+                />
+              }
+              text={`Friends`}
+              id={`friends-menu-item`}
+              onMouseEnter={(e) => mouseOver(e.target.id)}
+              onMouseLeave={(e) => mouseOut(e.target.id)}
+            />
+          </Link>
+          <Link
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: " space-between",
+              marginTop: `1rem`,
+              marginBottom: ".5rem",
+            }}
+          >
+            <ListItem
+              text={`DIRECT MESSAGES`}
+              textStyle={{ fontSize: ".85rem", width: "100%" }}
+            />
+            <FaPlus
+              style={{
+                color: "#EEE",
+                marginRight: ".5rem",
+                width: "12px",
+                height: "12px",
+              }}
+            />
+          </Link>
+        </List>
         <List gap="2px">
           {!memberList.loading && memberList.allIds.map(renderUser)}
         </List>

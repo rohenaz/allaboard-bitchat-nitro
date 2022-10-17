@@ -11,7 +11,11 @@ export const loadMessages = createAsyncThunk(
   async ({ channelId, userId }, { rejectWithValue }) => {
     try {
       console.log("loading messages", { channelId, userId });
-      const response = await channelAPI.getMessages(channelId, userId);
+      const response = await channelAPI.getMessages(
+        channelId,
+        userId,
+        `Go8vCHAa4S6AhXKTABGpANiz35J`
+      );
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response);

@@ -1,7 +1,5 @@
 import { IconButton } from "@mui/material";
-import nimble from "@runonbitcoin/nimble";
 import Autolinker from "autolinker";
-import bops from "bops";
 import EmojiPicker from "emoji-picker-react";
 import parse from "html-react-parser";
 import { uniqBy } from "lodash";
@@ -11,13 +9,11 @@ import { FaLock } from "react-icons/fa";
 import { MdAddReaction } from "react-icons/md";
 import OutsideClickHandler from "react-outside-click-handler";
 import styled from "styled-components";
-import { useBmap } from "../../context/bmap";
+import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
-import { useActiveChannel } from "../../hooks";
 import ArrowTooltip from "./ArrowTooltip";
 import Avatar from "./Avatar";
-import { MAP_PREFIX } from "./WriteArea";
 
 const MessageButtons = styled.div`
   background-color: var(--background-primary);
@@ -184,11 +180,10 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   // const [showTextArea, setShowTextArea] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
   // const dispatch = useDispatch();
-  const activeChannel = useActiveChannel();
   // const [openDeleteMessage, setOpenPopup] = useState(false);
-  const { notifyIndexer } = useBmap();
-  const { paymail, relayOne } = useRelay();
-  const { profile, authToken } = useHandcash();
+  const { paymail } = useRelay();
+  const { profile } = useHandcash();
+  const { likeMessage, likeStatus } = useBitcoin();
   // const handleSubmit = (event) => {
   //   event.preventDefault();
   //   const content = event.target.value;
@@ -282,73 +277,6 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
       await likeMessage(paymail || profile?.paymail, "tx", txId, e.emoji);
     },
     [paymail, profile, showReactions]
-  );
-
-  const likeMessage = useCallback(
-    async (pm, contextName, contextValue, emoji) => {
-      try {
-        let dataPayload = [
-          MAP_PREFIX, // MAP Prefix
-          "SET",
-          "app",
-          "bitchatnitro.com",
-          "type",
-          "like",
-          "context",
-          contextName,
-          contextName,
-          contextValue,
-          "paymail",
-          pm,
-        ];
-
-        // add channel
-        if (emoji) {
-          dataPayload.push("emoji", emoji);
-        }
-
-        // check for handcash token
-        if (authToken) {
-          let hexArray = dataPayload.map((str) =>
-            bops.to(bops.from(str, "utf8"), "hex")
-          );
-          // .join(" ")
-
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
-            method: "POST",
-            headers: new Headers({ "Content-Type": "application/json" }),
-            body: JSON.stringify({ hexArray, authToken, activeChannel }),
-          });
-          const { paymentResult } = await resp.json();
-
-          console.log({ paymentResult });
-          if (paymentResult) {
-            await notifyIndexer(paymentResult.rawTransactionHex);
-          }
-
-          return;
-          // https://bitchatnitro.com/hcsend/
-          // { hexArray, authToken}
-        }
-        const script = nimble.Script.fromASM(
-          "OP_0 OP_RETURN " +
-            dataPayload
-              .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
-              .join(" ")
-        );
-        let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
-
-        let resp = await relayOne.send({ outputs });
-
-        console.log("Sent", resp);
-
-        await notifyIndexer(resp.rawTx);
-        // let txid = resp.txid;
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    [authToken]
   );
 
   const emojis = useMemo(() => {
