@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import { FaBars, FaGithub, FaSignOutAlt } from "react-icons/fa";
 import { ImProfile } from "react-icons/im";
@@ -71,10 +71,6 @@ const Header = () => {
   const activeUserId = useSelector((state) => state.memberList.active);
   const activeUser = useActiveUser();
 
-  useEffect(() => {
-    console.log({ activeUserId });
-  }, [activeUserId]);
-
   return (
     <Container id="header" className="disable-select">
       <List horizontal={true} gap="10px">
@@ -92,9 +88,10 @@ const Header = () => {
             {activeChannelId && <Hashtag size={`22px`} w={`22px`} />}
             {activeUserId && <At size={`22px`} w={`22px`} h={`22px`} />}
             <Heading>
-              {!channels.loading &&
+              {!channels?.loading &&
                 (activeChannelId ||
-                  `${activeUser?.user?.alternateName || activeUserId}` ||
+                  activeUser?.user?.alternateName ||
+                  activeUserId ||
                   "global chat")}
             </Heading>
           </List>

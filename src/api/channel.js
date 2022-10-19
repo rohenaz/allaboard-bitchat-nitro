@@ -37,18 +37,36 @@ var queryUsers = {
     aggregate: [
       {
         $match: {
-          "AIP.bapId": { $exists: true },
+          "AIP.bapId": {
+            $exists: true,
+          },
         },
       },
       {
-        $sort: { timestamp: -1 },
+        $project: {
+          user: 1,
+          "AIP.bapId": 1,
+          "AIP.identity": 1,
+          timestamp: 1,
+        },
+      },
+      {
+        $sort: {
+          timestamp: -1,
+        },
       },
       {
         $group: {
           _id: "$AIP.bapId",
-          user: { $first: "$AIP.identity" },
-          last_message_time: { $last: "$timestamp" },
-          actions: { $sum: 1 },
+          user: {
+            $first: "$AIP.identity",
+          },
+          last_message_time: {
+            $last: "$timestamp",
+          },
+          actions: {
+            $sum: 1,
+          },
         },
       },
     ],
@@ -56,37 +74,91 @@ var queryUsers = {
     limit: 100,
   },
 };
+
+// var queryUsers = {
+//   v: 3,
+//   q: {
+//     aggregate: [
+//       {
+//         $match: {
+//           "AIP.bapId": { $exists: true },
+//         },
+//       },
+//       {
+//         $sort: { timestamp: -1 },
+//       },
+//       {
+//         $group: {
+//           _id: "$AIP.bapId",
+//           user: { $first: "$AIP.identity" },
+//           last_message_time: { $last: "$timestamp" },
+//           actions: { $sum: 1 },
+//         },
+//       },
+//     ],
+//     sort: { last_message_time: -1 },
+//     limit: 100,
+//   },
+// };
 var queryUsersB64 = btoa(JSON.stringify(queryUsers));
 
 var queryFriends = (idKey) => {
   return {
     v: 3,
     q: {
-      aggregate: [
-        {
-          $match: {
-            "MAP.type": "friend",
-            "AIP.bapId": idKey,
-          },
-        },
-        {
-          $sort: { timestamp: -1 },
-        },
-        {
-          $group: {
-            _id: "$AIP.bapId",
-            requester: { $first: "$AIP.bapId" },
-            recipient: { $first: "$MAP.bapID" },
-            last_message_time: { $last: "$timestamp" },
-            actions: { $sum: 1 },
-          },
-        },
-      ],
-      sort: { last_message_time: -1 },
+      find: {
+        "MAP.type": "friend",
+        "AIP.bapId": idKey,
+      },
+
+      sort: { timestamp: -1 },
+
+      // {
+      //   $group: {
+      //     _id: "$AIP.bapId",
+      //     requester: { $first: "$AIP.bapId" },
+      //     recipient: { $first: "$MAP.bapID" },
+      //     publicKey: { $first: "$MAP.publicKey" },
+      //     last_message_time: { $last: "$timestamp" },
+      //     actions: { $sum: 1 },
+      //   },
+      // },
+
+      // sort: { last_message_time: -1 },
       limit: 100,
     },
   };
 };
+// var queryFriends = (idKey) => {
+//   return {
+//     v: 3,
+//     q: {
+//       aggregate: [
+//         {
+//           $match: {
+//             "MAP.type": "friend",
+//             "AIP.bapId": idKey,
+//           },
+//         },
+//         {
+//           $sort: { timestamp: -1 },
+//         },
+//         {
+//           $group: {
+//             _id: "$AIP.bapId",
+//             requester: { $first: "$AIP.bapId" },
+//             recipient: { $first: "$MAP.bapID" },
+//             publicKey: { $first: "$MAP.publicKey" },
+//             last_message_time: { $last: "$timestamp" },
+//             actions: { $sum: 1 },
+//           },
+//         },
+//       ],
+//       sort: { last_message_time: -1 },
+//       limit: 100,
+//     },
+//   };
+// };
 var queryFriendsB64 = (idKey) => btoa(JSON.stringify(queryFriends(idKey)));
 
 var queryChannels = {
@@ -120,7 +192,7 @@ var queryChannels = {
 var queryChannelsB64 = btoa(JSON.stringify(queryChannels));
 
 const query = (verboseMode, channelId, userId, myId) => {
-  console.log("query with", userId, channelId);
+  // console.log("query with", userId, channelId);
   let q = {
     v: 3,
     q: {
@@ -192,11 +264,11 @@ const queryDiscordReactions = (messageIds) => {
 };
 
 export const getPinnedChannels = async () => {
-  return await api.get(`${queryPinnedChannelsB64}?d-pins`);
+  return await api.get(`${queryPinnedChannelsB64}?d=pins`);
 };
 
 export const getChannels = async () => {
-  return await api.get(`${queryChannelsB64}?d-channels`);
+  return await api.get(`${queryChannelsB64}?d=channels`);
 };
 
 export const getUsers = async () => {

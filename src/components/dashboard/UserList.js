@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { FaPlus, FaUserFriends } from "react-icons/fa";
 
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link as RDLink } from "react-router-dom";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import { useHandcash } from "../../context/handcash";
@@ -15,6 +15,12 @@ import List from "./List";
 import ListItem from "./ListItem";
 
 const { BAP } = require("bitcoin-bap");
+
+const Link = styled(RDLink)`
+  &:hover {
+    text-decoration: none;
+  }
+`;
 
 const Container = styled.div`
   width: 240px;
@@ -148,8 +154,6 @@ const UserList = () => {
     },
     [hoveringUser, messages, isInDesktop, activeUserId, memberList.allIds]
   );
-
-  useEffect(() => console.log({ memberList }), [memberList.allIds]);
 
   return (
     <Container className="disable-select">

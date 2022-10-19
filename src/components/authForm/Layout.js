@@ -11,15 +11,6 @@ const Wrapper = styled.div`
   width: 100%;
   color: var(--text-muted);
   justify-content: center;
-
-  a {
-    color: var(--text-link);
-    font-size: 13px;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 `;
 
 const Container = styled.div`

@@ -1,7 +1,6 @@
 import nimble from "@runonbitcoin/nimble";
 import bops from "bops";
 import bsv from "bsv";
-import { head } from "lodash";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useActiveChannel, useActiveUser } from "../../hooks";
@@ -18,7 +17,7 @@ const BitcoinContext = React.createContext(undefined);
 
 const BitcoinProvider = (props) => {
   const { notifyIndexer } = useBmap();
-  const { authToken, hcSignOpReturnWithAIP, hcDecrypt } = useHandcash();
+  const { authToken, hcDecrypt } = useHandcash();
   const { relayOne } = useRelay();
   const { identity, decIdentity, decryptStatus } = useBap();
   const [pinStatus, setPinStatus] = useState(FetchStatus.Idle);
@@ -28,14 +27,78 @@ const BitcoinProvider = (props) => {
   const activeUser = useActiveUser();
   const activeUserId = useSelector((state) => state.memberList.active);
   const activeChannel = useActiveChannel();
+  const [signStatus, setSignStatus] = useState(FetchStatus.Idle);
+
   const [friendRequestStatus, setFriendRequestStatus] = useState(
     FetchStatus.Idle
   );
+  const session = useSelector((state) => state.session);
+  const friendRequests = useSelector(
+    (state) => state.memberList.friendRequests
+  );
 
-  const encrypt = async (data, privateKey, publicKey) => {
-    // decrypt identity
-    return ECIES().privateKey(privateKey).publicKey(publicKey).encrypt(data);
-  };
+  const signOpReturnWithAIP = useCallback(
+    async (hexArray) => {
+      return new Promise((resolve, reject) => {
+        setSignStatus(FetchStatus.Loading);
+        // if we dont have the paymail, get it
+        if (decIdentity) {
+          // const decIdentity = await hcDecrypt(identity);
+          // console.log("sign with", decIdentity);
+
+          console.info({ BAP, decIdentity });
+
+          let bapId = new BAP(decIdentity.xprv);
+          console.info("BAP id", bapId);
+          if (decIdentity.ids) {
+            bapId.importIds(decIdentity.ids);
+          }
+
+          const ids = bapId.listIds();
+          console.info({ ids });
+          const idy = bapId.getId(ids[0]); // only support for 1 id per profile now
+          console.log({
+            idy: idy.signOpReturnWithAIP,
+            getAipBuf: idy.getAIPMessageBuffer,
+          });
+
+          // const aipBuff = idy.getAIPMessageBuffer();
+          // console.log({ aipBuff, apiString: aipBuff.toString("utf8") });
+
+          console.info({ hexArray, buff: Buffer });
+          const signedOps = idy.signOpReturnWithAIP(hexArray);
+
+          setSignStatus(FetchStatus.Success);
+          resolve(signedOps);
+
+          // if (encryptedIdentity) {
+          //   decIdentity
+
+          //   fetch(`https://bitchatnitro.com/hcsignops`, {
+          //     method: "POST",
+          //     headers: {
+          //       "Content-type": "application/json",
+          //     },
+          //     body: JSON.stringify({ authToken, encryptedIdentity, hexArray }),
+          //   })
+          //     .then((resp) => {
+          //       setSignStatus(FetchStatus.Success);
+          //       resp.json().then(resolve);
+          //     })
+          //     .catch((e) => {
+          //       setSignStatus(FetchStatus.Error);
+          //       reject(e);
+          //     });
+          // }
+        } else {
+          setSignStatus(FetchStatus.Error);
+          // console.log({ decIdentity });
+          reject(new Error("no auth token"));
+        }
+      });
+    },
+    [decIdentity, signStatus, authToken]
+  );
 
   const sendPin = useCallback(
     async (pm, channel, units) => {
@@ -62,9 +125,9 @@ const BitcoinProvider = (props) => {
         const hexArray = dataPayload.map((d) =>
           Buffer.from(d, "utf8").toString("hex")
         );
-        if (identity) {
+        if (decIdentity) {
           // decrypt and import identity
-          const signedOps = await hcSignOpReturnWithAIP(identity, hexArray);
+          const signedOps = await signOpReturnWithAIP(hexArray);
 
           const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
             method: "POST",
@@ -159,11 +222,11 @@ const BitcoinProvider = (props) => {
         setPinStatus(FetchStatus.Error);
       }
     },
-    [pinStatus, identity, relayOne, authToken, notifyIndexer]
+    [pinStatus, decIdentity, relayOne, authToken, notifyIndexer]
   );
 
   const sendMessage = useCallback(
-    async (pm, content, channel, userId) => {
+    async (pm, content, channel, userId, decIdentity) => {
       setPostStatus(FetchStatus.Loading);
       try {
         let dataPayload = [
@@ -202,27 +265,30 @@ const BitcoinProvider = (props) => {
           //   protocol: "bap",
           // };
 
-          const decIdentity = await hcDecrypt(identity);
+          // const decIdentity = await hcDecrypt(identity);
 
+          if (!decIdentity) {
+            console.log("no ident info");
+            return;
+          }
           const hdPK = bsv.HDPrivateKey(decIdentity.xprv);
 
-          const privateKey = hdPK.privateKey.toString();
+          const privateKey = hdPK.privateKey;
 
           // Get did for user id
           // activeUser._id
 
-          const payload = {
-            idKey: activeUser._id,
-          };
+          // const payload = {
+          //   idKey: activeUser._id,
+          // };
 
-          let bapId = new BAP(decIdentity.xprv);
-          console.log("BAP id", bapId);
-          if (decIdentity.ids) {
-            bapId.importIds(decIdentity.ids);
-          }
-          let bid = head(bapId.listIds());
-          console.log({ bid });
-          debugger;
+          // let bapId = new BAP(decIdentity.xprv);
+          // console.log("BAP id", bapId);
+          // if (decIdentity.ids) {
+          //   bapId.importIds(decIdentity.ids);
+          // }
+          // let bid = head(bapId.listIds());
+          // console.log({ bid });
           // const did = fetch(`https://bap-api.com/v1/identity/did`, {
           //   method: "POST",
           //   headers: { "Content-Type": "application/json" },
@@ -264,20 +330,35 @@ const BitcoinProvider = (props) => {
           //          const did = await getDid()
           // get public key for user id
 
+          if (
+            !friendRequests.incoming.byId[userId] &&
+            decIdentity?.bapId !== userId
+          ) {
+            // TODO: Change when publicCommsKey is implemented
+            console.log("cant do this unless self!", session, userId);
+            return;
+          }
+          const friendPublicKey =
+            decIdentity?.bapId === userId
+              ? friendPublicKeyFromSeedString("notes", decIdentity.xprv)
+              : new bsv.PublicKey(
+                  friendRequests.incoming.byId[userId].publicKey
+                );
           // encrypt the content with shared ecies between the two identities
-          dataPayload[1] = encrypt(
-            dataPayload[1],
-            privateKey,
-            activeUser.user.publicKey
-          );
+          dataPayload[1] = encrypt(dataPayload[1], privateKey, friendPublicKey);
+          dataPayload[2] = `application/bitcoin-ecies; content-type=text/plain`;
+          dataPayload[3] = `binary`;
+
+          // lets make sure we can decrypt it too
         }
         const hexArray = dataPayload.map((d) =>
           Buffer.from(d, "utf8").toString("hex")
         );
-        if (identity) {
+        if (decIdentity) {
           // decrypt and import identity
 
-          const signedOps = await hcSignOpReturnWithAIP(identity, hexArray);
+          // TODO: If this is a message to a person do we need to sign with a different key!?
+          const signedOps = await signOpReturnWithAIP(hexArray);
 
           console.log({ signedOps });
 
@@ -357,7 +438,14 @@ const BitcoinProvider = (props) => {
         console.error(e);
       }
     },
-    [activeUserId, identity, relayOne, authToken, notifyIndexer]
+    [
+      friendRequests,
+      activeUserId,
+      relayOne,
+      authToken,
+      decIdentity,
+      notifyIndexer,
+    ]
   );
 
   const likeMessage = useCallback(
@@ -434,20 +522,15 @@ const BitcoinProvider = (props) => {
       // type friend
       // idKey <idKey> - their id key
       // publicKey <publicKey> - the public key i generated for this interaction
-
-      // TODO: Generate a key based on the other users id hash
-      const seedHex = bsv.crypto.Hash.sha256(Buffer.from(friendIdKey)).toString(
-        "hex"
-      );
-      const signingPath = getSigningPathFromHex(seedHex);
-
-      const hdPrivateFriendKey =
-        bsv.HDPrivateKey.fromString(xprv).deriveChild(signingPath);
-
-      const publicFriendKey = hdPrivateFriendKey.privateKey.publicKey;
+      if (self) {
+        console.log("cannot friernd request self");
+        return;
+      }
+      const publicFriendKey =
+        friendPublicKeyFromSeedString(friendIdKey).toString();
 
       // hdPrivateFriendKey.PrivateKey.from activeUser.idKey);
-      console.log({ publicFriendKey, seedHex, signingPath, friendIdKey });
+      // console.log({ publicFriendKey, friendIdKey });
       setFriendRequestStatus(FetchStatus.Loading);
       try {
         let dataPayload = [
@@ -460,18 +543,18 @@ const BitcoinProvider = (props) => {
           "bapID",
           friendIdKey, // TODO: We don't have this until session provider resolves your ALIAS doc
           "publicKey",
-          publicFriendKey.toString(),
+          publicFriendKey,
         ];
 
         let hexArray = dataPayload.map((str) =>
           bops.to(bops.from(str, "utf8"), "hex")
         );
-        if (identity) {
-          console.log({ hexArray });
+        if (decIdentity) {
+          // console.log({ hexArray });
           // decrypt and import identity
-          const signedOps = await hcSignOpReturnWithAIP(identity, hexArray);
+          const signedOps = await signOpReturnWithAIP(hexArray);
 
-          console.log({ signedOps });
+          // console.log({ signedOps });
           const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
@@ -556,9 +639,9 @@ const BitcoinProvider = (props) => {
       }
     },
     [
+      self,
       decIdentity,
       friendRequestStatus,
-      identity,
       relayOne,
       authToken,
       notifyIndexer,
@@ -576,6 +659,9 @@ const BitcoinProvider = (props) => {
       postStatus,
       likeMessage,
       likeStatus,
+      decryptStatus,
+      signOpReturnWithAIP,
+      signStatus,
     }),
     [
       sendFriendRequest,
@@ -586,6 +672,9 @@ const BitcoinProvider = (props) => {
       postStatus,
       likeMessage,
       likeStatus,
+      decryptStatus,
+      signOpReturnWithAIP,
+      signStatus,
     ]
   );
 
@@ -613,3 +702,25 @@ export { BitcoinProvider, useBitcoin };
 const B_PREFIX = `19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut`;
 const AIP_PREFIX = `15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva`;
 export const MAP_PREFIX = `1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5`;
+
+export const decrypt = (data, privateKey) => {
+  // console.log("decrypt", { data, privateKey });
+  return ECIES().privateKey(privateKey).decrypt(Buffer.from(data, "base64"));
+};
+
+export const encrypt = (data, privateKey, publicKey) => {
+  console.log("encrypt", { data, privateKey, publicKey });
+  return ECIES().privateKey(privateKey).publicKey(publicKey).encrypt(data);
+};
+
+export const friendPublicKeyFromSeedString = (seedString, xprv) => {
+  // Generate a key based on the other users id hash
+  const seedHex = bsv.crypto.Hash.sha256(Buffer.from(seedString)).toString(
+    "hex"
+  );
+  const signingPath = getSigningPathFromHex(seedHex);
+
+  const hdPrivateFriendKey = bsv.HDPrivateKey(xprv).deriveChild(signingPath);
+
+  return hdPrivateFriendKey.privateKey.publicKey;
+};

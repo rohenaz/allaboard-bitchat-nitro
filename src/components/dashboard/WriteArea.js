@@ -1,5 +1,5 @@
 import { last } from "lodash";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
@@ -44,6 +44,10 @@ const WriteArea = () => {
   const loadingPins = useSelector((state) => state.channels.pins.loading);
   const loadingChannels = useSelector((state) => state.channels.loading);
   const loadingMessages = useSelector((state) => state.chat.messages.loading);
+  const loadingFriendRequests = useSelector(
+    (state) => state.memberList.friendRequests.loading
+  );
+  const session = useSelector((state) => state.session);
 
   const channelName =
     activeChannel?.channel ||
@@ -60,12 +64,13 @@ const WriteArea = () => {
           paymail || profile?.paymail,
           content,
           activeChannel?.channel,
-          activeUserId
+          activeUserId,
+          decIdentity
         );
         event.target.reset();
       }
     },
-    [activeUserId, activeChannel, paymail, profile]
+    [decIdentity, activeUserId, activeChannel, paymail, profile]
   );
 
   // const enablePublicComms = useCallback(async () => {
@@ -135,6 +140,10 @@ const WriteArea = () => {
 
   // TODO: When loading the page show what is loading in the placeholder
 
+  const self = useMemo(() => {
+    return activeUser && session.user?.bapId === activeUser?._id;
+  }, [session, activeUser]);
+
   return (
     <Container>
       <Form onSubmit={handleSubmit} autocomplete="off">
@@ -149,6 +158,8 @@ const WriteArea = () => {
               ? `Loading pinned channels...`
               : loadingChannels
               ? `Loading channels...`
+              : loadingFriendRequests
+              ? `Loading friends`
               : loadingMessages
               ? `Loading messages...`
               : decryptStatus === FetchStatus.Loading
@@ -169,6 +180,7 @@ const WriteArea = () => {
           onKeyDown={handleKeyDown}
           onFocus={(e) => console.log(e.target)}
           disabled={
+            !self &&
             activeUser &&
             !activeUser.isFriend &&
             !decIdentity?.result?.commsPublicKey

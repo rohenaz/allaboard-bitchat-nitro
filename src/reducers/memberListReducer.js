@@ -11,8 +11,8 @@ const initialState = {
   // friends: [],
   friendRequests: {
     loading: true,
-    incoming: [],
-    outgoing: [],
+    incoming: { allIds: [], byId: {} },
+    outgoing: { allIds: [], byId: {} },
   },
   // incomingFriendRequests: [], // Array of BAP ids
   // outgoingFriendRequests: [], // Array of BAP ids
@@ -24,7 +24,7 @@ export const loadUsers = createAsyncThunk(
     try {
       const response = await channelAPI.getUsers();
       // dispatch(loadPins());
-      console.log({ response });
+      // console.log({ response });
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response);
@@ -36,12 +36,12 @@ export const loadFriends = createAsyncThunk(
   "memberList/loadFriends",
   async (_, { dispatch, rejectWithValue, getState }) => {
     const { session } = getState();
-    console.log("bap id set in state", session.bapId);
+    // console.log("bap id set in state", session.user.bapId);
     try {
-      const response = await channelAPI.getFriends(session.bapId);
+      const response = await channelAPI.getFriends(session.user.bapId);
       // dispatch(loadPins());
-      console.log({ response });
-      response.data.bapId = session.bapId;
+      // console.log({ response });
+      response.data.bapId = session.user.bapId;
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response);
@@ -78,15 +78,26 @@ const memberListSlice = createSlice({
           }
         });
       })
+      .addCase(loadFriends.pending, (state, action) => {
+        state.loading = true;
+      })
       .addCase(loadFriends.fulfilled, (state, action) => {
+        // console.log("load friends fullfiled");
         state.friendRequests.loading = false;
         action.payload.c.forEach((friend) => {
+          const requester = friend.AIP.bapId;
+          const recipient = friend.MAP.bapID;
           // If logged in user is the recipient
-          if (friend.recipient === action.payload.bapId) {
+          if (recipient === action.payload.bapId) {
             // build my pending list
-            state.friendRequests.incoming.push(friend.requester);
-          } else if (friend.requester === action.payload.bapId) {
-            state.friendRequests.outgoing.push(friend.recipient);
+            state.friendRequests.incoming.allIds.push(requester);
+
+            state.friendRequests.incoming.byId[requester] = friend;
+          } else if (requester === action.payload.bapId) {
+            state.friendRequests.outgoing.allIds.push(recipient);
+
+            state.friendRequests.outgoing.byId[recipient] = friend;
+
             // Friend matches
             // if (!state.byId[friend.recipient]) {
             //   state.byId[friend.recipient] = {};
@@ -96,16 +107,15 @@ const memberListSlice = createSlice({
 
           // if we have a friend thing from both recipient and me
           if (
-            (state.friendRequests.outgoing.includes(friend.requester) &&
-              state.friendRequests.incoming.includes(friend.recipient)) ||
-            (state.friendRequests.incoming.includes(friend.requester) &&
-              state.friendRequests.outgoing.includes(friend.recipient))
+            (state.friendRequests.outgoing.allIds.includes(requester) &&
+              state.friendRequests.incoming.allIds.includes(recipient)) ||
+            (state.friendRequests.incoming.allIds.includes(requester) &&
+              state.friendRequests.outgoing.allIds.includes(recipient))
             //   state.incomingFriendRequests.includes(friend.requester)) ||
             // (state.outgoingFriendRequests.includes(friend.recipient) &&
             //   state.outgoingFriendRequests.includes(friend.requester))
           ) {
-            state.byId[friend.recipient].isFriend = true;
-
+            state.byId[recipient].isFriend = true;
             console.log("true friend");
           }
 

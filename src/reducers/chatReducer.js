@@ -8,13 +8,18 @@ audio.volume = 0.25;
 
 export const loadMessages = createAsyncThunk(
   "chat/loadMessages",
-  async ({ channelId, userId }, { rejectWithValue }) => {
+  async ({ activeChannelId, activeUserId }, { rejectWithValue, getState }) => {
+    const { session } = getState("session");
     try {
-      console.log("loading messages", { channelId, userId });
+      // console.log("loading messages", {
+      //   activeChannelId,
+      //   activeUserId,
+      //   user: session.user,
+      // });
       const response = await channelAPI.getMessages(
-        channelId,
-        userId,
-        `Go8vCHAa4S6AhXKTABGpANiz35J`
+        activeChannelId,
+        activeUserId,
+        session.user?.bapId
       );
       return response.data;
     } catch (err) {
@@ -89,6 +94,7 @@ const chatSlice = createSlice({
       if (message.MAP.paymail && !validateEmail(message.MAP.paymail)) {
         return;
       }
+
       state.messages.byId[message.tx.h] = message;
       state.messages.allIds.push(message.tx.h);
 
@@ -169,8 +175,18 @@ const chatSlice = createSlice({
           if (message.MAP.paymail && !validateEmail(message.MAP.paymail)) {
             return;
           }
+
+          // Filter out txs with wrong encoding (oops)
+          if (
+            message.B.encoding === "utf-8" &&
+            message.MAP.encrypted === "true"
+          ) {
+            return;
+          }
+
           state.messages.byId[message.tx.h] = message;
           state.messages.allIds.push(message.tx.h);
+          // Discord messages
           if (message.MAP.messageID) {
             state.messages.allMessageIds.push(message.MAP.messageID);
           }

@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import Drawer from "@mui/material/Drawer";
 import styled, { css } from "styled-components";
 
+import { useBap } from "../../context/bap";
 import { hideInDesktop } from "../../design/mixins";
 import { useWindowWidth } from "../../hooks";
 import { setActiveChannel } from "../../reducers/channelsReducer";
@@ -14,6 +15,7 @@ import {
   setActiveUser,
   toggleMemberList,
 } from "../../reducers/memberListReducer";
+import { login } from "../../reducers/sessionReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ChatArea from "./ChatArea";
 import Header from "./Header";
@@ -126,14 +128,31 @@ const Dashboard = () => {
   const activeChannelId = params.channel;
   const activeUserId = params.user;
   const dispatch = useDispatch();
+  const session = useSelector((state) => state.session);
+  const { decIdentity } = useBap();
 
   useEffect(() => {
     dispatch(setActiveChannel(activeChannelId));
     dispatch(setActiveUser(activeUserId));
-    dispatch(
-      loadMessages({ channelId: activeChannelId, userId: activeUserId })
-    );
+    // if (decIdentity) {
+    //   dispatch(
+    //     loadMessages({ channelId: activeChannelId, userId: activeUserId })
+    //   );
+    // }
   }, [loadMessages, activeUserId, activeChannelId, dispatch]);
+
+  useEffect(() => {
+    // console.log({ session, decIdentity });
+    if (decIdentity && decIdentity.bapId && !session.user) {
+      dispatch(
+        login({
+          bapId: decIdentity.bapId,
+          activeChannelId,
+          activeUserId,
+        })
+      );
+    }
+  }, [session?.user, decIdentity?.bapId]);
 
   return (
     <Container $isMemberListOpen={isMemberListOpen}>

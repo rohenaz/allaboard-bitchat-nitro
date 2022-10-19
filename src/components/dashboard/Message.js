@@ -86,6 +86,15 @@ const Timestamp = styled.div`
 const Content = styled.div`
   color: var(--text-normal);
   font-size: 14px;
+
+  a {
+    color: var(--text-link);
+    font-size: 13px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 // const autolinker = new Autolinker();

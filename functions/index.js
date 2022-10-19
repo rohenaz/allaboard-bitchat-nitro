@@ -121,73 +121,73 @@ exports.bapLoadID = functions.https.onRequest(async (req, res) => {
   res.status(200).send({ identity: idy });
 });
 
-exports.hcSignOpReturnWithAIP = functions.https.onRequest(async (req, res) => {
-  await cors(req, res);
+// exports.hcSignOpReturnWithAIP = functions.https.onRequest(async (req, res) => {
+//   await cors(req, res);
 
-  if (!req.body.authToken) {
-    return res.status(401).send();
-  }
+//   if (!req.body.authToken) {
+//     return res.status(401).send();
+//   }
 
-  if (!req.body.encryptedIdentity) {
-    return res.status(400).send();
-  }
+//   if (!req.body.encryptedIdentity) {
+//     return res.status(400).send();
+//   }
 
-  if (!req.body.hexArray) {
-    return res.status(400).send();
-  }
+//   if (!req.body.hexArray) {
+//     return res.status(400).send();
+//   }
 
-  let hexArray = req.body.hexArray;
-  const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
-  const { privateKey } = await account.profile.getEncryptionKeypair();
+//   let hexArray = req.body.hexArray;
+//   const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
+//   const { privateKey } = await account.profile.getEncryptionKeypair();
 
-  // decrypt identity file
-  const ecies = new ECIES();
-  ecies.privateKey(bsv.PrivateKey.fromString(privateKey));
-  const identityDec = ecies
-    .decrypt(Buffer.from(req.body.encryptedIdentity, "base64"))
-    .toString();
-  const decIdentity = JSON.parse(identityDec);
+//   // decrypt identity file
+//   const ecies = new ECIES();
+//   ecies.privateKey(bsv.PrivateKey.fromString(privateKey));
+//   const identityDec = ecies
+//     .decrypt(Buffer.from(req.body.encryptedIdentity, "base64"))
+//     .toString();
+//   const decIdentity = JSON.parse(identityDec);
 
-  // const decIdentity = await hcDecrypt(identity);
-  // console.log("sign with", decIdentity);
+//   // const decIdentity = await hcDecrypt(identity);
+//   // console.log("sign with", decIdentity);
 
-  functions.logger.info({ BAP, decIdentity });
+//   functions.logger.info({ BAP, decIdentity });
 
-  let bapId = new BAP(decIdentity.xprv);
-  functions.logger.info("BAP id", bapId);
-  if (decIdentity.ids) {
-    bapId.importIds(decIdentity.ids);
-  }
+//   let bapId = new BAP(decIdentity.xprv);
+//   functions.logger.info("BAP id", bapId);
+//   if (decIdentity.ids) {
+//     bapId.importIds(decIdentity.ids);
+//   }
 
-  const ids = bapId.listIds();
-  functions.logger.info({ ids });
-  const idy = bapId.getId(ids[0]); // only support for 1 id per profile now
-  console.log({
-    idy: idy.signOpReturnWithAIP,
-    getAipBuf: idy.getAIPMessageBuffer,
-  });
+//   const ids = bapId.listIds();
+//   functions.logger.info({ ids });
+//   const idy = bapId.getId(ids[0]); // only support for 1 id per profile now
+//   console.log({
+//     idy: idy.signOpReturnWithAIP,
+//     getAipBuf: idy.getAIPMessageBuffer,
+//   });
 
-  // const aipBuff = idy.getAIPMessageBuffer();
-  // console.log({ aipBuff, apiString: aipBuff.toString("utf8") });
+//   // const aipBuff = idy.getAIPMessageBuffer();
+//   // console.log({ aipBuff, apiString: aipBuff.toString("utf8") });
 
-  functions.logger.info({ hexArray, buff: Buffer });
-  const signedOps = idy.signOpReturnWithAIP(hexArray);
+//   functions.logger.info({ hexArray, buff: Buffer });
+//   const signedOps = idy.signOpReturnWithAIP(hexArray);
 
-  // sign the payload
-  // derive a child for signing?
-  // let hdk = bsv.HDPrivateKey.fromString(decIdentity.xprv);
-  // const child = hdk.deriveChild("m/0/0");
-  // const aipSignAddress = bsv.Address.fromPrivateKey(child.privateKey);
-  // dataPayload.push(AIP_PREFIX, "BITCOIN_ECDSA", aipSignAddress);
+//   // sign the payload
+//   // derive a child for signing?
+//   // let hdk = bsv.HDPrivateKey.fromString(decIdentity.xprv);
+//   // const child = hdk.deriveChild("m/0/0");
+//   // const aipSignAddress = bsv.Address.fromPrivateKey(child.privateKey);
+//   // dataPayload.push(AIP_PREFIX, "BITCOIN_ECDSA", aipSignAddress);
 
-  return res.status(200).send(signedOps);
+//   return res.status(200).send(signedOps);
 
-  // import ECIES from 'bsv/ecies';
+//   // import ECIES from 'bsv/ecies';
 
-  // ECIES().privateKey(privateKey).encrypt()
+//   // ECIES().privateKey(privateKey).encrypt()
 
-  // return res.status(200).send({});
-});
+//   // return res.status(200).send({});
+// });
 
 exports.hcProfile = functions.https.onRequest(async (req, res) => {
   await cors(req, res);

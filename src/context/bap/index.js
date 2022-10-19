@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useActiveUser } from "../../hooks";
-import { login } from "../../reducers/sessionReducer";
 import { FetchStatus } from "../../utils/common";
 import { useLocalStorage } from "../../utils/storage";
 import { useHandcash } from "../handcash";
@@ -28,32 +27,31 @@ const BapProvider = (props) => {
 
   useEffect(() => {
     const fire = async () => {
-      const decIdentity = await hcDecrypt(identity);
+      const id = await hcDecrypt(identity);
 
-      let bapId = new BAP(decIdentity.xprv);
-      console.log("BAP id", bapId);
-      if (decIdentity.ids) {
-        bapId.importIds(decIdentity.ids);
+      let bapId = new BAP(id.xprv);
+      // console.log("BAP id", id.xprv);
+      if (id.ids) {
+        bapId.importIds(id.ids);
       }
       let bid = head(bapId.listIds());
-      console.log({ bid });
-      decIdentity.bapId = bid;
-
-      setDecIdentity(decIdentity);
-      dispatch(login({ bapId: bid }));
+      // console.log({ bid });
+      id.bapId = bid;
+      setDecIdentity(id);
     };
 
-    console.log({ activeUser, decryptStatus, decIdentity });
-    if (
-      identity &&
-      decryptStatus === FetchStatus.Idle &&
-      !decIdentity &&
-      activeUser
-    ) {
-      console.log("FIRE");
+    if (identity && decryptStatus === FetchStatus.Idle && !decIdentity) {
+      // console.log("FIRE");
       fire();
     }
-  }, [identity, hcDecrypt, activeUser, decryptStatus, decIdentity]);
+  }, [
+    dispatch,
+    identity,
+    hcDecrypt,
+    decryptStatus,
+    decIdentity,
+    setDecIdentity,
+  ]);
 
   const onFileChange = useCallback(
     async (e) => {
@@ -65,12 +63,12 @@ const BapProvider = (props) => {
       const file = head(e.target.files);
       const text = await toText(file);
 
-      console.log({ text, authToken });
+      // console.log({ text, authToken });
       // encrypt the uploaded file and store it locally
       if (authToken) {
         // handcash
         const encryptedData = await hcEncrypt(JSON.parse(text));
-        console.log({ encryptedData });
+        // console.log({ encryptedData });
         setIdentity(encryptedData);
       }
     },

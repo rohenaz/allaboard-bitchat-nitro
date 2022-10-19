@@ -3,13 +3,17 @@ import { loadFriends } from "../reducers/memberListReducer";
 
 export const login = createAsyncThunk(
   "session/login",
-  async (user, { dispatch, rejectWithValue, getState }) => {
+  async (
+    { bapId, activeChannelId, activeUserId },
+    { dispatch, rejectWithValue }
+  ) => {
     try {
       // const response = await userAPI.login(userInfo);
-      console.log("login", user.bapId);
-      dispatch(setBapId(user.bapId));
+      // console.log("login", bapId);
+      dispatch(setBapId(bapId));
       dispatch(loadFriends());
-      return { bapId: user.bapId };
+
+      return bapId;
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
@@ -47,8 +51,10 @@ const sessionSlice = createSlice({
       state.error = null;
     },
     setBapId(state, action) {
-      console.log("setting bap id to", action.payload);
-      state.bapId = action.payload;
+      // console.log("setting bap id to", action.payload);
+      let newUser = Object.assign({}, state.user || {});
+      newUser.bapId = action.payload;
+      state.user = newUser;
     },
   },
   extraReducers: (builder) => {
@@ -58,10 +64,13 @@ const sessionSlice = createSlice({
         state.isAuthenticated = false;
       })
       .addCase(login.fulfilled, (state, action) => {
-        console.log("login fullfulled", action.payload);
         state.loading = false;
         state.isAuthenticated = true;
-        state.user = action.payload;
+        if (!state.user) {
+          state.user = {};
+        }
+        state.user.bapId = action.payload;
+        // console.log("login fullfulled", action.payload);
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {

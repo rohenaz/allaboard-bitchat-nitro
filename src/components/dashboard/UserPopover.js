@@ -88,7 +88,7 @@ const Input = styled.input`
   }
 `;
 
-const UserPopover = ({ user, setShowPopover, ...delegated }) => {
+const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
   const navigate = useNavigate();
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -96,8 +96,11 @@ const UserPopover = ({ user, setShowPopover, ...delegated }) => {
     if (content !== "") {
       event.target.reset();
       setShowPopover(false);
+      // console.log({ user });
       // TODO: sendMessage;
-      navigate(`/@/${user.AIP.bapId}`);
+      if (user.AIP) {
+        navigate(`/@/${user.AIP.bapId}`);
+      }
     }
   };
 
@@ -123,16 +126,30 @@ const UserPopover = ({ user, setShowPopover, ...delegated }) => {
       <Content>
         <Divider></Divider>
       </Content>
+
       <Footer>
-        <Note>Direct messaging is not implemented!</Note>
-        <form onSubmit={handleSubmit}>
-          <Input
-            type="text"
-            name="content"
-            placeholder={`message @${user.MAP?.paymail}`}
-          />
-          <InvisibleSubmitButton />
-        </form>
+        <Note>
+          {self
+            ? `Yourself`
+            : user.AIP
+            ? user.AIP?.bapId
+              ? user.isFriend
+                ? `You are friends`
+                : `You are not friends`
+              : `Unknown user`
+            : `Anonymous user`}
+        </Note>
+
+        {user.AIP?.bapId && (
+          <form onSubmit={handleSubmit}>
+            <Input
+              type="text"
+              name="content"
+              placeholder={`message @${user.MAP?.paymail}`}
+            />
+            <InvisibleSubmitButton />
+          </form>
+        )}
       </Footer>
     </StyledPopover>
   );

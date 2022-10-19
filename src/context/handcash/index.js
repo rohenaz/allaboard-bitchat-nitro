@@ -8,7 +8,6 @@ const HandcashProvider = (props) => {
   const [profile, setProfile] = useLocalStorage(profileStorageKey);
   const [authToken, setAuthToken] = useLocalStorage(authTokenStorageKey);
   const [decryptStatus, setDecryptStatus] = useState(FetchStatus.Idle);
-  const [signStatus, setSignStatus] = useState(FetchStatus.Idle);
 
   const getProfile = useCallback(async () => {
     // Test localStorage is accessible
@@ -27,7 +26,7 @@ const HandcashProvider = (props) => {
           body: JSON.stringify({ authToken }),
         });
         const { publicProfile } = await resp.json();
-        console.log({ publicProfile });
+        // console.log({ publicProfile });
         setProfile(publicProfile);
         return publicProfile;
       } catch (e) {
@@ -60,7 +59,7 @@ const HandcashProvider = (props) => {
                 .json()
                 .then((d) => {
                   const { encryptedData } = d;
-                  console.log({ encryptedData });
+                  // console.log({ encryptedData });
                   resolve(encryptedData);
                 })
                 .catch((e) => reject(e));
@@ -112,41 +111,41 @@ const HandcashProvider = (props) => {
     [decryptStatus, authToken, setProfile]
   );
 
-  const hcSignOpReturnWithAIP = useCallback(
-    async (encryptedIdentity, hexArray) => {
-      return new Promise((resolve, reject) => {
-        // Test localStorage is accessible
-        if (!lsTest()) {
-          reject(new Error("localStorage is not available"));
-        }
+  // const hcSignOpReturnWithAIP = useCallback(
+  //   async (encryptedIdentity, hexArray) => {
+  //     return new Promise((resolve, reject) => {
+  //       // Test localStorage is accessible
+  //       if (!lsTest()) {
+  //         reject(new Error("localStorage is not available"));
+  //       }
 
-        setSignStatus(FetchStatus.Loading);
-        // if we dont have the paymail, get it
-        if (authToken) {
-          if (encryptedIdentity) {
-            fetch(`https://bitchatnitro.com/hcsignops`, {
-              method: "POST",
-              headers: {
-                "Content-type": "application/json",
-              },
-              body: JSON.stringify({ authToken, encryptedIdentity, hexArray }),
-            })
-              .then((resp) => {
-                setSignStatus(FetchStatus.Success);
-                resp.json().then(resolve);
-              })
-              .catch((e) => {
-                setSignStatus(FetchStatus.Error);
-                reject(e);
-              });
-          }
-        } else {
-          reject(new Error("no auth token"));
-        }
-      });
-    },
-    [signStatus, authToken, setProfile]
-  );
+  //       setSignStatus(FetchStatus.Loading);
+  //       // if we dont have the paymail, get it
+  //       if (authToken) {
+  //         if (encryptedIdentity) {
+  //           fetch(`https://bitchatnitro.com/hcsignops`, {
+  //             method: "POST",
+  //             headers: {
+  //               "Content-type": "application/json",
+  //             },
+  //             body: JSON.stringify({ authToken, encryptedIdentity, hexArray }),
+  //           })
+  //             .then((resp) => {
+  //               setSignStatus(FetchStatus.Success);
+  //               resp.json().then(resolve);
+  //             })
+  //             .catch((e) => {
+  //               setSignStatus(FetchStatus.Error);
+  //               reject(e);
+  //             });
+  //         }
+  //       } else {
+  //         reject(new Error("no auth token"));
+  //       }
+  //     });
+  //   },
+  //   [signStatus, authToken, setProfile]
+  // );
 
   const value = useMemo(
     () => ({
@@ -156,15 +155,11 @@ const HandcashProvider = (props) => {
       authToken,
       setAuthToken,
       hcEncrypt,
-      signStatus,
-      hcSignOpReturnWithAIP,
       hcDecrypt,
       decryptStatus,
     }),
     [
       authToken,
-      hcSignOpReturnWithAIP,
-      signStatus,
       profile,
       setProfile,
       getProfile,

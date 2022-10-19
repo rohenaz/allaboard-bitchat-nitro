@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import { head } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link as RDLink } from "react-router-dom";
 import styled from "styled-components";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
@@ -16,6 +16,12 @@ import Hashtag from "./Hashtag";
 import List from "./List";
 import ListItem from "./ListItem";
 import PinChannelModal from "./modals/PinChannelModal";
+
+const Link = styled(RDLink)`
+  &:hover {
+    text-decoration: none;
+  }
+`;
 
 const Container = styled.div`
   width: 240px;
@@ -117,10 +123,10 @@ const ChannelList = () => {
     ) {
       setUnpinsSet(true);
       channels.pins.allChannels.forEach((c) => {
-        console.log(
-          "unpins at",
-          new Date(head(channels.pins.byChannel[c]).expiresAt * 1000)
-        );
+        // console.log(
+        //   "unpins at",
+        //   new Date(head(channels.pins.byChannel[c]).expiresAt * 1000)
+        // );
         setTimeout(() => {
           dispatch(unpinChannel, c);
         }, head(channels.pins.byChannel[c]).expiresAt * 1000);
