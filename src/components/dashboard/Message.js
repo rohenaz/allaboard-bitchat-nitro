@@ -312,7 +312,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
           //bgColor={message.user.avatarColor}
           bgcolor={`#000`}
           paymail={message.AIP?.identity?.paymail || message.MAP.paymail}
-          logo={message.AIP?.identity?.logo}
+          icon={message.AIP?.identity?.logo}
         />
       </AvatarWrapper>
       <div style={{ width: "100%" }}>

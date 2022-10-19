@@ -167,7 +167,7 @@ const Messages = () => {
                   friendRequests.incoming.byId[message.AIP.bapId]?.publicKey
                 );
               } else {
-                console.log("no self, no friends", friendRequests, message);
+                // console.log("no self, no friends", friendRequests, message);
                 return message;
               }
             }
