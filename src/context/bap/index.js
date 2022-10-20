@@ -6,11 +6,11 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useActiveUser } from "../../hooks";
+import { useDispatch } from "react-redux";
 import { FetchStatus } from "../../utils/common";
 import { useLocalStorage } from "../../utils/storage";
 import { useHandcash } from "../handcash";
+import { useRelay } from "../relay";
 const { BAP } = require("bitcoin-bap");
 
 const BapContext = React.createContext(undefined);
@@ -20,15 +20,21 @@ const BapProvider = (props) => {
   const [decIdentity, setDecIdentity] = useState();
   const [bapProfile, setBapProfile] = useLocalStorage(profileStorageKey);
   const [bapProfileStatus, setBapProfileStatus] = useState(FetchStatus.Loading);
+  const [loadIdentityStatus, setLoadIdentityStatus] = useState(
+    FetchStatus.Idle
+  );
   const { authToken, hcEncrypt, hcDecrypt, decryptStatus } = useHandcash();
-  const session = useSelector((state) => state.session);
-  const activeUser = useActiveUser();
+  const { relayEncrypt, relayDecrypt } = useRelay();
   const dispatch = useDispatch();
 
   useEffect(() => {
     const fire = async () => {
-      const id = await hcDecrypt(identity);
-
+      let id;
+      if (authToken) {
+        id = await hcDecrypt(identity);
+      } else {
+        id = await relayDecrypt(identity);
+      }
       let bapId = new BAP(id.xprv);
       // console.log("BAP id", id.xprv);
       if (id.ids) {
@@ -51,28 +57,76 @@ const BapProvider = (props) => {
     decryptStatus,
     decIdentity,
     setDecIdentity,
+    relayDecrypt,
   ]);
+
+  const isValidIdentity = useCallback((decryptedIdString) => {
+    const decIdentity = JSON.parse(decryptedIdString);
+
+    let bapId;
+    try {
+      bapId = new BAP(decIdentity.xprv);
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+    if (bapId && decIdentity.ids) {
+      bapId.importIds(decIdentity.ids);
+    } else {
+      return false;
+    }
+
+    const ids = bapId.listIds();
+    const idy = bapId.getId(ids[0]);
+
+    // TODO: Is there more to validate here?
+    if (!idy) {
+      return false;
+    }
+    return true;
+  }, []);
 
   const onFileChange = useCallback(
     async (e) => {
       /*Selected files data can be collected here.*/
       console.log(e.target.files);
-
+      setLoadIdentityStatus(FetchStatus.Loading);
       // const encryptedData = localStorage.getItem("bitchat-nitro._bapid");
 
       const file = head(e.target.files);
       const text = await toText(file);
 
-      // console.log({ text, authToken });
-      // encrypt the uploaded file and store it locally
-      if (authToken) {
-        // handcash
-        const encryptedData = await hcEncrypt(JSON.parse(text));
-        // console.log({ encryptedData });
-        setIdentity(encryptedData);
+      if (!isValidIdentity(text)) {
+        console.log("error: invalid identity file");
+        setLoadIdentityStatus(FetchStatus.Error);
+        return;
+      }
+
+      try {
+        // console.log({ text, authToken });
+        // encrypt the uploaded file and store it locally
+        if (authToken) {
+          // handcash
+          const encryptedData = await hcEncrypt(JSON.parse(text));
+          // console.log({ encryptedData });
+          setIdentity(encryptedData);
+        } else {
+          const encryptedData = await relayEncrypt(JSON.parse(text));
+          setIdentity(encryptedData);
+        }
+        setLoadIdentityStatus(FetchStatus.Success);
+      } catch (e) {
+        setLoadIdentityStatus(FetchStatus.Error);
       }
     },
-    [authToken, hcEncrypt, setIdentity]
+    [
+      loadIdentityStatus,
+      isValidIdentity,
+      relayEncrypt,
+      authToken,
+      hcEncrypt,
+      setIdentity,
+    ]
   );
 
   const getIdentity = useCallback(async () => {
@@ -108,6 +162,7 @@ const BapProvider = (props) => {
       bapProfileStatus,
       bapProfile,
       onFileChange,
+      loadIdentityStatus,
     }),
     [
       identity, // encrypted identity file
@@ -118,6 +173,7 @@ const BapProvider = (props) => {
       setIdentity,
       onFileChange,
       bapProfile,
+      loadIdentityStatus,
     ]
   );
 

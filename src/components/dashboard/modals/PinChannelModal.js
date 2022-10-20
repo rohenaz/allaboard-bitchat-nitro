@@ -151,7 +151,7 @@ const PinChannelModal = ({ open, onClose, channel }) => {
               disabled={pinStatus === FetchStatus.Loading}
               onClick={pinChannel}
             >
-              {pinStatus === FetchStatus.Loading ? "Pinning" : `${price}`}
+              {pinStatus === FetchStatus.Loading ? "Pinning" : `$${price}`}
             </PinButton>
           </PopupButtonContainer>
         </PopupContainer>

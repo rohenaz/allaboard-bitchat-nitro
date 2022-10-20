@@ -1,5 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 
 import styled from "styled-components";
 
@@ -14,12 +14,15 @@ const Container = styled.div`
 `;
 
 const Sidebar = () => {
-  const activeUserId = useSelector((state) => state.memberList.active);
+  const params = useParams();
+  const activeChannelId = params.channel;
+  const activeUserId = params.user;
+
   return (
     <Container>
       <ServerList />
-      {!activeUserId && <ChannelList />}
-      {activeUserId && <UserList />}
+      {!activeUserId && <ChannelList activeChannelId={activeChannelId} />}
+      {activeUserId && <UserList activeUserId={activeUserId} />}
     </Container>
   );
 };

@@ -1,5 +1,5 @@
 import bsv from "bsv";
-import { head } from "lodash";
+import { head, last } from "lodash";
 import moment from "moment";
 import React, {
   useCallback,
@@ -12,6 +12,7 @@ import { AiFillPushpin } from "react-icons/ai";
 import { FaTerminal } from "react-icons/fa";
 import { GiUnicorn } from "react-icons/gi";
 import { MdChat } from "react-icons/md";
+import { useParams } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
@@ -22,7 +23,7 @@ import {
   useBitcoin,
 } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
-import { useActiveChannel, useActiveUser, usePopover } from "../../hooks";
+import { usePopover } from "../../hooks";
 import {
   loadDiscordReactions,
   loadMessages,
@@ -39,7 +40,6 @@ import Hashtag from "./Hashtag";
 import Message from "./Message";
 import PinChannelModal from "./modals/PinChannelModal";
 import UserPopover from "./UserPopover";
-const { BAP } = require("bitcoin-bap");
 
 const Wrapper = styled.div`
   background-color: var(--background-primary);
@@ -90,14 +90,17 @@ const Divider = styled.hr`
 const ContainerBottom = styled.div``;
 
 const Messages = () => {
-  const activeChannel = useActiveChannel();
-  const activeUser = useActiveUser();
+  const params = useParams();
+  const activeChannelId = params.channel;
+  const activeUserId = params.user;
   const dispatch = useDispatch();
   const { decIdentity } = useBap();
   const { friendRequestStatus, sendFriendRequest } = useBitcoin();
   const { decryptStatus } = useHandcash();
+
   const messages = useSelector((state) => state.chat.messages);
   const pins = useSelector((state) => state.channels.pins);
+  const users = useSelector((state) => state.memberList);
   const hasMessages = messages.allIds.length > 0;
   const reactions = useSelector((state) => state.chat.reactions);
   const hasReactions =
@@ -110,6 +113,11 @@ const Messages = () => {
   // Scroll to bottom of the chat history whenever there is a new message
   // or when messages finish loading
   const containerBottomRef = useRef(null);
+  const pathName = window.location.pathname.endsWith("/")
+    ? window.location.pathname.slice(0, -1)
+    : window.location.pathname;
+  let pathId = last(pathName.split("/")) || null;
+
   useEffect(() => {
     if (messages.loading === false && containerBottomRef.current) {
       setTimeout(containerBottomRef.current.scrollIntoView(false), 0);
@@ -117,13 +125,40 @@ const Messages = () => {
   }, [containerBottomRef.current, messages.loading, messages.allIds]);
 
   useEffect(() => {
-    dispatch(
-      loadMessages({
-        activeChannelId: activeChannel?.channel,
-        activeUserId: activeUser?._id,
-      })
-    );
-  }, [activeChannel, activeUser, session]);
+    console.log({ activeUserId, activeChannelId, pathId });
+    if (activeChannelId) {
+      console.log("load messages", {
+        activeChannelId,
+      });
+      dispatch(
+        loadMessages({
+          activeChannelId,
+        })
+      );
+    }
+
+    if (!activeChannelId && !activeUserId && pathId === "channels") {
+      console.log("load messages global");
+      dispatch(loadMessages({}));
+    }
+  }, [pathId, activeUserId, activeChannelId]);
+
+  useEffect(() => {
+    if (activeUserId && decIdentity?.bapId && !activeChannelId) {
+      console.log("load messages", {
+        activeUserId,
+      });
+      dispatch(
+        loadMessages({
+          activeChannelId,
+          activeUserId,
+          myBapId: decIdentity?.bapId,
+        })
+      );
+    }
+
+    //}
+  }, [activeChannelId, activeUserId, decIdentity]);
 
   const [
     user,
@@ -134,15 +169,17 @@ const Messages = () => {
     handleClickAway,
   ] = usePopover();
 
+  const activeUser = useMemo(() => users?.byId[users.active], [users]);
+
   const messagesSorted = useMemo(() => {
     // console.log({ loading: friendRequests.loading, decIdentity });
-    if (hasMessages && decIdentity?.xprv) {
+    if (hasMessages) {
       let m = [];
       for (let txid of Object.keys(messages.byId)) {
         if (
-          (!activeChannel?.channel && !messages.byId[txid].MAP.channel) ||
+          (!activeChannelId && !messages.byId[txid].MAP.channel) ||
           messages.byId[txid].AIP?.bapId === activeUser?._id ||
-          messages.byId[txid].MAP.channel === activeChannel?.channel
+          messages.byId[txid].MAP.channel === activeChannelId
         ) {
           m.push(messages.byId[txid]);
         }
@@ -150,27 +187,37 @@ const Messages = () => {
       return m
         .map((message) => {
           if (message.MAP.encrypted === "true") {
+            console.log("encrypted message", activeUser, message);
             // private key is my key from
 
-            // If this is sel;f, get the nodes public key
-            const self = message.AIP.bapId === activeUser?._id;
+            // If this is self, get the nodes public key
+            const self =
+              activeUser &&
+              message.MAP?.bapID &&
+              message.MAP?.bapID === activeUser?._id;
 
             let publicKey;
-            if (self) {
-              publicKey = friendPublicKeyFromSeedString(
-                "notes",
-                decIdentity.xprv
-              );
-            } else {
-              if (friendRequests.incoming.byId[message.AIP.bapId]) {
-                publicKey = new bsv.PublicKey(
-                  friendRequests.incoming.byId[message.AIP.bapId]?.publicKey
+            try {
+              if (self) {
+                publicKey = friendPublicKeyFromSeedString(
+                  "notes",
+                  decIdentity.xprv
                 );
               } else {
-                // console.log("no self, no friends", friendRequests, message);
-                return message;
+                if (friendRequests.incoming.byId[message.AIP.bapId]) {
+                  publicKey = new bsv.PublicKey(
+                    friendRequests.incoming.byId[message.AIP.bapId]?.publicKey
+                  );
+                } else {
+                  // console.log("no self, no friends", friendRequests, message);
+                  return message;
+                }
               }
+            } catch (e) {
+              console.error(e);
+              return message;
             }
+
             // get the user's public key
             // const publicKey =
             //   message.AIP.bapId === activeUser?._id
@@ -187,20 +234,30 @@ const Messages = () => {
               );
             }
 
-            const hdPk = bsv.HDPrivateKey(decIdentity.xprv);
+            let hdPrivateFriendKey;
+            try {
+              const hdPk = bsv.HDPrivateKey(decIdentity.xprv);
 
-            const seedHex = bsv.crypto.Hash.sha256(
-              Buffer.from(
-                message.AIP.bapId === activeUser?._id
-                  ? "notes"
-                  : message.AIP.bapId
-              )
-            ).toString("hex");
-            const signingPath = getSigningPathFromHex(seedHex);
+              const seedHex = bsv.crypto.Hash.sha256(
+                Buffer.from(
+                  message.AIP.bapId === activeUser?._id
+                    ? "notes"
+                    : message.AIP.bapId
+                )
+              ).toString("hex");
+              const signingPath = getSigningPathFromHex(seedHex);
 
-            const hdPrivateFriendKey = hdPk.deriveChild(signingPath);
-            // console.log("using notes seed?", hdPrivateFriendKey);
+              hdPrivateFriendKey = hdPk.deriveChild(signingPath);
+              // console.log("using notes seed?", hdPrivateFriendKey);
+            } catch (e) {
+              console.error(e);
+              return message;
+            }
 
+            if (!hdPrivateFriendKey) {
+              console.error("failed to make key");
+              return message;
+            }
             try {
               const decryptedContent = decrypt(
                 message.B.content,
@@ -233,16 +290,16 @@ const Messages = () => {
     activeUser,
     hasMessages,
     messages,
-    activeChannel,
+    activeChannelId,
+    users,
   ]);
 
   useEffect(() => {
     if (messages) {
-      console.log("FIRE LOAD REACT", messages.allIds.length);
       dispatch(loadReactions(messages.allIds));
       dispatch(loadDiscordReactions(messages.allMessageIds));
     }
-  }, [messages.length, activeUser, activeChannel]);
+  }, [messages.length, activeUser, activeChannelId]);
 
   const self = useMemo(() => {
     return activeUser && session.user?.bapId === activeUser?._id;
@@ -268,7 +325,7 @@ const Messages = () => {
 
   // let unix = +new Date() / 1000;
   const expiresIn = useMemo(() => {
-    const ps = [...(pins.byChannel[activeChannel?.channel] || [])];
+    const ps = [...(pins.byChannel[activeChannelId] || [])];
     if (!ps) {
       return ``;
     }
@@ -284,24 +341,24 @@ const Messages = () => {
       return `${Math.floor(mins / 60)} hours and ${mins % 60} minutes`;
     }
     return `${mins} minutes`;
-  }, [pins, activeChannel]);
+  }, [pins, activeChannelId]);
 
   const togglePinChannelModal = useCallback(() => {
     setShowPinChannelModal(!showPinChannelModal);
   }, [showPinChannelModal]);
 
   const heading = useMemo(() => {
-    if (activeChannel) {
-      return <>Welcome to #{activeChannel?.channel}!</>;
+    if (activeChannelId) {
+      return <>Welcome to #{activeChannelId}!</>;
     } else if (activeUser) {
       return <>{activeUser?.user?.alternateName}</>;
     }
     return null;
-  }, [activeChannel, activeUser]);
+  }, [activeChannelId, activeUser]);
 
   const subheading = useMemo(() => {
-    if (activeChannel) {
-      return <>This is the start of #{activeChannel?.channel}.</>;
+    if (activeChannelId) {
+      return <>This is the start of #{activeChannelId}.</>;
     } else if (activeUser) {
       return self ? (
         <>This is the beginning of your notes.</>
@@ -313,7 +370,7 @@ const Messages = () => {
       );
     }
     return null;
-  }, [self, activeChannel, activeUser]);
+  }, [self, activeChannelId, activeUser]);
 
   const addFriend = useCallback(() => {
     if (activeUser) {
@@ -323,7 +380,7 @@ const Messages = () => {
   }, [decIdentity, sendFriendRequest, activeUser]);
 
   const icon = useMemo(() => {
-    if (activeChannel) {
+    if (activeChannelId) {
       return (
         <Hashtag
           size="36px"
@@ -349,11 +406,25 @@ const Messages = () => {
       );
     }
     return null;
-  }, [activeChannel, activeUser]);
+  }, [activeChannelId, activeUser]);
+
+  if (activeUser && !decIdentity) {
+    return (
+      <Wrapper className="scrollable">
+        <Container>
+          <HeaderContainer>
+            <SecondaryHeading>
+              Import an identity to enable DMs.
+            </SecondaryHeading>
+          </HeaderContainer>
+        </Container>
+      </Wrapper>
+    );
+  }
 
   if (
-    (activeUser && friendRequests.loading) ||
-    (activeChannel && messages.loading)
+    (decIdentity && activeUser && friendRequests.loading) ||
+    (activeChannelId && messages.loading)
   ) {
     return (
       <Wrapper className="scrollable">
@@ -488,9 +559,9 @@ const Messages = () => {
           <SecondaryHeading>{subheading}</SecondaryHeading>
           {activeUser && activeUser.isFriend && <div>FRIENDS</div>}
           {decryptStatus !== FetchStatus.Loading &&
-            activeChannel &&
+            activeChannelId &&
             !activeUser &&
-            !pins.byChannel[activeChannel?.channel] && (
+            !pins.byChannel[activeChannelId] && (
               <div
                 style={{
                   cursor: "pointer",
@@ -504,7 +575,7 @@ const Messages = () => {
                 Channel
               </div>
             )}
-          {pins.allChannels.includes(activeChannel?.channel) && (
+          {pins.allChannels.includes(activeChannelId) && (
             <div style={{ color: "#777" }}>
               This channel is pinned for another {expiresIn}
             </div>
@@ -591,7 +662,7 @@ const Messages = () => {
         <PinChannelModal
           open={showPinChannelModal}
           onClose={() => setShowPinChannelModal(false)}
-          channel={activeChannel?.channel}
+          channel={activeChannelId}
         />
       </Container>
     </Wrapper>

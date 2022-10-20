@@ -27,6 +27,14 @@ const App = () => {
           }
         />
         <Route
+          path="/friends"
+          element={
+            <RequireAuth>
+              <Dashboard isFriendsPage={true} />
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/channels/:channel"
           element={
             <RequireAuth>

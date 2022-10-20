@@ -3,7 +3,7 @@ import bops from "bops";
 import bsv from "bsv";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { useActiveChannel, useActiveUser } from "../../hooks";
+import { useParams } from "react-router-dom";
 import { pinPaymentAddress } from "../../reducers/channelsReducer";
 import { FetchStatus } from "../../utils/common";
 import { getSigningPathFromHex } from "../../utils/sign";
@@ -18,15 +18,15 @@ const BitcoinContext = React.createContext(undefined);
 const BitcoinProvider = (props) => {
   const { notifyIndexer } = useBmap();
   const { authToken, hcDecrypt } = useHandcash();
-  const { relayOne } = useRelay();
-  const { identity, decIdentity, decryptStatus } = useBap();
+  const { relayOne, ready } = useRelay();
+  const { decIdentity, decryptStatus } = useBap();
   const [pinStatus, setPinStatus] = useState(FetchStatus.Idle);
   const [postStatus, setPostStatus] = useState(FetchStatus.Idle);
   // TODO: Hook up like status
   const [likeStatus, setLikeStatus] = useState(FetchStatus.Idle);
-  const activeUser = useActiveUser();
-  const activeUserId = useSelector((state) => state.memberList.active);
-  const activeChannel = useActiveChannel();
+  const params = useParams();
+  const activeChannelId = params.channel;
+  const activeUserId = params.user;
   const [signStatus, setSignStatus] = useState(FetchStatus.Idle);
 
   const [friendRequestStatus, setFriendRequestStatus] = useState(
@@ -97,7 +97,7 @@ const BitcoinProvider = (props) => {
         }
       });
     },
-    [decIdentity, signStatus, authToken]
+    [decIdentity, signStatus]
   );
 
   const sendPin = useCallback(
@@ -201,7 +201,7 @@ const BitcoinProvider = (props) => {
         let resp = await relayOne.send({ outputs });
         setPinStatus(FetchStatus.Success);
 
-        console.log("Sent", resp);
+        console.log("Sent pin", resp);
         // interface SendResult {
         //   txid: string;
         //   rawTx: string;
@@ -258,13 +258,6 @@ const BitcoinProvider = (props) => {
             userId
           );
 
-          // const json = {
-          //   context: "idKey",
-          //   idKey: `<userID>`,
-          //   subcontext: "protocol",
-          //   protocol: "bap",
-          // };
-
           // const decIdentity = await hcDecrypt(identity);
 
           if (!decIdentity) {
@@ -274,61 +267,6 @@ const BitcoinProvider = (props) => {
           const hdPK = bsv.HDPrivateKey(decIdentity.xprv);
 
           const privateKey = hdPK.privateKey;
-
-          // Get did for user id
-          // activeUser._id
-
-          // const payload = {
-          //   idKey: activeUser._id,
-          // };
-
-          // let bapId = new BAP(decIdentity.xprv);
-          // console.log("BAP id", bapId);
-          // if (decIdentity.ids) {
-          //   bapId.importIds(decIdentity.ids);
-          // }
-          // let bid = head(bapId.listIds());
-          // console.log({ bid });
-          // const did = fetch(`https://bap-api.com/v1/identity/did`, {
-          //   method: "POST",
-          //   headers: { "Content-Type": "application/json" },
-          //   body: JSON.stringify(payload),
-          // });
-          // Sample response
-          //   {
-          //     "status": "OK",
-          //     "result": {
-          //         "@context": [
-          //             "https://w3id.org/did/v0.11",
-          //             "https://w3id.org/bap/v1"
-          //         ],
-          //         "id": "did:bap:id:4VTFsUxuqtesi3WR5jQ2Py5Hok88",
-          //         "publicKey": [
-          //             {
-          //                 "id": "did:bitcoin:tx:7d4200b09af45c5f6cb9fb610e7d5d6f80a9098809c7ebc0d0d8d0896cad6ca9#root",
-          //                 "controller": "did:bap:id:4VTFsUxuqtesi3WR5jQ2Py5Hok88",
-          //                 "type": "EcdsaSecp256k1VerificationKey2019",
-          //                 "bitcoinAddress": "12nHp4QxRRpSn2uMdRQU1RL1hAbJxxnN3d"
-          //             }
-          //         ],
-          //         "authentication": [
-          //             "#root"
-          //         ],
-          //         "assertionMethod": [
-          //             "#root"
-          //         ]
-          //     }
-          // }
-          // const didJson = await did.json();
-          // const publicKey = didJson.result.publicKey;
-          // console.log({
-          //   decIdentity,
-          //   hdPK,
-          //   privateKey,
-          //   didJson,
-          // });
-          //          const did = await getDid()
-          // get public key for user id
 
           if (
             !friendRequests.incoming.byId[userId] &&
@@ -417,8 +355,9 @@ const BitcoinProvider = (props) => {
         );
         let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
 
+        console.log({ ready });
         let resp = await relayOne.send({ outputs });
-        console.log("Sent", resp);
+        console.log("Sent message", resp);
         // interface SendResult {
         //   txid: string;
         //   rawTx: string;
@@ -445,6 +384,7 @@ const BitcoinProvider = (props) => {
       authToken,
       decIdentity,
       notifyIndexer,
+      ready,
     ]
   );
 
@@ -478,12 +418,19 @@ const BitcoinProvider = (props) => {
           );
           // .join(" ")
 
+          setLikeStatus(FetchStatus.Loading);
+
           const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
-            body: JSON.stringify({ hexArray, authToken, activeChannel }),
+            body: JSON.stringify({
+              hexArray,
+              authToken,
+              channelId: activeChannelId,
+            }),
           });
           const { paymentResult } = await resp.json();
+          setLikeStatus(FetchStatus.Success);
 
           console.log({ paymentResult });
           if (paymentResult) {
@@ -505,15 +452,21 @@ const BitcoinProvider = (props) => {
         let resp = await relayOne.send({ outputs });
 
         console.log("Sent", resp);
+        setLikeStatus(FetchStatus.Success);
 
         await notifyIndexer(resp.rawTx);
         // let txid = resp.txid;
       } catch (e) {
         console.error(e);
+        setLikeStatus(FetchStatus.Error);
       }
     },
-    [authToken]
+    [likeStatus, relayOne, authToken, ready, activeChannelId]
   );
+
+  const self = useMemo(() => {
+    return activeUserId && session.user?.bapId === activeUserId;
+  }, [session, activeUserId]);
 
   const sendFriendRequest = useCallback(
     async (friendIdKey, xprv) => {
@@ -523,7 +476,7 @@ const BitcoinProvider = (props) => {
       // idKey <idKey> - their id key
       // publicKey <publicKey> - the public key i generated for this interaction
       if (self) {
-        console.log("cannot friernd request self");
+        console.log("cannot friend request self");
         return;
       }
       const publicFriendKey =
@@ -617,7 +570,7 @@ const BitcoinProvider = (props) => {
         let resp = await relayOne.send({ outputs });
         setFriendRequestStatus(FetchStatus.Success);
 
-        console.log("Sent", resp);
+        console.log("Sent friend request", resp);
         // interface SendResult {
         //   txid: string;
         //   rawTx: string;

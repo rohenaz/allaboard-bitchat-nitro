@@ -8,8 +8,7 @@ audio.volume = 0.25;
 
 export const loadMessages = createAsyncThunk(
   "chat/loadMessages",
-  async ({ activeChannelId, activeUserId }, { rejectWithValue, getState }) => {
-    const { session } = getState("session");
+  async ({ activeChannelId, activeUserId, myBapId }, { rejectWithValue }) => {
     try {
       // console.log("loading messages", {
       //   activeChannelId,
@@ -19,7 +18,7 @@ export const loadMessages = createAsyncThunk(
       const response = await channelAPI.getMessages(
         activeChannelId,
         activeUserId,
-        session.user?.bapId
+        myBapId
       );
       return response.data;
     } catch (err) {
@@ -95,17 +94,22 @@ const chatSlice = createSlice({
         return;
       }
 
+      // TODO: Figure out how to get user bap key here and dont bother to receive encrypted messages not addressed to me
+      // if (message.MAP.encrypted === "true" && message.MAP.bapID !== myBapId) {
+      //   return;
+      // }
       state.messages.byId[message.tx.h] = message;
       state.messages.allIds.push(message.tx.h);
 
       if (message.MAP.messageID) {
         state.messages.allMessageIds.push(message.MAP.messageID);
       }
-      // plan audio if channel matches
-      let channelId = last(window.location.pathname.split("/")) || null;
+      // play audio if channel matches or user matches
+      let pathId = last(window.location.pathname.split("/")) || null;
       if (
-        (!channelId && !message.MAP?.channel) ||
-        channelId?.toLowerCase() === message.MAP?.channel?.toLowerCase()
+        (!pathId && !message.MAP?.channel && !message.AIP?.bapId) ||
+        pathId?.toLowerCase() === message.MAP?.channel?.toLowerCase() ||
+        pathId?.toLowerCase() === message.AIP?.bapId?.toLowerCase()
       ) {
         audio.play();
       }

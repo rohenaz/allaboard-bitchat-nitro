@@ -1,6 +1,7 @@
 import { last } from "lodash";
 import { receiveNewPin } from "../reducers/channelsReducer";
 import { receiveNewMessage, receiveNewReaction } from "../reducers/chatReducer";
+import { receiveNewFriend } from "../reducers/memberListReducer";
 
 const sockQuery = (verbose) => {
   let q = {
@@ -42,6 +43,9 @@ const socketMiddleware = () => {
             break;
           case "message":
             storeAPI.dispatch(receiveNewMessage(data));
+            break;
+          case "friend":
+            storeAPI.dispatch(receiveNewFriend(data));
             break;
           case "pin_channel":
             storeAPI.dispatch(receiveNewPin(data));

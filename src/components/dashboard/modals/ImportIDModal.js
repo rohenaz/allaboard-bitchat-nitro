@@ -5,15 +5,17 @@ import OutsideClickHandler from "react-outside-click-handler";
 import { useDispatch, useSelector } from "react-redux";
 import { useBap } from "../../../context/bap";
 import { toggleProfile } from "../../../reducers/profileReducer";
+import { FetchStatus } from "../../../utils/common";
 
 const ImportIDModal = () => {
   const isProfileOpen = useSelector((state) => state.profile.isOpen);
-  const { onFileChange, identity } = useBap();
+  const { onFileChange, identity, loadIdentityStatus } = useBap();
   const inputFileRef = React.useRef();
 
   const uploadIdentity = useCallback(() => {
     inputFileRef.current.click();
   }, []);
+
   const dispatch = useDispatch();
 
   return (
@@ -66,10 +68,12 @@ const ImportIDModal = () => {
                   marginBottom: "1rem",
                 }}
               >
-                <ImProfile style={{ marginRight: ".5rem" }} />
+                <ImProfile style={{ marginRight: ".5rem", width: "32px" }} />
                 <h2>Import Identity</h2>
               </div>
-
+              {loadIdentityStatus === FetchStatus.Error && (
+                <div>Error loading identity file</div>
+              )}
               <ol style={{ marginBottom: "1rem" }}>
                 <li>Visit blockpost.network</li>
                 <li>Export your identity file</li>
@@ -87,7 +91,10 @@ const ImportIDModal = () => {
                   margin: "auto",
                 }}
               >
-                <FaUpload style={{ marginRight: ".5rem" }} /> Import ID
+                <FaUpload style={{ marginRight: ".5rem" }} />{" "}
+                {loadIdentityStatus === FetchStatus.Loading
+                  ? `Loading...`
+                  : `Import ID`}
               </button>
             </div>
           )}

@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export const lsTest = () => {
-  var test = "test";
-  try {
-    localStorage.setItem(test, test);
-    localStorage.removeItem(test);
-    return true;
-  } catch (e) {
-    return false;
-  }
+  // TODO: Troubleshooting mobile issues
+  return true;
+  // var test = "test";
+  // try {
+  //   localStorage.setItem(test, test);
+  //   localStorage.removeItem(test);
+  //   return true;
+  // } catch (e) {
+  //   return false;
+  // }
 };
 
 const replacer = (key, value) => {

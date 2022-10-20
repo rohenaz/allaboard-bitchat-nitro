@@ -6,7 +6,9 @@ import React, {
   useState,
 } from "react";
 import Script from "react-load-script";
+import { FetchStatus } from "../../utils/common";
 import { lsTest, useLocalStorage } from "../../utils/storage";
+import { MAP_PREFIX } from "../bitcoin";
 
 // export interface RelaySignResult {
 //   algorithm: 'bitcoin-signed-message';
@@ -84,14 +86,99 @@ const RelayContext = React.createContext(undefined);
 const RelayProvider = (props) => {
   const [paymail, setPaymail] = useLocalStorage(paymailStorageKey);
   const [relayOne, setRelayOne] = useState();
-  const [relayOtc, setRelayOtc] = useState();
   const [runOwner, setRunOwner] = useLocalStorage(runOwnerStorageKey);
+
+  const [relayEncryptStatus, setRelayEncryptStatus] = useState(
+    FetchStatus.Idle
+  );
+  const [relayDecryptStatus, setRelayDecryptStatus] = useState(
+    FetchStatus.Idle
+  );
 
   const [ready, setReady] = useState(false);
 
   const isApp = useMemo(
     () => (relayOne && relayOne.isApp()) || false,
     [relayOne]
+  );
+
+  // encrypts a STRING
+  const relayEncrypt = useCallback(
+    async (data) => {
+      if (typeof data === "object") {
+        data = JSON.stringify(data);
+      }
+      return new Promise((resolve, reject) => {
+        if (!relayOne) {
+          console.info({ relayOne, w: window.relayone });
+          reject(new Error("Relay script not yet loaded!"));
+          return;
+        }
+        if (!paymail) {
+          reject(new Error("Paymail not available!"));
+          return;
+        }
+
+        // Relay requires the data is prefixed with a whitelisted Bitcom prefix
+        relayOne
+          ?.encrypt(`${MAP_PREFIX}${data}`, paymail, "utf-8")
+          .then((resp) => {
+            // interface EncryptResult {
+            //   algorithm: "electrum-ecies";
+            //   key: "identity";
+            //   value: string; // hex encoded encrypted data
+            //   publicKey: string; // pki
+            //   paymail: string; // paymail you passed
+            // }
+            console.log("encrypted data", resp);
+            resolve({ encryptedData: resp.data });
+          })
+          .catch((e) => {
+            console.error(e);
+            reject(e);
+          });
+      });
+    },
+    [relayOne, paymail]
+  );
+
+  const relayDecrypt = useCallback(
+    async (data) => {
+      return new Promise((resolve, reject) => {
+        if (!relayOne) {
+          console.info({ relayOne, w: window.relayone });
+          reject(new Error("Relay script not yet loaded!"));
+          return;
+        }
+        if (!paymail) {
+          reject(new Error("Paymail not available!"));
+          return;
+        }
+        relayOne
+          ?.decrypt(data)
+          .then((resp) => {
+            console.log("decrypted data", resp);
+
+            // interface DecryptResult {
+            //   algorithm: "electrum-ecies";
+            //   key: "identity";
+            //   data: string; // message you passed
+            //   value: string; // decrypted data
+            //   publicKey: string; // pki
+            // }
+
+            // remove the MAP prefix from the data
+
+            const d = resp.value.slice(MAP_PREFIX.length - 1);
+            resolve(JSON.parse(d));
+          })
+          .catch((e) => {
+            console.error(e);
+            reject(e);
+          });
+      });
+    },
+    [relayOne, paymail]
   );
 
   const authenticate = useCallback(async () => {
@@ -129,15 +216,14 @@ const RelayProvider = (props) => {
   }, [authenticate, isApp]);
 
   const handleScriptLoad = useCallback(() => {
+    console.log("script loaded!", window.relayone);
     setRelayOne(window.relayone);
-    setRelayOtc(window.relayotc);
     setReady(true);
-  }, [setRelayOne, setReady, setRelayOtc]);
+  }, [setRelayOne, setReady]);
 
   const value = useMemo(
     () => ({
       relayOne,
-      relayOtc,
       setPaymail,
       paymail,
       authenticate,
@@ -145,16 +231,23 @@ const RelayProvider = (props) => {
       ready,
       isApp,
       runOwner,
+      relayEncrypt,
+      relayDecrypt,
+      relayEncryptStatus,
+      relayDecryptStatus,
     }),
     [
       relayOne,
-      relayOtc,
       setPaymail,
       paymail,
       authenticate,
       ready,
       isApp,
       runOwner,
+      relayEncrypt,
+      relayDecrypt,
+      relayEncryptStatus,
+      relayDecryptStatus,
     ]
   );
 

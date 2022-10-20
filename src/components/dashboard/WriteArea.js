@@ -1,16 +1,18 @@
 import { last } from "lodash";
+import moment from "moment";
 import React, { useCallback, useMemo } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
-import { useActiveChannel, useActiveUser } from "../../hooks";
+import { useActiveUser } from "../../hooks";
+import { receiveNewMessage } from "../../reducers/chatReducer";
 import { FetchStatus } from "../../utils/common";
 import ChannelTextArea from "./ChannelTextArea";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
-
 // if (typeof Buffer === "undefined") {
 //   /*global Buffer:writable*/
 //   Buffer = require("buffer").Buffer;
@@ -36,10 +38,13 @@ const WriteArea = () => {
   const { paymail } = useRelay();
   const { decryptStatus, profile, signStatus } = useHandcash();
   const { sendMessage, postStatus } = useBitcoin();
-  const activeChannel = useActiveChannel();
+  const params = useParams();
+  const activeChannelId = params.channel;
+  const activeUserId = params.user;
+
   const { decIdentity } = useBap();
   const activeUser = useActiveUser();
-  const activeUserId = useSelector((state) => state.memberList.active);
+
   const loadingMembers = useSelector((state) => state.memberList.loading);
   const loadingPins = useSelector((state) => state.channels.pins.loading);
   const loadingChannels = useSelector((state) => state.channels.loading);
@@ -47,10 +52,11 @@ const WriteArea = () => {
   const loadingFriendRequests = useSelector(
     (state) => state.memberList.friendRequests.loading
   );
+  const dispatch = useDispatch();
   const session = useSelector((state) => state.session);
 
   const channelName =
-    activeChannel?.channel ||
+    activeChannelId ||
     activeUserId ||
     last(window.location.pathname.split("/"));
 
@@ -60,17 +66,36 @@ const WriteArea = () => {
       const content = event.target.msg_content.value;
 
       if (content !== "" && (paymail || profile?.paymail)) {
-        sendMessage(
-          paymail || profile?.paymail,
-          content,
-          activeChannel?.channel,
-          activeUserId,
-          decIdentity
-        );
         event.target.reset();
+        try {
+          const resp = await sendMessage(
+            paymail || profile?.paymail,
+            content,
+            activeChannelId,
+            activeUserId,
+            decIdentity
+          );
+          console.log({ resp });
+        } catch (e) {
+          console.log("dispatch error message", e);
+          dispatch(
+            receiveNewMessage({
+              B: { content: "Error: Failed to send" },
+              MAP: {
+                app: "bitchatnitro.com",
+                type: "message",
+                paymail: "system@bitchatnitro.com",
+              },
+              timestamp: moment.unix(),
+              blk: { t: moment.unix() },
+              tx: { h: "error" },
+              _id: "error",
+            })
+          );
+        }
       }
     },
-    [decIdentity, activeUserId, activeChannel, paymail, profile]
+    [decIdentity, activeUserId, activeChannelId, paymail, profile]
   );
 
   // const enablePublicComms = useCallback(async () => {
@@ -152,13 +177,15 @@ const WriteArea = () => {
           name="msg_content"
           autocomplete="off"
           placeholder={
-            activeUser && loadingMembers
+            !session.user?.bapId && activeUser
+              ? `DMs Disabled`
+              : activeUser && loadingMembers
               ? `Loading members...`
               : loadingPins
               ? `Loading pinned channels...`
               : loadingChannels
               ? `Loading channels...`
-              : loadingFriendRequests
+              : activeUser && loadingFriendRequests
               ? `Loading friends`
               : loadingMessages
               ? `Loading messages...`
@@ -169,8 +196,8 @@ const WriteArea = () => {
               : postStatus === FetchStatus.Loading
               ? "Posting..."
               : `Message ${
-                  activeChannel?.channel
-                    ? "#" + activeChannel.channel
+                  activeChannelId
+                    ? "#" + activeChannelId
                     : activeUserId
                     ? "to @" + activeUserId
                     : "in global chat"

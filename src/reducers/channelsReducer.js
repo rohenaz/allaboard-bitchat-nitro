@@ -72,7 +72,9 @@ const channelsSlice = createSlice({
       }
     },
     setActiveChannel(state, action) {
-      state.active = action.payload;
+      if (action.payload) {
+        state.active = action.payload;
+      }
     },
     unpinChannel(state, action) {
       const channel = action.payload;

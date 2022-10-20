@@ -10,7 +10,6 @@ import { useBap } from "../../context/bap";
 import { hideInDesktop } from "../../design/mixins";
 import { useWindowWidth } from "../../hooks";
 import { setActiveChannel } from "../../reducers/channelsReducer";
-import { loadMessages } from "../../reducers/chatReducer";
 import {
   setActiveUser,
   toggleMemberList,
@@ -18,6 +17,7 @@ import {
 import { login } from "../../reducers/sessionReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ChatArea from "./ChatArea";
+import Friends from "./Friends";
 import Header from "./Header";
 import MemberList from "./MemberList";
 import ImportIDModal from "./modals/ImportIDModal";
@@ -121,34 +121,40 @@ const ResponsiveMemberList = () => {
   );
 };
 
-const Dashboard = () => {
+const Dashboard = ({ isFriendsPage }) => {
   const isMemberListOpen = useSelector((state) => state.memberList.isOpen);
 
   const params = useParams();
   const activeChannelId = params.channel;
   const activeUserId = params.user;
+
   const dispatch = useDispatch();
   const session = useSelector((state) => state.session);
   const { decIdentity } = useBap();
 
   useEffect(() => {
-    dispatch(setActiveChannel(activeChannelId));
-    dispatch(setActiveUser(activeUserId));
+    if (activeChannelId) {
+      dispatch(setActiveChannel(activeChannelId));
+      dispatch(setActiveUser(false));
+    } else {
+      dispatch(setActiveChannel(false));
+    }
+    if (activeUserId) {
+      dispatch(setActiveUser(activeUserId));
+    }
     // if (decIdentity) {
     //   dispatch(
     //     loadMessages({ channelId: activeChannelId, userId: activeUserId })
     //   );
     // }
-  }, [loadMessages, activeUserId, activeChannelId, dispatch]);
+  }, [activeUserId, activeChannelId, dispatch]);
 
   useEffect(() => {
     // console.log({ session, decIdentity });
-    if (decIdentity && decIdentity.bapId && !session.user) {
+    if (decIdentity && decIdentity?.bapId && !session.user) {
       dispatch(
         login({
           bapId: decIdentity.bapId,
-          activeChannelId,
-          activeUserId,
         })
       );
     }
@@ -158,7 +164,7 @@ const Dashboard = () => {
     <Container $isMemberListOpen={isMemberListOpen}>
       <ResponsiveSidebar />
       <Header />
-      <ChatArea />
+      {isFriendsPage ? <Friends /> : <ChatArea />}
       <ResponsiveMemberList />
       <ImportIDModal />
     </Container>

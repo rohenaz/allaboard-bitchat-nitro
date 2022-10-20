@@ -108,7 +108,7 @@ var queryFriends = (idKey) => {
     q: {
       find: {
         "MAP.type": "friend",
-        "AIP.bapId": idKey,
+        $or: [{ "AIP.bapId": idKey }, { "MAP.bapID": idKey }],
       },
 
       sort: { timestamp: -1 },
@@ -209,9 +209,9 @@ const query = (verboseMode, channelId, userId, myId) => {
   if (channelId) {
     q.q.find["MAP.channel"] = channelId;
   } else if (userId && myId) {
-    q.q.find["$and"] = [
-      { $or: [{ "MAP.bapID": myId }, { "MAP.bapID": userId }] },
-      { $or: [{ "AIP.bapId": myId }, { "AIP.bapId": userId }] },
+    q.q.find["$or"] = [
+      { $and: [{ "MAP.bapID": myId }, { "AIP.bapId": userId }] },
+      { $and: [{ "AIP.bapId": myId }, { "MAP.bapID": userId }] },
     ];
     // stuff added by indexer uses camelCase
     // stuff in the protocol uses caps ID

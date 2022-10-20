@@ -75,7 +75,7 @@ const Username = styled.div`
   font-size: 14px;
 `;
 
-const ChannelList = () => {
+const ChannelList = ({ activeChannelId }) => {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(loadChannels());
@@ -86,13 +86,11 @@ const ChannelList = () => {
 
   // const user = useSelector((state) => state.session.user);
   const channels = useSelector((state) => state.channels);
-  const activeChannelId = useSelector((state) => state.channels.active);
   const isInDesktop = useWindowWidth() > 768;
   const [unpinsSet, setUnpinsSet] = useState(false);
   const messages = useSelector((state) => state.chat.messages);
   const { sendPin, pinStatus } = useBitcoin();
   const [pendingPin, setPendingPin] = useState(false);
-
   const hasMessages = messages.allIds.length > 0;
   const [hoveringChannel, setHoveringChannel] = useState();
 
@@ -148,12 +146,14 @@ const ChannelList = () => {
   //   [units, paymail, profile, sendPin]
   // );
 
+  useEffect(() => console.log({ activeChannelId }), [activeChannelId]);
+
   const renderChannel = useCallback(
     (id) => {
       return (
         <Link
           key={id}
-          to={`/channels/${id}`}
+          to={`/channels${id ? "/" + id : ""}`}
           onClick={() => !isInDesktop && dispatch(toggleSidebar())}
         >
           <ListItem

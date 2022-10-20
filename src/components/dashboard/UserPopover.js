@@ -3,7 +3,11 @@ import React from "react";
 import Popover from "@mui/material/Popover";
 import styled from "styled-components";
 
+import moment from "moment";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useHandcash } from "../../context/handcash";
+import { receiveNewMessage } from "../../reducers/chatReducer";
 import Avatar, { GreenDotWrapper } from "./Avatar";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
 
@@ -90,12 +94,39 @@ const Input = styled.input`
 
 const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
   const navigate = useNavigate();
+  const { authToken } = useHandcash();
+  const dispatch = useDispatch();
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const content = event.target.content.value;
+
     if (content !== "") {
       event.target.reset();
       setShowPopover(false);
+      if (!authToken) {
+        console.error("no auth token");
+        dispatch(
+          receiveNewMessage({
+            B: {
+              content:
+                "Error: Failed to send. You need to import an identity to use DMs.",
+              "content-type": "text/plain",
+              encoding: "utf8",
+            },
+            MAP: {
+              app: "bitchatnitro.com",
+              type: "message",
+              paymail: "system@bitchatnitro.com",
+            },
+            timestamp: moment.unix(),
+            blk: { t: moment.unix() },
+            tx: { h: "error" },
+            _id: "error",
+          })
+        );
+        return;
+      }
       // console.log({ user });
       // TODO: sendMessage;
       if (user.AIP) {

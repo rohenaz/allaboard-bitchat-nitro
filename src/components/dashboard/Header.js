@@ -3,6 +3,7 @@ import React from "react";
 import { FaBars, FaGithub, FaSignOutAlt } from "react-icons/fa";
 import { ImProfile } from "react-icons/im";
 import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import styled from "styled-components";
 
 import { baseIcon, hideInDesktop, interactiveColor } from "../../design/mixins";
@@ -64,11 +65,12 @@ const IconButton = ({ children, href, ...delegated }) => {
 
 const Header = () => {
   const dispatch = useDispatch();
+  const params = useParams();
+  const activeUserId = params.user;
+  const activeChannelId = params.channel;
   const isMemberListOpen = useSelector((state) => state.memberList.isOpen);
   const isProfileOpen = useSelector((state) => state.profile.isOpen);
   const channels = useSelector((state) => state.channels);
-  const activeChannelId = useSelector((state) => state.channels.active);
-  const activeUserId = useSelector((state) => state.memberList.active);
   const activeUser = useActiveUser();
 
   return (
@@ -88,11 +90,10 @@ const Header = () => {
             {activeChannelId && <Hashtag size={`22px`} w={`22px`} />}
             {activeUserId && <At size={`22px`} w={`22px`} h={`22px`} />}
             <Heading>
-              {!channels?.loading &&
-                (activeChannelId ||
-                  activeUser?.user?.alternateName ||
-                  activeUserId ||
-                  "global chat")}
+              {(!channels?.loading && activeChannelId) ||
+                activeUser?.user?.alternateName ||
+                activeUserId ||
+                "global chat"}
             </Heading>
           </List>
         </div>

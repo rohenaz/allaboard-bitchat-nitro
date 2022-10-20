@@ -56,6 +56,7 @@ exports.login = functions.https.onRequest(async (req, res) => {
 
   res.send({ ALIAS });
 });
+
 exports.hcDecrypt = functions.https.onRequest(async (req, res) => {
   await cors(req, res);
 
@@ -77,13 +78,7 @@ exports.hcDecrypt = functions.https.onRequest(async (req, res) => {
     .decrypt(Buffer.from(req.body.encryptedData, "base64"))
     .toString();
 
-  return res.status(200).send({ identity: JSON.parse(identityDec), idKey });
-
-  // import ECIES from 'bsv/ecies';
-
-  // ECIES().privateKey(privateKey).encrypt()
-
-  // return res.status(200).send({});
+  return res.status(200).send(JSON.parse(identityDec));
 });
 
 exports.bapLoadID = functions.https.onRequest(async (req, res) => {
@@ -229,17 +224,19 @@ exports.hcSendMessage = functions.https.onRequest(async (req, res) => {
   let hexArray = req.body.hexArray;
   let authToken = req.body.authToken;
   const account = handCashConnect.getAccountFromAuthToken(authToken);
+  const description = (
+    req.body.description ||
+    `Message ${
+      req.body.channelId
+        ? "in #" + req.body.channelId
+        : req.body.userId
+        ? "to @" + req.body.userId
+        : "global chat"
+    }`
+  ).slice(0, 25);
 
   const payment = {
-    description:
-      req.body.description ||
-      `Message ${
-        req.body.channelId
-          ? "in #" + req.body.channelId
-          : req.body.userId
-          ? "to @" + req.body.userId
-          : "global chat"
-      }`,
+    description,
     appAction: "data",
     attachment: { format: "hexArray", value: hexArray },
   };
@@ -258,7 +255,7 @@ exports.hcSendMessage = functions.https.onRequest(async (req, res) => {
     functions.logger.info("Payment complete:", { paymentResult });
     return res.send({ paymentResult });
   } catch (e) {
-    return res.status(500).send(e);
+    return res.status(e.httpStatusCode || 500).send(e);
   }
 });
 

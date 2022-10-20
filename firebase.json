@@ -31,23 +31,22 @@
         "source": "/hcdecrypt",
         "function": "hcDecrypt"
       },
-    },
-    {
-      "source": "/baploadid",
-      "function": "bapLoadID"
-    },
-    {
-      "source": "**",
-      "destination": "/index.html"
-    }
-  ]
-},
-"functions": {
-  "ignore": [
-    "node_modules",
-    ".git",
-    "firebase-debug.log",
-    "firebase-debug.*.log"
-  ]
-}
+      {
+        "source": "/baploadid",
+        "function": "bapLoadID"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "functions": {
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
+  }
 }

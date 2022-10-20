@@ -3,6 +3,8 @@ import React from "react";
 import { FaTerminal } from "react-icons/fa";
 import { GiUnicorn } from "react-icons/gi";
 import { HiPlus } from "react-icons/hi";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import styled, { css } from "styled-components";
 
 import { baseIcon, roundedBackground } from "../../design/mixins";
@@ -117,11 +119,22 @@ const Container = styled.div`
 `;
 
 const ServerList = () => {
+  const navigate = useNavigate();
+  const session = useSelector((state) => state.session);
+
   return (
     <Container>
       <ListItem>
         <ArrowTooltip title="Bitchat Nitro" placement="left">
-          <ServerIcon isActive isDiscord>
+          <ServerIcon
+            isActive
+            isDiscord
+            onClick={() => {
+              if (session?.user?.bapId) {
+                navigate(`/@/${session.user.bapId}`);
+              }
+            }}
+          >
             <NitroIcon style={{ padding: ".5rem" }} />
           </ServerIcon>
 

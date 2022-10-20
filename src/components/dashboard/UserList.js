@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FaPlus, FaUserFriends } from "react-icons/fa";
-
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RDLink } from "react-router-dom";
 import styled from "styled-components";
@@ -13,8 +12,7 @@ import { toggleSidebar } from "../../reducers/sidebarReducer";
 import Avatar from "./Avatar";
 import List from "./List";
 import ListItem from "./ListItem";
-
-const { BAP } = require("bitcoin-bap");
+import DirectMessageModal from "./modals/DirectMessageModal";
 
 const Link = styled(RDLink)`
   &:hover {
@@ -74,7 +72,7 @@ const Username = styled.div`
   font-size: 14px;
 `;
 
-const UserList = () => {
+const UserList = ({ activeUserId }) => {
   const { decIdentity } = useBap();
 
   const dispatch = useDispatch();
@@ -93,10 +91,10 @@ const UserList = () => {
 
   // const user = useSelector((state) => state.session.user);
   const memberList = useSelector((state) => state.memberList);
-  const activeUserId = useSelector((state) => state.memberList.active);
+  const session = useSelector((state) => state.session);
   const isInDesktop = useWindowWidth() > 768;
   const messages = useSelector((state) => state.chat.messages);
-
+  const [showDirectMessageModal, setShowDirectMessageModal] = useState();
   const hasMessages = messages.allIds.length > 0;
   const [hoveringUser, setHoveringUser] = useState();
 
@@ -155,6 +153,10 @@ const UserList = () => {
     [hoveringUser, messages, isInDesktop, activeUserId, memberList.allIds]
   );
 
+  const clickDm = useCallback(() => {
+    setShowDirectMessageModal(true);
+  }, [showDirectMessageModal]);
+
   return (
     <Container className="disable-select">
       <Header>
@@ -202,6 +204,7 @@ const UserList = () => {
               marginTop: `1rem`,
               marginBottom: ".5rem",
             }}
+            onClick={clickDm}
           >
             <ListItem
               text={`DIRECT MESSAGES`}
@@ -228,11 +231,17 @@ const UserList = () => {
           // bgColor={user.avatarColor}
           bgcolor={"#000"}
           status="online"
-          paymail={paymail || profile?.paymail}
+          paymail={session?.user?.paymail || paymail || profile?.paymail}
         />
         {/* <Username>{user.username}</Username> */}
-        <Username>{paymail || profile?.paymail}</Username>
+        <Username>
+          {session?.user?.alternateName || paymail || profile?.paymail}
+        </Username>
       </Footer>
+      <DirectMessageModal
+        open={showDirectMessageModal}
+        onClose={() => setShowDirectMessageModal(false)}
+      />
     </Container>
   );
 };

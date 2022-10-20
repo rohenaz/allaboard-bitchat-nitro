@@ -53,6 +53,33 @@ const memberListSlice = createSlice({
   name: "memberList",
   initialState,
   reducers: {
+    receiveNewFriend(state, action) {
+      const friend = action.payload;
+      const requester = friend.AIP.bapId;
+      const recipient = friend.MAP.bapID;
+      // If logged in user is the recipient
+      if (recipient === action.payload.bapId) {
+        // build my pending list
+        state.friendRequests.incoming.allIds.push(requester);
+
+        state.friendRequests.incoming.byId[requester] = friend;
+      } else if (requester === action.payload.bapId) {
+        state.friendRequests.outgoing.allIds.push(recipient);
+
+        state.friendRequests.outgoing.byId[recipient] = friend;
+      }
+
+      // if we have a friend thing from both recipient and me
+      if (
+        (state.friendRequests.outgoing.allIds.includes(requester) &&
+          state.friendRequests.incoming.allIds.includes(recipient)) ||
+        (state.friendRequests.incoming.allIds.includes(requester) &&
+          state.friendRequests.outgoing.allIds.includes(recipient))
+      ) {
+        state.byId[recipient].isFriend = true;
+        console.log("true friend");
+      }
+    },
     setActiveUser(state, action) {
       state.active = action.payload;
     },
@@ -70,7 +97,7 @@ const memberListSlice = createSlice({
       })
       .addCase(loadUsers.fulfilled, (state, action) => {
         state.loading = false;
-
+        console.log("load users fulfilled");
         action.payload.c.forEach((user) => {
           if (!state.allIds.includes(user._id)) {
             state.byId[user._id] = user;
@@ -79,7 +106,7 @@ const memberListSlice = createSlice({
         });
       })
       .addCase(loadFriends.pending, (state, action) => {
-        state.loading = true;
+        state.friendRequests.loading = true;
       })
       .addCase(loadFriends.fulfilled, (state, action) => {
         // console.log("load friends fullfiled");
@@ -143,7 +170,11 @@ const memberListSlice = createSlice({
   },
 });
 
-export const { updateOnlineUsers, toggleMemberList, setActiveUser } =
-  memberListSlice.actions;
+export const {
+  receiveNewFriend,
+  updateOnlineUsers,
+  toggleMemberList,
+  setActiveUser,
+} = memberListSlice.actions;
 
 export default memberListSlice.reducer;

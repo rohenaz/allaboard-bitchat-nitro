@@ -3,10 +3,7 @@ import { loadFriends } from "../reducers/memberListReducer";
 
 export const login = createAsyncThunk(
   "session/login",
-  async (
-    { bapId, activeChannelId, activeUserId },
-    { dispatch, rejectWithValue }
-  ) => {
+  async ({ bapId }, { dispatch, rejectWithValue }) => {
     try {
       // const response = await userAPI.login(userInfo);
       // console.log("login", bapId);
