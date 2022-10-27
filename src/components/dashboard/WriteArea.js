@@ -35,16 +35,17 @@ const TypingStatus = styled.span`
 
 const WriteArea = () => {
   // const user = useSelector((state) => state.session.user);
-  const { paymail } = useRelay();
-  const { decryptStatus, profile, signStatus } = useHandcash();
+  const { paymail, ready } = useRelay();
+  const { authToken, decryptStatus, profile, signStatus } = useHandcash();
   const { sendMessage, postStatus } = useBitcoin();
   const params = useParams();
-  const activeChannelId = params.channel;
-  const activeUserId = params.user;
 
   const { decIdentity } = useBap();
   const activeUser = useActiveUser();
 
+  const friendRequests = useSelector(
+    (state) => state.memberList.friendRequests
+  );
   const loadingMembers = useSelector((state) => state.memberList.loading);
   const loadingPins = useSelector((state) => state.channels.pins.loading);
   const loadingChannels = useSelector((state) => state.channels.loading);
@@ -55,13 +56,31 @@ const WriteArea = () => {
   const dispatch = useDispatch();
   const session = useSelector((state) => state.session);
 
+  const activeChannelId = useMemo(() => {
+    return params.channel;
+  }, [params]);
+
+  const activeUserId = useMemo(() => {
+    return params.user;
+  }, [params]);
+
   const channelName =
     activeChannelId ||
     activeUserId ||
     last(window.location.pathname.split("/"));
 
+  const guest = useMemo(() => {
+    return !authToken && !paymail;
+  }, [authToken, paymail]);
+
   const handleSubmit = useCallback(
     async (event) => {
+      if (!authToken && !ready) {
+        // TODO: Create
+        console.log("Cannot post. Relay not loaded and no Handcash auth");
+        return;
+      }
+
       event.preventDefault();
       const content = event.target.msg_content.value;
 
@@ -86,8 +105,8 @@ const WriteArea = () => {
                 type: "message",
                 paymail: "system@bitchatnitro.com",
               },
-              timestamp: moment.unix(),
-              blk: { t: moment.unix() },
+              timestamp: moment().unix(),
+              blk: { t: moment().unix() },
               tx: { h: "error" },
               _id: "error",
             })
@@ -95,7 +114,15 @@ const WriteArea = () => {
         }
       }
     },
-    [decIdentity, activeUserId, activeChannelId, paymail, profile]
+    [
+      decIdentity,
+      activeUserId,
+      activeChannelId,
+      paymail,
+      profile,
+      authToken,
+      ready,
+    ]
   );
 
   // const enablePublicComms = useCallback(async () => {
@@ -156,7 +183,7 @@ const WriteArea = () => {
     } else if (event.keyCode === vKey && event.keycode === ctrlKey) {
       console.log("hey hey heeeyyyyy");
     } else {
-      console.log("other");
+      // console.log("other");
       // dispatch(typing(paymail));
       // clearTimeout(timeout);
       // timeout = setTimeout(() => dispatch(stopTyping(paymail)), 2000);
@@ -181,9 +208,9 @@ const WriteArea = () => {
               ? `DMs Disabled`
               : activeUser && loadingMembers
               ? `Loading members...`
-              : loadingPins
+              : !activeUser && loadingPins
               ? `Loading pinned channels...`
-              : loadingChannels
+              : !activeUser && loadingChannels
               ? `Loading channels...`
               : activeUser && loadingFriendRequests
               ? `Loading friends`
@@ -207,10 +234,14 @@ const WriteArea = () => {
           onKeyDown={handleKeyDown}
           onFocus={(e) => console.log(e.target)}
           disabled={
-            !self &&
-            activeUser &&
-            !activeUser.isFriend &&
-            !decIdentity?.result?.commsPublicKey
+            guest ||
+            (!self &&
+              activeUser &&
+              !(
+                friendRequests.incoming.allIds.includes(activeUser?._id) &&
+                friendRequests.outgoing.allIds.includes(activeUser?._id)
+              ) &&
+              !decIdentity?.result?.commsPublicKey)
           }
         />
         <InvisibleSubmitButton />

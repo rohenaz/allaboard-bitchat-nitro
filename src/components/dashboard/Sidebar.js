@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import styled from "styled-components";
@@ -15,8 +15,14 @@ const Container = styled.div`
 
 const Sidebar = () => {
   const params = useParams();
-  const activeChannelId = params.channel;
-  const activeUserId = params.user;
+
+  const activeChannelId = useMemo(() => {
+    return params.channel;
+  }, [params]);
+
+  const activeUserId = useMemo(() => {
+    return params.user;
+  }, [params]);
 
   return (
     <Container>

@@ -89,28 +89,46 @@ const chatSlice = createSlice({
       }
     },
     receiveNewMessage(state, action) {
+      // TODO: If channel is set, update channel updateAt time
+
       const message = action.payload;
-      if (message.MAP.paymail && !validateEmail(message.MAP.paymail)) {
+      const myBapId = message.myBapId;
+      if (
+        (!message.MAP.context || message.MAP.context === "channel") &&
+        message.MAP.paymail &&
+        !validateEmail(message.MAP.paymail)
+      ) {
+        console.log("invalid message", message);
         return;
       }
 
-      // TODO: Figure out how to get user bap key here and dont bother to receive encrypted messages not addressed to me
-      // if (message.MAP.encrypted === "true" && message.MAP.bapID !== myBapId) {
-      //   return;
-      // }
+      console.log("valid message", message);
       state.messages.byId[message.tx.h] = message;
       state.messages.allIds.push(message.tx.h);
 
       if (message.MAP.messageID) {
         state.messages.allMessageIds.push(message.MAP.messageID);
       }
+
       // play audio if channel matches or user matches
       let pathId = last(window.location.pathname.split("/")) || null;
-      if (
-        (!pathId && !message.MAP?.channel && !message.AIP?.bapId) ||
-        pathId?.toLowerCase() === message.MAP?.channel?.toLowerCase() ||
-        pathId?.toLowerCase() === message.AIP?.bapId?.toLowerCase()
+
+      if (message.AIP) {
+        // If DM
+        const fromThem = pathId === message.AIP.bapId;
+        const toMe = message.MAP.bapID === myBapId;
+        const fromMe = myBapId === message.AIP.bapId;
+        const toThem = message.MAP.bapID === pathId;
+
+        if ((fromThem && toMe) || (fromMe && toThem)) {
+          audio.play();
+          return;
+        }
+      } else if (
+        (!pathId && !message.MAP?.channel) ||
+        pathId?.toLowerCase() === message.MAP?.channel?.toLowerCase()
       ) {
+        // IF CHANNEL
         audio.play();
       }
     },

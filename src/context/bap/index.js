@@ -111,7 +111,7 @@ const BapProvider = (props) => {
           // console.log({ encryptedData });
           setIdentity(encryptedData);
         } else {
-          const encryptedData = await relayEncrypt(JSON.parse(text));
+          const { encryptedData } = await relayEncrypt(JSON.parse(text));
           setIdentity(encryptedData);
         }
         setLoadIdentityStatus(FetchStatus.Success);

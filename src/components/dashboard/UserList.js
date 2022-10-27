@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FaPlus, FaUserFriends } from "react-icons/fa";
+import { MdArrowBack } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RDLink } from "react-router-dom";
 import styled from "styled-components";
@@ -44,6 +45,8 @@ const Heading = styled.h2`
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  display: flex;
+  align-items: center;
 `;
 
 const Content = styled.div`
@@ -95,7 +98,6 @@ const UserList = ({ activeUserId }) => {
   const isInDesktop = useWindowWidth() > 768;
   const messages = useSelector((state) => state.chat.messages);
   const [showDirectMessageModal, setShowDirectMessageModal] = useState();
-  const hasMessages = messages.allIds.length > 0;
   const [hoveringUser, setHoveringUser] = useState();
 
   const mouseOver = useCallback(
@@ -161,6 +163,7 @@ const UserList = ({ activeUserId }) => {
     <Container className="disable-select">
       <Header>
         <Heading>
+          <MdArrowBack style={{ marginRight: ".5rem" }} />
           <Link to={`/channels`}>Bitchat [Nitro]</Link>
         </Heading>
       </Header>

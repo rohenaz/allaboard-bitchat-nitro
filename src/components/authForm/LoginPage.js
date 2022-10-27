@@ -150,6 +150,10 @@ const LoginPage = () => {
             Register
           </a>
         </div>
+        <div>
+          {" "}
+          <a href={`/channels`}>Continue as guest (read only)</a>
+        </div>
       </Form>
     </Layout>
   );

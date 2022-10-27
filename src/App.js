@@ -18,14 +18,7 @@ const App = () => {
         <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route
-          path="/channels"
-          element={
-            <RequireAuth>
-              <Dashboard />
-            </RequireAuth>
-          }
-        />
+        <Route path="/channels" element={<Dashboard />} />
         <Route
           path="/friends"
           element={
@@ -34,14 +27,7 @@ const App = () => {
             </RequireAuth>
           }
         />
-        <Route
-          path="/channels/:channel"
-          element={
-            <RequireAuth>
-              <Dashboard />
-            </RequireAuth>
-          }
-        />
+        <Route path="/channels/:channel" element={<Dashboard />} />
         <Route
           path="/@/:user"
           element={

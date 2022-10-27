@@ -38,6 +38,7 @@ export const usePopover = () => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event, user) => {
+    console.log({ user });
     setUser(user);
     setShowPopover(true);
     setAnchorEl(event.currentTarget);

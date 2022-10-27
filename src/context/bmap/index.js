@@ -12,7 +12,12 @@ const BmapProvider = (props) => {
         },
         body: JSON.stringify({ rawTx }),
       })
-        .then(resolve)
+        .then((tx) =>
+          tx
+            .json()
+            .then(resolve)
+            .catch((e) => reject(e))
+        )
         .catch((e) => reject(e));
     });
   }, []);

@@ -4,7 +4,7 @@ import Popover from "@mui/material/Popover";
 import styled from "styled-components";
 
 import moment from "moment";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useHandcash } from "../../context/handcash";
 import { receiveNewMessage } from "../../reducers/chatReducer";
@@ -93,9 +93,17 @@ const Input = styled.input`
 `;
 
 const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
+  const userId = user.AIP?.bapId || user._id;
   const navigate = useNavigate();
   const { authToken } = useHandcash();
   const dispatch = useDispatch();
+  const incomingFriendRequests = useSelector((state) => {
+    return state.memberList.friendRequests.incoming;
+  });
+  const outgoingFriendRequests = useSelector((state) => {
+    return state.memberList.friendRequests.outgoing;
+  });
+  const session = useSelector((state) => state.session);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -119,8 +127,8 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
               type: "message",
               paymail: "system@bitchatnitro.com",
             },
-            timestamp: moment.unix(),
-            blk: { t: moment.unix() },
+            timestamp: moment().unix(),
+            blk: { t: moment().unix() },
             tx: { h: "error" },
             _id: "error",
           })
@@ -129,8 +137,8 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
       }
       // console.log({ user });
       // TODO: sendMessage;
-      if (user.AIP) {
-        navigate(`/@/${user.AIP.bapId}`);
+      if (userId) {
+        navigate(`/@/${userId}`);
       }
     }
   };
@@ -149,10 +157,11 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
           //bgColor={user.avatarColor}
           bgcolor={`#000`}
           paymail={user.MAP?.paymail}
+          icon={user.user?.logo}
         />
       </AvatarWrapper>
       <Header>
-        <Username>{user.MAP?.paymail}</Username>
+        <Username>{user.user?.alternateName || user.MAP?.paymail}</Username>
       </Header>
       <Content>
         <Divider></Divider>
@@ -160,23 +169,30 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
 
       <Footer>
         <Note>
-          {self
+          {/* TODO: User is actually a message here so it doesnt have isFriend */}
+          {/* {self
             ? `Yourself`
-            : user.AIP
-            ? user.AIP?.bapId
-              ? user.isFriend
-                ? `You are friends`
-                : `You are not friends`
+            : user.AIP &&
+             user.AIP?.bapId ?
+               
+              // ? (incomingFriendRequests.byId[user.AIP?.bapId] &&
+              //     outgoingFriendRequests[session.user?.bapId]) ||
+              //   (incomingFriendRequests.byId[session.user?.bapId] &&
+              //     outgoingFriendRequests[user.AIP?.bapId])
+              //   ? `You are friends`
+              //   : `You are not friends`
               : `Unknown user`
-            : `Anonymous user`}
+            : `Anonymous user`} */}
         </Note>
 
-        {user.AIP?.bapId && (
+        {userId && (
           <form onSubmit={handleSubmit}>
             <Input
               type="text"
               name="content"
-              placeholder={`message @${user.MAP?.paymail}`}
+              placeholder={`message @${
+                user.user?.alternateName || user.MAP?.paymail
+              } ${(user._id || user.AIP?.bapId || "").slice(0, 8)}`}
             />
             <InvisibleSubmitButton />
           </form>

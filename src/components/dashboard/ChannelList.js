@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { head } from "lodash";
+import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RDLink } from "react-router-dom";
 import styled from "styled-components";
+import { useBap } from "../../context/bap";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
@@ -73,6 +75,9 @@ const Username = styled.div`
   color: var(--header-primary);
   font-weight: 600;
   font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
 `;
 
 const ChannelList = ({ activeChannelId }) => {
@@ -89,10 +94,14 @@ const ChannelList = ({ activeChannelId }) => {
   const isInDesktop = useWindowWidth() > 768;
   const [unpinsSet, setUnpinsSet] = useState(false);
   const messages = useSelector((state) => state.chat.messages);
+  const user = useSelector((state) => state.session.user);
   const { sendPin, pinStatus } = useBitcoin();
   const [pendingPin, setPendingPin] = useState(false);
-  const hasMessages = messages.allIds.length > 0;
   const [hoveringChannel, setHoveringChannel] = useState();
+  const { decIdentity } = useBap();
+
+  // TODO: This should be per channel, and using localStorage
+  const lastMessageSeen = useState(moment().unix());
 
   const mouseOver = useCallback(
     (id) => {
@@ -168,14 +177,15 @@ const ChannelList = ({ activeChannelId }) => {
             onMouseEnter={(e) => mouseOver(e.target.id)}
             onMouseLeave={(e) => mouseOut(e.target.id)}
             hasActivity={
-              (!id &&
-                messages?.allIds?.some(
-                  (cid) =>
-                    messages.byId[cid]?.MAP && !messages.byId[cid]?.MAP.channel
-                )) ||
-              messages?.allIds?.some(
-                (cid) => messages.byId[cid]?.MAP.channel === id
-              )
+              channels.byId[id].last_message_time > lastMessageSeen
+              // (!id &&
+              //   messages?.allIds?.some(
+              //     (cid) =>
+              //       messages.byId[cid]?.MAP && !messages.byId[cid]?.MAP.channel
+              //   )) ||
+              // messages?.allIds?.some(
+              //   (cid) => messages.byId[cid]?.MAP.channel === id
+              // )
             }
             isActive={id === activeChannelId || (!id && !activeChannelId)}
             showPin={
@@ -188,8 +198,19 @@ const ChannelList = ({ activeChannelId }) => {
         </Link>
       );
     },
-    [hoveringChannel, messages, isInDesktop, activeChannelId, channels]
+    [
+      lastMessageSeen,
+      hoveringChannel,
+      messages,
+      isInDesktop,
+      activeChannelId,
+      channels,
+    ]
   );
+
+  useEffect(() => {
+    console.log({ user });
+  }, [user]);
 
   return (
     <Container className="disable-select">
@@ -210,6 +231,9 @@ const ChannelList = ({ activeChannelId }) => {
           {!channels.loading &&
             channels.allIds
               .filter((id) => !channels.pins.byChannel[id])
+              .sort((a, b) =>
+                a.last_message_time > b.last_message_time ? -1 : 1
+              )
               .map(renderChannel)}
         </List>
       </Content>
@@ -223,7 +247,12 @@ const ChannelList = ({ activeChannelId }) => {
           paymail={paymail || profile?.paymail}
         />
         {/* <Username>{user.username}</Username> */}
-        <Username>{paymail || profile?.paymail}</Username>
+        <Username>
+          <div>{user?.alternativeName || paymail || profile?.paymail}</div>
+          <div style={{ fontSize: ".75rem", color: "#777" }}>
+            {decIdentity?.bapId?.slice(0, 8)}
+          </div>
+        </Username>
       </Footer>
       <PinChannelModal
         open={!!pendingPin}

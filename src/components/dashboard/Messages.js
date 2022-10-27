@@ -19,7 +19,7 @@ import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import {
   decrypt,
-  friendPublicKeyFromSeedString,
+  friendPrivateKeyFromSeedString,
   useBitcoin,
 } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
@@ -30,7 +30,6 @@ import {
   loadReactions,
 } from "../../reducers/chatReducer";
 import { FetchStatus } from "../../utils/common";
-import { getSigningPathFromHex } from "../../utils/sign";
 import "../common/slider.less";
 import BlockpostIcon from "../icons/BlockpostIcon";
 import NitroIcon from "../icons/NitroIcon";
@@ -91,8 +90,7 @@ const ContainerBottom = styled.div``;
 
 const Messages = () => {
   const params = useParams();
-  const activeChannelId = params.channel;
-  const activeUserId = params.user;
+
   const dispatch = useDispatch();
   const { decIdentity } = useBap();
   const { friendRequestStatus, sendFriendRequest } = useBitcoin();
@@ -101,7 +99,6 @@ const Messages = () => {
   const messages = useSelector((state) => state.chat.messages);
   const pins = useSelector((state) => state.channels.pins);
   const users = useSelector((state) => state.memberList);
-  const hasMessages = messages.allIds.length > 0;
   const reactions = useSelector((state) => state.chat.reactions);
   const hasReactions =
     (reactions.allTxIds || []).concat(reactions.allMessageIds)?.length > 0;
@@ -117,6 +114,21 @@ const Messages = () => {
     ? window.location.pathname.slice(0, -1)
     : window.location.pathname;
   let pathId = last(pathName.split("/")) || null;
+
+  // const activeChannelId = params.channel;
+  // const activeUserId = params.user;
+
+  const hasMessages = useMemo(() => {
+    return messages.allIds.length > 0;
+  }, [messages]);
+
+  const activeChannelId = useMemo(() => {
+    return params.channel;
+  }, [params]);
+
+  const activeUserId = useMemo(() => {
+    return params.user;
+  }, [params]);
 
   useEffect(() => {
     if (messages.loading === false && containerBottomRef.current) {
@@ -171,6 +183,10 @@ const Messages = () => {
 
   const activeUser = useMemo(() => users?.byId[users.active], [users]);
 
+  const self = useMemo(() => {
+    return activeUserId && session.user?.bapId === activeUserId;
+  }, [session, activeUserId]);
+
   const messagesSorted = useMemo(() => {
     // console.log({ loading: friendRequests.loading, decIdentity });
     if (hasMessages) {
@@ -184,6 +200,7 @@ const Messages = () => {
           m.push(messages.byId[txid]);
         }
       }
+      console.log({ m });
       return m
         .map((message) => {
           if (message.MAP.encrypted === "true") {
@@ -191,77 +208,76 @@ const Messages = () => {
             // private key is my key from
 
             // If this is self, get the nodes public key
-            const self =
-              activeUser &&
-              message.MAP?.bapID &&
-              message.MAP?.bapID === activeUser?._id;
 
-            let publicKey;
-            try {
-              if (self) {
-                publicKey = friendPublicKeyFromSeedString(
-                  "notes",
-                  decIdentity.xprv
-                );
-              } else {
-                if (friendRequests.incoming.byId[message.AIP.bapId]) {
-                  publicKey = new bsv.PublicKey(
-                    friendRequests.incoming.byId[message.AIP.bapId]?.publicKey
-                  );
-                } else {
-                  // console.log("no self, no friends", friendRequests, message);
-                  return message;
-                }
-              }
-            } catch (e) {
-              console.error(e);
-              return message;
-            }
+            const messageFromMe = message.AIP?.bapId === session.user?.bapId;
+            const messageToMe = message.MAP?.bapID === session.user?.bapId;
+            const messageSelf = messageToMe && messageFromMe;
 
-            // get the user's public key
-            // const publicKey =
-            //   message.AIP.bapId === activeUser?._id
-            //     ? friendPublicKeyFromSeedString("notes", decIdentity.xprv)
-            //     : friendRequests.incoming.byId[message.AIP.bapId] &&
-            //       new bsv.PublicKey(
-            //         friendRequests.incoming.byId[message.AIP.bapId]?.publicKey
-            //       );
-            if (!publicKey) {
-              console.log(
-                "fail",
-                friendRequests.incoming.byId,
-                message.AIP.bapId
+            const friendPrivateKey = friendPrivateKeyFromSeedString(
+              messageSelf
+                ? "notes"
+                : messageToMe
+                ? message.AIP?.bapId
+                : message.MAP?.bapID,
+              decIdentity.xprv
+            );
+
+            // let hdPrivateFriendKey;
+            // try {
+            //   const hdPk = bsv.HDPrivateKey(decIdentity.xprv);
+
+            //   console.log({ self, messageSelf });
+            //   const seedHex = bsv.crypto.Hash.sha256(
+            //     Buffer.from(self ? "notes" : message.MAP.bapID)
+            //   ).toString("hex");
+            //   const signingPath = getSigningPathFromHex(seedHex);
+
+            //   hdPrivateFriendKey = hdPk.deriveChild(signingPath);
+            //   // console.log("using notes seed?", hdPrivateFriendKey);
+            // } catch (e) {
+            //   console.error(e);
+            //   return message;
+            // }
+
+            // get the friend's public key
+            // TODO: Handle self case
+            const friendPubKey = messageToMe
+              ? friendRequests.incoming.byId[message.AIP.bapId]?.MAP.publicKey
+              : friendRequests.incoming.byId[message.MAP.bapID]?.MAP.publicKey;
+
+            if (!messageSelf && (!friendPrivateKey || !friendPubKey)) {
+              console.error(
+                "failed to make key",
+                friendPrivateKey,
+                friendPubKey
               );
-            }
-
-            let hdPrivateFriendKey;
-            try {
-              const hdPk = bsv.HDPrivateKey(decIdentity.xprv);
-
-              const seedHex = bsv.crypto.Hash.sha256(
-                Buffer.from(
-                  message.AIP.bapId === activeUser?._id
-                    ? "notes"
-                    : message.AIP.bapId
-                )
-              ).toString("hex");
-              const signingPath = getSigningPathFromHex(seedHex);
-
-              hdPrivateFriendKey = hdPk.deriveChild(signingPath);
-              // console.log("using notes seed?", hdPrivateFriendKey);
-            } catch (e) {
-              console.error(e);
               return message;
             }
 
-            if (!hdPrivateFriendKey) {
-              console.error("failed to make key");
-              return message;
-            }
+            console.log({
+              friendPubKey,
+              messageSelf,
+              messageToMe,
+              message,
+              session,
+            });
             try {
               const decryptedContent = decrypt(
                 message.B.content,
-                hdPrivateFriendKey.privateKey
+                friendPrivateKey,
+                messageSelf
+                  ? undefined
+                  : messageToMe
+                  ? new bsv.PublicKey(
+                      friendRequests.incoming.byId[
+                        message.AIP.bapId
+                      ]?.MAP.publicKey
+                    )
+                  : new bsv.PublicKey(
+                      friendRequests.incoming.byId[
+                        message.MAP.bapID
+                      ]?.MAP.publicKey
+                    )
               );
               // console.log("decrypted", decryptedContent);
               return {
@@ -273,7 +289,14 @@ const Messages = () => {
                 },
               };
             } catch (e) {
-              console.error("failed to decrypt", message.B, e);
+              console.error(
+                "failed to decrypt",
+                message.MAP,
+                message.AIP,
+                friendPubKey,
+                e
+              );
+
               return message;
             }
           }
@@ -285,25 +308,24 @@ const Messages = () => {
     }
     return [];
   }, [
+    self,
     decIdentity,
     friendRequests,
+    activeUserId,
     activeUser,
     hasMessages,
-    messages,
+    messages.allIds,
     activeChannelId,
     users,
+    session,
   ]);
 
   useEffect(() => {
     if (messages) {
-      dispatch(loadReactions(messages.allIds));
+      dispatch(loadReactions(messages.allTxIds));
       dispatch(loadDiscordReactions(messages.allMessageIds));
     }
-  }, [messages.length, activeUser, activeChannelId]);
-
-  const self = useMemo(() => {
-    return activeUser && session.user?.bapId === activeUser?._id;
-  }, [session, activeUser]);
+  }, [messages, activeUser, activeChannelId]);
 
   // hasMessages &&
   //   messages.sort((a, b) => {
@@ -373,9 +395,11 @@ const Messages = () => {
   }, [self, activeChannelId, activeUser]);
 
   const addFriend = useCallback(() => {
-    if (activeUser) {
+    if (activeUser && decIdentity.xprv) {
       // console.log("add friend", activeUser);
       sendFriendRequest(activeUser._id, decIdentity.xprv);
+    } else {
+      console.error("no goods!");
     }
   }, [decIdentity, sendFriendRequest, activeUser]);
 
@@ -400,13 +424,17 @@ const Messages = () => {
             // bgColor={user.avatarColor}
             bgcolor={"#000"}
             // status="online"
-            icon={activeUser.user.logo}
+            icon={activeUser.user?.logo}
           />
         </>
       );
     }
     return null;
   }, [activeChannelId, activeUser]);
+
+  // useEffect(() => {
+  //   console.log({ session, friendRequests, activeUser });
+  // }, [session, friendRequests, activeUser]);
 
   if (activeUser && !decIdentity) {
     return (
@@ -441,8 +469,10 @@ const Messages = () => {
     activeUser &&
     !friendRequests.loading &&
     friendRequests.incoming.allIds.includes(activeUser._id) &&
-    !activeUser.isFriend
+    !friendRequests.outgoing.allIds.includes(activeUser._id)
+    // !activeUser.isFriend
   ) {
+    console.log({ activeUser, friendRequests });
     return (
       <Wrapper className="scrollable">
         <Container>
@@ -470,7 +500,7 @@ const Messages = () => {
     activeUser &&
     friendRequests &&
     friendRequests.outgoing.allIds.includes(activeUser._id) &&
-    !activeUser.isFriend
+    !friendRequests.incoming.allIds.includes(activeUser._id)
   ) {
     return (
       <Wrapper className="scrollable">
@@ -492,7 +522,10 @@ const Messages = () => {
     !self &&
     activeUser &&
     !decIdentity?.result?.commsPublicKey &&
-    !activeUser?.isFriend &&
+    !(
+      friendRequests.incoming.allIds.includes(activeUser._id) &&
+      friendRequests.outgoing.allIds.includes(activeUser._id)
+    ) &&
     !friendRequests.loading
   ) {
     return (
@@ -527,7 +560,10 @@ const Messages = () => {
     activeUser &&
     !self &&
     !activeUser?.user?.commsPublicKey &&
-    !activeUser?.isFriend &&
+    !(
+      friendRequests.incoming.allIds.includes(activeUser._id) &&
+      friendRequests.outgoing.allIds.includes(activeUser._id)
+    ) &&
     !friendRequests.loading
   ) {
     return (
@@ -557,7 +593,12 @@ const Messages = () => {
 
           <PrimaryHeading>{heading}</PrimaryHeading>
           <SecondaryHeading>{subheading}</SecondaryHeading>
-          {activeUser && activeUser.isFriend && <div>FRIENDS</div>}
+          {activeUser &&
+            session &&
+            friendRequests.outgoing.allIds.includes(activeUser._id) &&
+            friendRequests.incoming.allIds.includes(activeUser._id) && (
+              <div>FRIENDS</div>
+            )}
           {decryptStatus !== FetchStatus.Loading &&
             activeChannelId &&
             !activeUser &&

@@ -53,12 +53,21 @@ const channelsSlice = createSlice({
   reducers: {
     receiveNewChannel(state, action) {
       const channel = action.payload;
-      if (!state.byId[channel.MAP.channel]) {
-        state.byId[channel.MAP.channel] = [];
+      if (!state.byId[channel.channel]) {
+        state.byId[channel.channell] = [];
       }
-      state.pins.byId[channel.MAP.channel].push(channel);
-      if (!state.allIds.includes(channel.MAP.channel)) {
-        state.allIds.push(channel.MAP.channel);
+
+      if (!state.allIds.includes(channel.channel)) {
+        state.byId[channel.channel] = channel;
+        state.allIds.push(channel.channel);
+      } else {
+        // existing channel - update it
+        // TODO: its less code to merge these the other way
+        let c = Object.assign(state.byId[channel.channel], {});
+        c.last_message_time = channel.last_message_time;
+        c.last_message = channel.last_message;
+        c.messages = c.messages + 1;
+        state.byId[channel.channel] = c;
       }
     },
     receiveNewPin(state, action) {
@@ -145,7 +154,11 @@ const channelsSlice = createSlice({
   },
 });
 
-export const { setActiveChannel, receiveNewPin, unpinChannel } =
-  channelsSlice.actions;
+export const {
+  setActiveChannel,
+  receiveNewChannel,
+  receiveNewPin,
+  unpinChannel,
+} = channelsSlice.actions;
 
 export default channelsSlice.reducer;

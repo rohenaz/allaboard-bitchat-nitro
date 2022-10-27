@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -125,12 +125,18 @@ const Dashboard = ({ isFriendsPage }) => {
   const isMemberListOpen = useSelector((state) => state.memberList.isOpen);
 
   const params = useParams();
-  const activeChannelId = params.channel;
-  const activeUserId = params.user;
 
   const dispatch = useDispatch();
   const session = useSelector((state) => state.session);
   const { decIdentity } = useBap();
+
+  const activeChannelId = useMemo(() => {
+    return params.channel;
+  }, [params]);
+
+  const activeUserId = useMemo(() => {
+    return params.user;
+  }, [params]);
 
   useEffect(() => {
     if (activeChannelId) {
@@ -163,7 +169,7 @@ const Dashboard = ({ isFriendsPage }) => {
   return (
     <Container $isMemberListOpen={isMemberListOpen}>
       <ResponsiveSidebar />
-      <Header />
+      <Header isFriendsPage={isFriendsPage} />
       {isFriendsPage ? <Friends /> : <ChatArea />}
       <ResponsiveMemberList />
       <ImportIDModal />

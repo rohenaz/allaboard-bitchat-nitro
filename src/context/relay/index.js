@@ -130,8 +130,8 @@ const RelayProvider = (props) => {
             //   publicKey: string; // pki
             //   paymail: string; // paymail you passed
             // }
-            console.log("encrypted data", resp);
-            resolve({ encryptedData: resp.data });
+            console.log("encrypted data response", resp);
+            resolve({ encryptedData: resp.value });
           })
           .catch((e) => {
             console.error(e);
@@ -169,7 +169,7 @@ const RelayProvider = (props) => {
 
             // remove the MAP prefix from the data
 
-            const d = resp.value.slice(MAP_PREFIX.length - 1);
+            const d = resp.value.slice(MAP_PREFIX.length);
             resolve(JSON.parse(d));
           })
           .catch((e) => {

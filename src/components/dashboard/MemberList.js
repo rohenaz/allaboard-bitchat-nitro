@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { usePopover } from "../../hooks";
+import { loadUsers } from "../../reducers/memberListReducer";
 import Avatar from "./Avatar";
 import List from "./List";
 import ListItem from "./ListItem";
@@ -32,7 +33,7 @@ const Heading = styled.h3`
 `;
 
 const MemberList = ({ isMobile }) => {
-  const users = useSelector((state) => state.memberList.onlineUsers);
+  const memberList = useSelector((state) => state.memberList);
   const [
     user,
     anchorEl,
@@ -42,28 +43,42 @@ const MemberList = ({ isMobile }) => {
     handleClickAway,
   ] = usePopover();
 
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if (!memberList.allIds.length) {
+      dispatch(loadUsers());
+    }
+  }, [dispatch]);
+
   return (
     <Container>
-      <Heading className="disable-select">online — {users.length}</Heading>
+      <Heading className="disable-select">
+        online — {memberList.allIds.length}
+      </Heading>
       <List gap="2px">
-        {users.map((user) => (
-          <ListItem
-            key={user.MAP.paymail}
-            icon={
-              <Avatar
-                size="21px"
-                w="32px"
-                // bgColor={user.avatarColor}
-                bgcolor={`#000`}
-                status="online"
-                paymail={user.MAP.paymail}
-              />
-            }
-            text={user.MAP.paymail}
-            style={{ gap: "12px", padding: "6px 8px" }}
-            onClick={(event) => handleClick(event, user)}
-          />
-        ))}
+        {memberList.allIds.map((userId) => {
+          const u = memberList.byId[userId];
+
+          return (
+            <ListItem
+              key={u._id}
+              icon={
+                <Avatar
+                  size="21px"
+                  w="32px"
+                  // bgColor={user.avatarColor}
+                  bgcolor={`#000`}
+                  status="online"
+                  paymail={u.user?.paymail}
+                  icon={u.user?.logo}
+                />
+              }
+              text={u.user?.alternateName}
+              style={{ gap: "12px", padding: "6px 8px" }}
+              onClick={(event) => handleClick(event, u)}
+            />
+          );
+        })}
       </List>
       <UserPopover
         open={showPopover}

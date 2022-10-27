@@ -1,13 +1,22 @@
-import React from "react";
+import React, { useMemo } from "react";
 
-import { FaBars, FaGithub, FaSignOutAlt } from "react-icons/fa";
+import {
+  FaBars,
+  FaGithub,
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaUserFriends,
+} from "react-icons/fa";
 import { ImProfile } from "react-icons/im";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { useHandcash } from "../../context/handcash";
+import { useRelay } from "../../context/relay";
 
 import { baseIcon, hideInDesktop, interactiveColor } from "../../design/mixins";
 import { useActiveUser } from "../../hooks";
+import { toggleMemberList } from "../../reducers/memberListReducer";
 import { toggleProfile } from "../../reducers/profileReducer";
 import { logout } from "../../reducers/sessionReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
@@ -31,6 +40,9 @@ const Heading = styled.h2`
   font-size: 16px;
   font-weight: 600;
   color: var(--header-primary);
+  text-overflow: elipses;
+  white-space: nowrap;
+  overflow: hidden;
 `;
 
 const IconWrapper = styled.button`
@@ -63,15 +75,27 @@ const IconButton = ({ children, href, ...delegated }) => {
   );
 };
 
-const Header = () => {
+const Header = ({ isFriendsPage }) => {
   const dispatch = useDispatch();
   const params = useParams();
-  const activeUserId = params.user;
-  const activeChannelId = params.channel;
   const isMemberListOpen = useSelector((state) => state.memberList.isOpen);
   const isProfileOpen = useSelector((state) => state.profile.isOpen);
   const channels = useSelector((state) => state.channels);
   const activeUser = useActiveUser();
+  const navigate = useNavigate();
+  const { paymail } = useRelay();
+  const { authToken } = useHandcash();
+  const activeChannelId = useMemo(() => {
+    return params.channel;
+  }, [params]);
+
+  const activeUserId = useMemo(() => {
+    return params.user;
+  }, [params]);
+
+  const guest = useMemo(() => {
+    return !authToken && !paymail;
+  }, [authToken, paymail]);
 
   return (
     <Container id="header" className="disable-select">
@@ -90,7 +114,9 @@ const Header = () => {
             {activeChannelId && <Hashtag size={`22px`} w={`22px`} />}
             {activeUserId && <At size={`22px`} w={`22px`} h={`22px`} />}
             <Heading>
-              {(!channels?.loading && activeChannelId) ||
+              {(isFriendsPage
+                ? "Friends"
+                : !channels?.loading && activeChannelId) ||
                 activeUser?.user?.alternateName ||
                 activeUserId ||
                 "global chat"}
@@ -107,7 +133,7 @@ const Header = () => {
             <FaGithub />
           </IconButton>
         </ArrowTooltip>
-        {/* <ArrowTooltip
+        <ArrowTooltip
           title={`${isMemberListOpen ? "Hide" : "Show"} Member list`}
         >
           <IconButton
@@ -116,7 +142,7 @@ const Header = () => {
           >
             <FaUserFriends />
           </IconButton>
-        </ArrowTooltip> */}
+        </ArrowTooltip>
         <ArrowTooltip title={`${isProfileOpen ? "Hide" : "Show"} Profile`}>
           <IconButton
             onClick={() => dispatch(toggleProfile())}
@@ -125,11 +151,20 @@ const Header = () => {
             <ImProfile />
           </IconButton>
         </ArrowTooltip>
-        <ArrowTooltip title="Logout">
-          <IconButton onClick={() => dispatch(logout())}>
-            <FaSignOutAlt />
-          </IconButton>
-        </ArrowTooltip>
+        {!guest && (
+          <ArrowTooltip title="Logout">
+            <IconButton onClick={() => dispatch(logout())}>
+              <FaSignOutAlt />
+            </IconButton>
+          </ArrowTooltip>
+        )}
+        {guest && (
+          <ArrowTooltip title="Login">
+            <IconButton onClick={() => navigate(`/login`)}>
+              <FaSignInAlt />
+            </IconButton>
+          </ArrowTooltip>
+        )}
       </List>
     </Container>
   );

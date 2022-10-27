@@ -36,7 +36,7 @@ export const loadFriends = createAsyncThunk(
   "memberList/loadFriends",
   async (_, { dispatch, rejectWithValue, getState }) => {
     const { session } = getState();
-    // console.log("bap id set in state", session.user.bapId);
+    console.log("bap id set in state", session.user.bapId);
     try {
       const response = await channelAPI.getFriends(session.user.bapId);
       // dispatch(loadPins());
@@ -76,7 +76,9 @@ const memberListSlice = createSlice({
         (state.friendRequests.incoming.allIds.includes(requester) &&
           state.friendRequests.outgoing.allIds.includes(recipient))
       ) {
-        state.byId[recipient].isFriend = true;
+        state.byId[
+          recipient === action.payload.bapId ? requester : recipient
+        ].isFriend = true;
         console.log("true friend");
       }
     },
@@ -112,6 +114,16 @@ const memberListSlice = createSlice({
         // console.log("load friends fullfiled");
         state.friendRequests.loading = false;
         action.payload.c.forEach((friend) => {
+          // exclude our original broken friend requests
+          if (
+            [
+              "bb83989697819428c0e8aadaf1bdff0a16bc14ab5e36310ff1e22b5bf835574c",
+              "95a4c088bd32c4547d64e7d1405ceae2143e3a45324a9f8c4eb6bba9ef53be98",
+              "7182af3be9c258068df78adc68ee7a628721a5e6aa0dda2a0e21dc160bf20bbe",
+            ].includes(friend.tx.h)
+          ) {
+            return;
+          }
           const requester = friend.AIP.bapId;
           const recipient = friend.MAP.bapID;
           // If logged in user is the recipient
@@ -142,7 +154,9 @@ const memberListSlice = createSlice({
             // (state.outgoingFriendRequests.includes(friend.recipient) &&
             //   state.outgoingFriendRequests.includes(friend.requester))
           ) {
-            state.byId[recipient].isFriend = true;
+            state.byId[
+              recipient === action.payload.bapId ? requester : recipient
+            ].isFriend = true;
             console.log("true friend");
           }
 

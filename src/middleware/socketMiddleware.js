@@ -1,5 +1,5 @@
 import { last } from "lodash";
-import { receiveNewPin } from "../reducers/channelsReducer";
+import { receiveNewChannel, receiveNewPin } from "../reducers/channelsReducer";
 import { receiveNewMessage, receiveNewReaction } from "../reducers/chatReducer";
 import { receiveNewFriend } from "../reducers/memberListReducer";
 
@@ -36,13 +36,51 @@ const socketMiddleware = () => {
 
       console.log(res);
       if (res.type === "push") {
+        const { session } = storeAPI.getState();
+        const { memberList } = storeAPI.getState();
+        data.myBapId = session.user?.bapId;
         switch (data.MAP.type) {
           case "like":
             console.log("dispatch new like", data);
             storeAPI.dispatch(receiveNewReaction(data));
             break;
           case "message":
-            storeAPI.dispatch(receiveNewMessage(data));
+            if (data.MAP.context === "channel") {
+              storeAPI.dispatch(
+                receiveNewChannel({
+                  channel: data.MAP.channel,
+                  last_message_time: data.timestamp,
+                  last_message: data.B.content,
+                  creator: data.MAP.paymail || data.AIP.bapId,
+                  messages: 1,
+                })
+              );
+            }
+
+            if (data.AIP && data.MAP.context === "bapID") {
+              const toMe = data.MAP.bapID === data.myBapId;
+              const fromMe = data.myBapId === data.AIP.bapId;
+
+              if (toMe) {
+                // new message to me via DM
+                const senderHasSentFriendRequest =
+                  memberList.friendRequests.incoming.byId[data.AIP.bapId];
+
+                const senderIsOutgoingFriend =
+                  memberList.friendRequests.outgoing.byId[data.AIP.bapId];
+
+                // new message to me via DM from FRIEND
+                if (senderHasSentFriendRequest && senderIsOutgoingFriend) {
+                  storeAPI.dispatch(receiveNewMessage(data));
+                }
+              } else if (fromMe) {
+                // new message from self via DM
+                storeAPI.dispatch(receiveNewMessage(data));
+              }
+            } else {
+              // Public message
+              if (data.channel) storeAPI.dispatch(receiveNewMessage(data));
+            }
             break;
           case "friend":
             storeAPI.dispatch(receiveNewFriend(data));

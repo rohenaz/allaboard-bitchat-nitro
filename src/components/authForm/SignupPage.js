@@ -76,6 +76,9 @@ const SignupPage = () => {
         <div>
           Already have an account? <Link to="/login">Login</Link>
         </div>
+        <div>
+          Want to browse without posting? <Link to="/channels">Skip Login</Link>
+        </div>
       </Form>
     </Layout>
   );
