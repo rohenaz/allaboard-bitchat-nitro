@@ -13,7 +13,7 @@
   },
   "main": "index.js",
   "dependencies": {
-    "@handcash/handcash-connect": "^0.4.3",
+    "@handcash/handcash-connect": "^0.6.7",
     "bitcoin-bap": "^1.3.0",
     "bsv": "^1.5.4",
     "cors-async": "^0.2.1",
