@@ -19,7 +19,7 @@
     "bops": "^1.0.1",
     "bsv": "^1.5.4",
     "crypto-browserify": "^3.12.0",
-    "emoji-picker-react": "^4.0.3",
+    "emoji-picker-react": "^4.4.6",
     "html-react-parser": "^3.0.4",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
