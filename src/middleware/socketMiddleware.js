@@ -80,7 +80,9 @@ const socketMiddleware = () => {
               }
             } else {
               // Public message
-              if (data.MAP.channel) storeAPI.dispatch(receiveNewMessage(data));
+              if (data.MAP.channel && data.MAP.channel == channelId) {
+                storeAPI.dispatch(receiveNewMessage(data));
+              }
             }
             break;
           case "friend":

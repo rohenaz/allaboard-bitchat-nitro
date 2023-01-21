@@ -419,6 +419,7 @@ const BitcoinProvider = (props) => {
 
         console.log({ ready });
         let resp = await relayOne.send({ outputs });
+
         console.log("Sent message", resp);
         // interface SendResult {
         //   txid: string;
@@ -433,9 +434,13 @@ const BitcoinProvider = (props) => {
           const tx = await notifyIndexer(resp.rawTx);
           console.log(`dang dispatched new message`, tx);
           tx.timestamp = moment().unix();
+          setPostStatus(FetchStatus.Success);
+
           dispatch(receiveNewMessage(tx));
         } catch (e) {
           console.log("failed to notify indexer", e);
+          setPostStatus(FetchStatus.Error);
+
           return;
         }
       } catch (e) {

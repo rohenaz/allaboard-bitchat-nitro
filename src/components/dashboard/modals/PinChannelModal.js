@@ -88,9 +88,9 @@ const PinChannelModal = ({ open, onClose, channel }) => {
   const [units, setUnits] = useState(1);
   const { profile } = useHandcash();
   const { paymail } = useRelay();
-  const { sendPin, pinStatus } = useBitcoin();
+  const { sendPin, pinStatus, pinnedScopes } = useBitcoin();
   const [selectedScope, setSelectedScope] = useState(Scope.Everyone);
-  const [myPins, setMyPins] = useLocalStorage([]);
+  const [myPins, setMyPins] = useLocalStorage("bitchat-local-pins", []);
 
   const price = useMemo(() => {
     return (units * costPerUnit).toFixed(2);

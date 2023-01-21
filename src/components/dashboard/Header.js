@@ -11,10 +11,10 @@ import { ImProfile } from "react-icons/im";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import tw from "twin.macro";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
-
-import { baseIcon, hideInDesktop, interactiveColor } from "../../design/mixins";
+import { hideInDesktop, interactiveColor } from "../../design/mixins";
 import { useActiveUser } from "../../hooks";
 import { toggleMemberList } from "../../reducers/memberListReducer";
 import { toggleProfile } from "../../reducers/profileReducer";
@@ -23,7 +23,6 @@ import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ArrowTooltip from "./ArrowTooltip";
 import At from "./At";
 import Hashtag from "./Hashtag";
-import List from "./List";
 
 const Container = styled.div`
   background-color: var(--background-primary);
@@ -36,21 +35,17 @@ const Container = styled.div`
   justify-content: space-between;
 `;
 
-const Heading = styled.h2`
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--header-primary);
-  text-overflow: elipses;
-  white-space: nowrap;
-  overflow: hidden;
+const Heading = tw.div`
+  font-semibold
+  text-sm
+  md:text-base
+  whitespace-nowrap
+  text-ellipsis
+  text-white
 `;
 
 const IconWrapper = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 1rem;
-  ${baseIcon};
+  ${tw`flex items-center content-center mr-2 md:mr-3`}
   ${interactiveColor};
   background-color: transparent;
 
@@ -62,14 +57,7 @@ const IconButton = ({ children, href, ...delegated }) => {
   const type = tag === "button" ? "button" : undefined;
 
   return (
-    <IconWrapper
-      as={tag}
-      type={type}
-      href={href}
-      size="22px"
-      w="24px"
-      {...delegated}
-    >
+    <IconWrapper as={tag} type={type} href={href} {...delegated}>
       {children}
     </IconWrapper>
   );
@@ -99,20 +87,16 @@ const Header = ({ isFriendsPage }) => {
 
   return (
     <Container id="header" className="disable-select">
-      <List horizontal={true} gap="10px">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+      <div className="flex flex-1">
+        <div className="flex items-center justify-center">
           <IconButton onClick={() => dispatch(toggleSidebar())} $isHamburger>
-            <FaBars />
+            <FaBars className="mr-2" />
           </IconButton>
-          <List horizontal={true} gap="6px" style={{ alignItems: "center" }}>
-            {activeChannelId && <Hashtag size={`22px`} w={`22px`} />}
-            {activeUserId && <At size={`22px`} w={`22px`} h={`22px`} />}
+          <div className="flex items-center relative">
+            <div className="mr-1">
+              {activeChannelId && <Hashtag />}
+              {activeUserId && <At />}
+            </div>
             <Heading>
               {(isFriendsPage
                 ? "Friends"
@@ -121,10 +105,10 @@ const Header = ({ isFriendsPage }) => {
                 activeUserId ||
                 "global chat"}
             </Heading>
-          </List>
+          </div>
         </div>
-      </List>
-      <List horizontal={true} gap="16px">
+      </div>
+      <div className="flex flex-1 justify-end">
         <ArrowTooltip title="GitHub Repo">
           <IconButton
             href="https://github.com/rohenaz/allaboard-bitchat-nitro"
@@ -165,7 +149,7 @@ const Header = ({ isFriendsPage }) => {
             </IconButton>
           </ArrowTooltip>
         )}
-      </List>
+      </div>
     </Container>
   );
 };
