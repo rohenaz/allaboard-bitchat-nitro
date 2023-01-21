@@ -350,20 +350,28 @@ const BitcoinProvider = (props) => {
           Buffer.from(d, "utf8").toString("hex")
         );
 
+        if (userId && !decIdentity) {
+          console.log("cant dm without identity");
+          return;
+        }
+
         // Send with Handcash
-        if (authToken && decIdentity) {
-          // decrypt and import identity
-          const signedOps = await signOpReturnWithAIP(hexArray);
+        if (authToken) {
+          let signedOps;
+          if (decIdentity) {
+            // decrypt and import identity
+            signedOps = await signOpReturnWithAIP(hexArray);
 
-          // TODO: If this is a message to a person do we need to sign with a different key!?
+            // TODO: If this is a message to a person do we need to sign with a different key!?
 
-          console.log({ signedOps });
+            console.log({ signedOps });
+          }
 
           const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
-              hexArray: signedOps, // remove op_false op_return
+              hexArray: signedOps || hexArray, // remove op_false op_return
               authToken,
               channel,
               userId,
@@ -530,6 +538,10 @@ const BitcoinProvider = (props) => {
 
   const sendFriendRequest = useCallback(
     async (friendIdKey, xprv) => {
+      if (decIdentity) {
+        console.log("Can't make friend requests without identity");
+        return;
+      }
       //       MAP
       // SET app <appame>
       // type friend
