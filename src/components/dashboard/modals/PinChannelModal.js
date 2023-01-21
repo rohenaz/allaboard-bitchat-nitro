@@ -126,7 +126,7 @@ const PinChannelModal = ({ open, onClose, channel }) => {
         }
       }
     } else if (selectedScope === Scope.Me) {
-      if (!myPins.contains(channel)) {
+      if (!myPins.includes(channel)) {
         setMyPins([...pinnedScopes, channel]);
       }
     }
