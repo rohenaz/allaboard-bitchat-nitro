@@ -9,8 +9,8 @@ const sockQuery = (verbose) => {
     q: {
       find: {
         "MAP.type": verbose
-          ? { $in: ["post", "message", "like", "pin_channel"] }
-          : { $in: ["message", "like", "pin_channel"] },
+          ? { $in: ["friend", "post", "message", "like", "pin_channel"] }
+          : { $in: ["friend", "message", "like", "pin_channel"] },
       },
     },
   };
@@ -79,7 +79,7 @@ const socketMiddleware = () => {
               }
             } else {
               // Public message
-              if (data.channel) storeAPI.dispatch(receiveNewMessage(data));
+              if (data.MAP.channel) storeAPI.dispatch(receiveNewMessage(data));
             }
             break;
           case "friend":

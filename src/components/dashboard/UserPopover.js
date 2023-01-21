@@ -6,6 +6,7 @@ import styled from "styled-components";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useBap } from "../../context/bap";
 import { useHandcash } from "../../context/handcash";
 import { receiveNewMessage } from "../../reducers/chatReducer";
 import Avatar, { GreenDotWrapper } from "./Avatar";
@@ -96,6 +97,7 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
   const userId = user.AIP?.bapId || user._id;
   const navigate = useNavigate();
   const { authToken } = useHandcash();
+  const { decIdentity } = useBap();
   const dispatch = useDispatch();
   const incomingFriendRequests = useSelector((state) => {
     return state.memberList.friendRequests.incoming;
@@ -112,7 +114,7 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
     if (content !== "") {
       event.target.reset();
       setShowPopover(false);
-      if (!authToken) {
+      if (!decIdentity) {
         console.error("no auth token");
         dispatch(
           receiveNewMessage({
@@ -138,7 +140,7 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
       // console.log({ user });
       // TODO: sendMessage;
       if (userId) {
-        navigate(`/@/${userId}`);
+        navigate(`/@/${userId}?m=${content}`);
       }
     }
   };

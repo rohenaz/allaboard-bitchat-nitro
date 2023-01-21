@@ -1,8 +1,8 @@
 import { last } from "lodash";
 import moment from "moment";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import { useBitcoin } from "../../context/bitcoin";
@@ -39,6 +39,7 @@ const WriteArea = () => {
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
   const { sendMessage, postStatus } = useBitcoin();
   const params = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { decIdentity } = useBap();
   const activeUser = useActiveUser();
@@ -64,10 +65,23 @@ const WriteArea = () => {
     return params.user;
   }, [params]);
 
+  const pendingMessage = useMemo(() => {
+    return searchParams.get("m");
+  }, [params]);
+
+  const [messageContent, setMessageContent] = useState(pendingMessage || null);
+
   const channelName =
     activeChannelId ||
     activeUserId ||
     last(window.location.pathname.split("/"));
+
+  const changeContent = useCallback(
+    (e) => {
+      setMessageContent(e.target.value);
+    },
+    [messageContent]
+  );
 
   const guest = useMemo(() => {
     return !authToken && !paymail;
@@ -83,7 +97,7 @@ const WriteArea = () => {
 
       event.preventDefault();
       const content = event.target.msg_content.value;
-
+      setMessageContent("");
       if (content !== "" && (paymail || profile?.paymail)) {
         event.target.reset();
         try {
@@ -122,6 +136,8 @@ const WriteArea = () => {
       profile,
       authToken,
       ready,
+      messageContent,
+      sendMessage,
     ]
   );
 
@@ -233,6 +249,8 @@ const WriteArea = () => {
           onKeyUp={handleKeyUp}
           onKeyDown={handleKeyDown}
           onFocus={(e) => console.log(e.target)}
+          value={messageContent}
+          onChange={changeContent}
           disabled={
             guest ||
             (!self &&
