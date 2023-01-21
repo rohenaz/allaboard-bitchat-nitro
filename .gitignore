@@ -66,3 +66,8 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+
+# mac junk
+.DS_Store
+public/.DS_Store

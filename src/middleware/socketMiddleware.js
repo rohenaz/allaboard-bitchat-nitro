@@ -57,6 +57,7 @@ const socketMiddleware = () => {
               );
             }
 
+            // If dm
             if (data.AIP && data.MAP.context === "bapID") {
               const toMe = data.MAP.bapID === data.myBapId;
               const fromMe = data.myBapId === data.AIP.bapId;
@@ -79,7 +80,7 @@ const socketMiddleware = () => {
               }
             } else {
               // Public message
-              if (data.channel) storeAPI.dispatch(receiveNewMessage(data));
+              storeAPI.dispatch(receiveNewMessage(data));
             }
             break;
           case "friend":

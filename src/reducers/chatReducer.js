@@ -124,11 +124,13 @@ const chatSlice = createSlice({
           audio.play();
           return;
         }
-      } else if (
+      }
+
+      if (
         (!pathId && !message.MAP?.channel) ||
         pathId?.toLowerCase() === message.MAP?.channel?.toLowerCase()
       ) {
-        // IF CHANNEL
+        // IF CHANNEL or GLOBAL
         audio.play();
       }
     },

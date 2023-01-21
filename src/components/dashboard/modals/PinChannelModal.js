@@ -7,8 +7,14 @@ import { useBitcoin } from "../../../context/bitcoin";
 import { useHandcash } from "../../../context/handcash";
 import { useRelay } from "../../../context/relay";
 import { FetchStatus } from "../../../utils/common";
+import { useLocalStorage } from "../../../utils/storage";
 export const costPerUnit = 0.025;
 export const minutesPerUnit = 10;
+
+const Scope = {
+  Me: "me-scope",
+  Everyone: "everyone-scope",
+};
 
 const PopupMessageContainer = styled.div`
   padding: 16px;
@@ -83,10 +89,19 @@ const PinChannelModal = ({ open, onClose, channel }) => {
   const { profile } = useHandcash();
   const { paymail } = useRelay();
   const { sendPin, pinStatus } = useBitcoin();
+  const [selectedScope, setSelectedScope] = useState(Scope.Everyone);
+  const [myPins, setMyPins] = useLocalStorage([]);
 
   const price = useMemo(() => {
     return (units * costPerUnit).toFixed(2);
   }, [units, costPerUnit]);
+
+  const scopeChanged = useCallback(
+    (e) => {
+      setSelectedScope(e.target.value);
+    },
+    [selectedScope]
+  );
 
   const handleTitle = useMemo(() => {
     let minutes = units * minutesPerUnit;
@@ -101,15 +116,21 @@ const PinChannelModal = ({ open, onClose, channel }) => {
   }, [units]);
 
   const pinChannel = useCallback(async () => {
-    if (channel) {
-      try {
-        await sendPin(paymail || profile?.paymail, channel, units);
-        onClose();
-      } catch (e) {
-        console.error(e);
+    if (selectedScope === Scope.Everyone) {
+      if (channel) {
+        try {
+          await sendPin(paymail || profile?.paymail, channel, units);
+          onClose();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    } else if (selectedScope === Scope.Me) {
+      if (!myPins.contains(channel)) {
+        setMyPins([...pinnedScopes, channel]);
       }
     }
-  }, [units, paymail, profile, channel, sendPin]);
+  }, [myPins, selectedScope, units, paymail, profile, channel, sendPin]);
 
   return (
     open && (
@@ -121,39 +142,78 @@ const PinChannelModal = ({ open, onClose, channel }) => {
             a rad gold border. How long should we pin this channel?
           </PopupMessageContainer>
           <div style={{ padding: "0 2rem" }}>
-            <Slider
-              min={1}
-              max={144}
-              value={units}
-              handleStyle={{
-                borderRadius: 10,
-                color: "#fff",
-                fontSize: 12,
-                height: 22,
-                whiteSpace: "nowrap",
-              }}
-              tooltip={false}
-              className="custom-slider"
-              handleTitle={handleTitle}
-              onChange={setUnits}
-            />
+            <p>Who should see this pinned channel?</p>
+            <label>
+              Just Me{" "}
+              <input
+                type="radio"
+                name="who"
+                id={Scope.Me}
+                value={Scope.Me}
+                style={{ marginRight: ".5rem" }}
+                onChange={scopeChanged}
+                checked={selectedScope === Scope.Me}
+              />
+            </label>
+            <label>
+              Everyone{" "}
+              <input
+                type="radio"
+                name="who"
+                id={Scope.Everyone}
+                value={Scope.Everyone}
+                style={{ marginRight: ".5rem" }}
+                onChange={scopeChanged}
+                checked={selectedScope === Scope.Everyone}
+              />
+            </label>
           </div>
+          {selectedScope === Scope.Everyone && (
+            <>
+              <div style={{ padding: "0 2rem" }}>
+                <Slider
+                  min={1}
+                  max={144}
+                  value={units}
+                  handleStyle={{
+                    borderRadius: 10,
+                    color: "#fff",
+                    fontSize: 12,
+                    height: 22,
+                    whiteSpace: "nowrap",
+                  }}
+                  tooltip={false}
+                  className="custom-slider"
+                  handleTitle={handleTitle}
+                  onChange={setUnits}
+                />
+              </div>
 
-          <PinUntilContainer>
-            Pin until:{" "}
-            {moment()
-              .add(units * minutesPerUnit, "minutes")
-              .format("MMM Do, h:mm:ss a")}
-          </PinUntilContainer>
-          <PopupButtonContainer>
-            <CancelButton onClick={onClose}>Cancel</CancelButton>
-            <PinButton
-              disabled={pinStatus === FetchStatus.Loading}
-              onClick={pinChannel}
-            >
-              {pinStatus === FetchStatus.Loading ? "Pinning" : `$${price}`}
-            </PinButton>
-          </PopupButtonContainer>
+              <PinUntilContainer>
+                Pin until:{" "}
+                {moment()
+                  .add(units * minutesPerUnit, "minutes")
+                  .format("MMM Do, h:mm:ss a")}
+              </PinUntilContainer>
+              <PopupButtonContainer>
+                <CancelButton onClick={onClose}>Cancel</CancelButton>
+                <PinButton
+                  disabled={pinStatus === FetchStatus.Loading}
+                  onClick={pinChannel}
+                >
+                  {pinStatus === FetchStatus.Loading ? "Pinning" : `$${price}`}
+                </PinButton>
+              </PopupButtonContainer>
+            </>
+          )}
+          {selectedScope === Scope.Me && (
+            <div>
+              <PopupButtonContainer>
+                <CancelButton onClick={onClose}>Cancel</CancelButton>
+                <PinButton onClick={pinChannel}>Pin {channel} for Me</PinButton>
+              </PopupButtonContainer>
+            </div>
+          )}
         </PopupContainer>
       </Modal>
     )
