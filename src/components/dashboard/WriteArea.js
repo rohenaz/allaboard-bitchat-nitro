@@ -1,6 +1,7 @@
 import { last } from "lodash";
 import moment from "moment";
 import React, { useCallback, useMemo, useState } from "react";
+import { HiPlusCircle } from "react-icons/hi";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
@@ -13,6 +14,8 @@ import { receiveNewMessage } from "../../reducers/chatReducer";
 import { FetchStatus } from "../../utils/common";
 import ChannelTextArea from "./ChannelTextArea";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
+import PlusModal from "./modals/PlusModal";
+
 // if (typeof Buffer === "undefined") {
 //   /*global Buffer:writable*/
 //   Buffer = require("buffer").Buffer;
@@ -39,7 +42,10 @@ const WriteArea = () => {
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
   const { sendMessage, postStatus } = useBitcoin();
   const params = useParams();
+  const [file, setFile] = useState([]);
+
   const [searchParams, setSearchParams] = useSearchParams();
+  const [showPlusPopover, setShowPlusPopover] = useState(false);
 
   const { decIdentity } = useBap();
   const activeUser = useActiveUser();
@@ -86,6 +92,10 @@ const WriteArea = () => {
   const guest = useMemo(() => {
     return !authToken && !paymail;
   }, [authToken, paymail]);
+
+  const togglePlusPopover = useCallback(() => {
+    setShowPlusPopover(!showPlusPopover);
+  }, [showPlusPopover]);
 
   const handleSubmit = useCallback(
     async (event) => {
@@ -214,11 +224,24 @@ const WriteArea = () => {
 
   return (
     <Container>
-      <Form onSubmit={handleSubmit} autocomplete="off">
+      <Form onSubmit={handleSubmit} autocomplete="off" className="relative">
+        <div
+          className="flex items-center justify-center absolute left-0 h-full w-12"
+          onClick={togglePlusPopover}
+        >
+          <PlusModal
+            className="relative"
+            open={showPlusPopover}
+            file={file}
+            setFile={setFile}
+          />
+          <HiPlusCircle className="text-2xl ml-2 text-[#aaa]" />
+        </div>
         <ChannelTextArea
           type="text"
           name="msg_content"
           autocomplete="off"
+          className="pl-10"
           placeholder={
             !session.user?.bapId && activeUser
               ? `DMs Disabled`
