@@ -52,6 +52,7 @@ export const loadDiscordReactions = createAsyncThunk(
 );
 
 const initialState = {
+  isFileUploadOpen: false,
   messages: { byId: {}, allIds: [], allMessageIds: [], loading: true },
   reactions: {
     byTxTarget: {},
@@ -69,6 +70,9 @@ const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
+    toggleFileUpload(state, action) {
+      state.isFileUploadOpen = !state.isFileUploadOpen;
+    },
     receiveNewReaction(state, action) {
       const reaction = action.payload;
       // state.reactions.byId[reaction.tx.h] = reaction;
@@ -230,6 +234,7 @@ export const {
   deleteMessage,
   stopTyping,
   typing,
+  toggleFileUpload,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

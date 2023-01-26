@@ -33,6 +33,8 @@ const BitcoinProvider = (props) => {
   const { decIdentity, decryptStatus } = useBap();
   const [pinStatus, setPinStatus] = useState(FetchStatus.Idle);
   const [postStatus, setPostStatus] = useState(FetchStatus.Idle);
+  const [pendingFiles, setPendingFiles] = useState([]);
+
   // TODO: Hook up like status
   const [likeStatus, setLikeStatus] = useState(FetchStatus.Idle);
   const params = useParams();
@@ -249,6 +251,46 @@ const BitcoinProvider = (props) => {
     [pinStatus, decIdentity, relayOne, authToken, notifyIndexer]
   );
 
+  useEffect(() => {
+    const loadFile = async (f) => {
+      f.b64 = await toB64(f);
+
+      setPendingFiles([...pendingFiles, f]);
+    };
+
+    // Load pending files
+    for (let file of pendingFiles) {
+      if (file.loadStatus === FetchStatus.Idle) {
+        loadFile(file);
+      }
+    }
+  }, [pendingFiles, setPendingFiles]);
+
+  const pendingFilesOutputs = useMemo(() => {
+    let outputs = [];
+    pendingFiles.forEach((f) => {
+      if (!!f.b64 && f.b64.length > 0) {
+        // 1. Detect mime type
+        const mimeType = "image/png";
+
+        // 2. Get b64 encoded binary content
+
+        const content = f.b64;
+        const filename = f.name;
+
+        let dataPayload = [
+          B_PREFIX, // B Prefix
+          content,
+          "image/png",
+          "binary",
+        ];
+
+        return dataPayload;
+      }
+    });
+    return outputs;
+  }, [pendingFiles]);
+
   const sendMessage = useCallback(
     async (pm, content, channel, userId, decIdentity) => {
       setPostStatus(FetchStatus.Loading);
@@ -380,6 +422,10 @@ const BitcoinProvider = (props) => {
 
           const { paymentResult } = await resp.json();
 
+          // reset pending files
+          if (pendingFiles) {
+            setPendingFiles([]);
+          }
           console.log({ paymentResult });
           if (paymentResult?.rawTransactionHex) {
             try {
@@ -400,7 +446,6 @@ const BitcoinProvider = (props) => {
         }
 
         // Send with relay
-
         let script;
         if (decIdentity) {
           const signedOps = await signOpReturnWithAIP(hexArray);
@@ -419,7 +464,10 @@ const BitcoinProvider = (props) => {
 
         console.log({ ready });
         let resp = await relayOne.send({ outputs });
-
+        // reset pending files
+        if (pendingFiles) {
+          setPendingFiles([]);
+        }
         console.log("Sent message", resp);
         // interface SendResult {
         //   txid: string;
@@ -694,6 +742,8 @@ const BitcoinProvider = (props) => {
       decryptStatus,
       signOpReturnWithAIP,
       signStatus,
+      pendingFiles,
+      setPendingFiles,
     }),
     [
       sendFriendRequest,
@@ -707,6 +757,8 @@ const BitcoinProvider = (props) => {
       decryptStatus,
       signOpReturnWithAIP,
       signStatus,
+      pendingFiles,
+      setPendingFiles,
     ]
   );
 
@@ -775,3 +827,11 @@ export const friendPrivateKeyFromSeedString = (seedString, xprv) => {
 
   return hdPrivateFriendKey.privateKey;
 };
+
+const toB64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsBinaryString(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });

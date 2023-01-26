@@ -1,6 +1,8 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
-const ChannelTextArea = styled.input`
+const ChannelTextArea = styled.input.attrs((props) => ({
+  className: props.className,
+}))`
   border: 0;
   border-radius: 8px;
   background-color: var(--channeltextarea-background);
@@ -8,7 +10,6 @@ const ChannelTextArea = styled.input`
   font-size: 15px;
   height: 44px;
   outline: none;
-  padding-left: 14px;
   width: 100%;
 
   &::placeholder {

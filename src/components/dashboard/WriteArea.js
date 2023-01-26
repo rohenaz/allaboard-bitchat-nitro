@@ -1,7 +1,8 @@
 import { last } from "lodash";
 import moment from "moment";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { HiPlusCircle } from "react-icons/hi";
+import { IoMdClose } from "react-icons/io";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
@@ -10,7 +11,10 @@ import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import { useActiveUser } from "../../hooks";
-import { receiveNewMessage } from "../../reducers/chatReducer";
+import {
+  receiveNewMessage,
+  toggleFileUpload,
+} from "../../reducers/chatReducer";
 import { FetchStatus } from "../../utils/common";
 import ChannelTextArea from "./ChannelTextArea";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
@@ -40,9 +44,9 @@ const WriteArea = () => {
   // const user = useSelector((state) => state.session.user);
   const { paymail, ready } = useRelay();
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
-  const { sendMessage, postStatus } = useBitcoin();
+  const { sendMessage, postStatus, pendingFiles, setPendingFiles } =
+    useBitcoin();
   const params = useParams();
-  const [file, setFile] = useState([]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [showPlusPopover, setShowPlusPopover] = useState(false);
@@ -62,6 +66,7 @@ const WriteArea = () => {
   );
   const dispatch = useDispatch();
   const session = useSelector((state) => state.session);
+  const inputRef = useRef(null);
 
   const activeChannelId = useMemo(() => {
     return params.channel;
@@ -225,23 +230,47 @@ const WriteArea = () => {
   return (
     <Container>
       <Form onSubmit={handleSubmit} autocomplete="off" className="relative">
-        <div
-          className="flex items-center justify-center absolute left-0 h-full w-12"
-          onClick={togglePlusPopover}
-        >
-          <PlusModal
-            className="relative"
-            open={showPlusPopover}
-            file={file}
-            setFile={setFile}
-          />
-          <HiPlusCircle className="text-2xl ml-2 text-[#aaa]" />
-        </div>
+        {pendingFiles.length > 0 && (
+          <div className="flex items-center absolute -mt-10 bg-[#222] w-full rounded p-2">
+            <span className="font-semibold mr-2">Attachments:</span>
+            {pendingFiles.map((f, idx) => (
+              <div className="mr-2 flex items-center truncate" key={f.name}>
+                <div className="min-w-0 truncate">{f.name}</div>
+                {idx < pendingFiles.length - 1 ? "," : ""}
+              </div>
+            ))}
+            {pendingFiles.length > 0 && (
+              <div
+                className="cursor-pointer p-1 hover:text-red-400"
+                onClick={() => setPendingFiles([])}
+              >
+                <IoMdClose className="" size={16} />
+              </div>
+            )}
+          </div>
+        )}
+        {
+          <div
+            className="flex items-center justify-center absolute left-0 h-full w-12"
+            onClick={(e) => {
+              if (
+                signStatus === FetchStatus.Loading ||
+                postStatus === FetchStatus.Loading
+              ) {
+                return;
+              }
+              dispatch(toggleFileUpload());
+            }}
+          >
+            <HiPlusCircle className="text-2xl ml-2 text-[#aaa]" />
+          </div>
+        }
         <ChannelTextArea
           type="text"
+          id="channelTextArea"
           name="msg_content"
           autocomplete="off"
-          className="pl-10"
+          className={`pl-12`}
           placeholder={
             !session.user?.bapId && activeUser
               ? `DMs Disabled`
@@ -274,6 +303,7 @@ const WriteArea = () => {
           onFocus={(e) => console.log(e.target)}
           value={messageContent}
           onChange={changeContent}
+          ref={inputRef}
           disabled={
             guest ||
             (!self &&
@@ -290,6 +320,7 @@ const WriteArea = () => {
       <TypingStatus>
         {typingUser && `${typingUser.paymail} is typing...`}
       </TypingStatus>
+      <PlusModal open={showPlusPopover} onClose={inputRef.current?.focus()} />
     </Container>
   );
 };
