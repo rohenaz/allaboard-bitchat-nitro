@@ -8,7 +8,6 @@ const HandcashProvider = (props) => {
   const [profile, setProfile] = useLocalStorage(profileStorageKey);
   const [authToken, setAuthToken] = useLocalStorage(authTokenStorageKey);
   const [decryptStatus, setDecryptStatus] = useState(FetchStatus.Idle);
-
   const getProfile = useCallback(async () => {
     // Test localStorage is accessible
     if (!lsTest()) {
@@ -99,6 +98,19 @@ const HandcashProvider = (props) => {
                 });
               })
               .catch((e) => {
+                if (typeof e.json === "function") {
+                  e.json().then(({ redirectUrl }) => {
+                    console.log({ redirectUrl });
+                    // TODO: Redirect to handcash url when perms get borked
+                    // if (redirectUrl) {
+                    //   redirect(redirectUrl);
+                    //   setDecryptStatus(FetchStatus.Idle);
+                    //   reject(e);
+                    //   return;
+                    // }
+                  });
+                }
+                console.error(e);
                 setDecryptStatus(FetchStatus.Error);
                 reject(e);
               });

@@ -17,6 +17,7 @@ const { BAP } = require("bitcoin-bap");
 //
 exports.hcLogin = functions.https.onRequest(async (req, res) => {
   await cors(req, res);
+  console.log("oes htis help?");
   // Use this field to redirect the user to the HandCash authorization screen.
   const redirectionLoginUrl = handCashConnect.getRedirectionUrl();
   return res.redirect(redirectionLoginUrl);
@@ -67,18 +68,31 @@ exports.hcDecrypt = functions.https.onRequest(async (req, res) => {
   if (!req.body.encryptedData) {
     return res.status(400).send();
   }
+  try {
+    const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
+    // const userPermissions = await account.profile.getPermissions();
+    // console.log({ userPermissions });
+    const { privateKey } = await account.profile.getEncryptionKeypair();
 
-  const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
-  const { privateKey } = await account.profile.getEncryptionKeypair();
+    // decrypt identity file
+    const ecies = new ECIES();
+    ecies.privateKey(bsv.PrivateKey.fromString(privateKey));
+    const identityDec = ecies
+      .decrypt(Buffer.from(req.body.encryptedData, "base64"))
+      .toString();
 
-  // decrypt identity file
-  const ecies = new ECIES();
-  ecies.privateKey(bsv.PrivateKey.fromString(privateKey));
-  const identityDec = ecies
-    .decrypt(Buffer.from(req.body.encryptedData, "base64"))
-    .toString();
-
-  return res.status(200).send(JSON.parse(identityDec));
+    return res.status(200).send(JSON.parse(identityDec));
+  } catch (e) {
+    const redirectUrl = handCashConnect.getRedirectionUrl();
+    console.error({ e, redirectUrl });
+    if (e.httpStatusCode) {
+      res
+        .sendStatus(e.httpStatusCode)
+        .send({ error: e.HandCashApiError, redirectUrl });
+      return;
+    }
+    res.status(400).send(e);
+  }
 });
 
 exports.bapLoadID = functions.https.onRequest(async (req, res) => {
@@ -88,7 +102,7 @@ exports.bapLoadID = functions.https.onRequest(async (req, res) => {
     return res.status(401).send();
   }
 
-  if (!req.body.encryptedIdentity) {
+  if (!req.body.encryptedData) {
     return res.status(400).send();
   }
 
@@ -99,7 +113,7 @@ exports.bapLoadID = functions.https.onRequest(async (req, res) => {
   const ecies = new ECIES();
   ecies.privateKey(bsv.PrivateKey.fromString(privateKey));
   const identityDec = ecies
-    .decrypt(Buffer.from(req.body.encryptedIdentity, "base64"))
+    .decrypt(Buffer.from(req.body.encryptedData, "base64"))
     .toString();
   const decIdentity = JSON.parse(identityDec);
 
