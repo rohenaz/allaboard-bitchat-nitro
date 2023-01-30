@@ -249,7 +249,7 @@ const WriteArea = () => {
             )}
           </div>
         )}
-        {
+        {false && (
           <div
             className="flex items-center justify-center absolute left-0 h-full w-12"
             onClick={(e) => {
@@ -264,13 +264,13 @@ const WriteArea = () => {
           >
             <HiPlusCircle className="text-2xl ml-2 text-[#aaa]" />
           </div>
-        }
+        )}
         <ChannelTextArea
           type="text"
           id="channelTextArea"
           name="msg_content"
           autocomplete="off"
-          className={`pl-12`}
+          // className={`pl-12`}
           placeholder={
             !session.user?.bapId && activeUser
               ? `DMs Disabled`

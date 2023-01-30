@@ -291,6 +291,10 @@ const BitcoinProvider = (props) => {
     return outputs;
   }, [pendingFiles]);
 
+  const sendMessageWithRelay = useCallback(async (signedDataOuts) => {}, []);
+
+  const sendMessageWithHandcash = useCallback(async (signedDataOuts) => {}, []);
+
   const sendMessage = useCallback(
     async (pm, content, channel, userId, decIdentity) => {
       setPostStatus(FetchStatus.Loading);
