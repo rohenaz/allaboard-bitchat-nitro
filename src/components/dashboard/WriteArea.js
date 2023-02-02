@@ -271,6 +271,7 @@ const WriteArea = () => {
           name="msg_content"
           autocomplete="off"
           // className={`pl-12`}
+          className={`pl-2`}
           placeholder={
             !session.user?.bapId && activeUser
               ? `DMs Disabled`

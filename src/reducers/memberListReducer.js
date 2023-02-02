@@ -25,7 +25,7 @@ export const loadUsers = createAsyncThunk(
       const response = await channelAPI.getUsers();
       // dispatch(loadPins());
       // console.log({ response });
-      return response.data;
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }
@@ -41,8 +41,10 @@ export const loadFriends = createAsyncThunk(
       const response = await channelAPI.getFriends(session.user.bapId);
       // dispatch(loadPins());
       // console.log({ response });
-      response.data.bapId = session.user.bapId;
-      return response.data;
+      if (response?.data) {
+        response.data.bapId = session.user.bapId;
+      }
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }

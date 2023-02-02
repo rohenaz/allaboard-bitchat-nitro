@@ -20,7 +20,7 @@ export const loadMessages = createAsyncThunk(
         activeUserId,
         myBapId
       );
-      return response.data;
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }
@@ -32,7 +32,7 @@ export const loadReactions = createAsyncThunk(
   async (txIds, { rejectWithValue }) => {
     try {
       const response = await channelAPI.getReactions(txIds);
-      return response.data;
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }
@@ -44,7 +44,7 @@ export const loadDiscordReactions = createAsyncThunk(
   async (messageIds, { rejectWithValue }) => {
     try {
       const response = await channelAPI.getDiscordReactions(messageIds);
-      return response.data;
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }
