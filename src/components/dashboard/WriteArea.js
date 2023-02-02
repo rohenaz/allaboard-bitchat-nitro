@@ -80,7 +80,9 @@ const WriteArea = () => {
     return searchParams.get("m");
   }, [params]);
 
-  const [messageContent, setMessageContent] = useState(pendingMessage || null);
+  const [messageContent, setMessageContent] = useState(
+    pendingMessage || undefined
+  );
 
   const channelName =
     activeChannelId ||
@@ -270,7 +272,6 @@ const WriteArea = () => {
           id="channelTextArea"
           name="msg_content"
           autocomplete="off"
-          // className={`pl-12`}
           className={`pl-2`}
           placeholder={
             !session.user?.bapId && activeUser

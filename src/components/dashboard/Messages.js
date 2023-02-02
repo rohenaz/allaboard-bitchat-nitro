@@ -322,6 +322,7 @@ const Messages = () => {
 
   useEffect(() => {
     if (messages) {
+      console.log("load reactions for", messages.allTxIds);
       dispatch(loadReactions(messages.allTxIds));
       dispatch(loadDiscordReactions(messages.allMessageIds));
     }
