@@ -249,7 +249,8 @@ const WriteArea = () => {
             )}
           </div>
         )}
-        {false && (
+        {/* Images opnly enabled for relay users */}
+        {paymail && (
           <div
             className="flex items-center justify-center absolute left-0 h-full w-12"
             onClick={(e) => {
@@ -270,7 +271,7 @@ const WriteArea = () => {
           id="channelTextArea"
           name="msg_content"
           autocomplete="off"
-          // className={`pl-12`}
+          className={paymail ? `pl-12` : `pl-4`}
           placeholder={
             !session.user?.bapId && activeUser
               ? `DMs Disabled`

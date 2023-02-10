@@ -41,7 +41,7 @@ const CodeIcon = ({ ...delegated }) => {
 };
 
 export const bitfsUrl = "https://x.bitfs.network/";
-export const bicoinFilesUrl = "https://doge.bitcoinfiles.org/";
+export const bicoinFilesUrl = "https://media.bitcoinfiles.org/";
 
 const IdentityIcon = ({ ...delegated }) => {
   return (
