@@ -20,7 +20,7 @@ export const loadMessages = createAsyncThunk(
         activeUserId,
         myBapId
       );
-      return response.data;
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }
@@ -32,7 +32,7 @@ export const loadReactions = createAsyncThunk(
   async (txIds, { rejectWithValue }) => {
     try {
       const response = await channelAPI.getReactions(txIds);
-      return response.data;
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }
@@ -44,7 +44,7 @@ export const loadDiscordReactions = createAsyncThunk(
   async (messageIds, { rejectWithValue }) => {
     try {
       const response = await channelAPI.getDiscordReactions(messageIds);
-      return response.data;
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }
@@ -171,7 +171,7 @@ const chatSlice = createSlice({
         state.reactions.allTxTargets = [];
         state.reactions.allMessageTargets = [];
         state.reactions.loading = false;
-        action.payload.c.forEach((reaction) => {
+        (action.payload?.c || []).forEach((reaction) => {
           if (!state.reactions.byTxTarget[reaction.MAP.tx]) {
             state.reactions.byTxTarget[reaction.MAP.tx] = [];
           }
@@ -184,7 +184,7 @@ const chatSlice = createSlice({
         state.reactions.byMessageTarget = {};
         state.reactions.allMessageTargets = [];
         state.reactions.loading = false;
-        action.payload.c.forEach((reaction) => {
+        (action.payload?.c || []).forEach((reaction) => {
           if (!state.reactions.byMessageTarget[reaction.MAP.messageID]) {
             state.reactions.byMessageTarget[reaction.MAP.messageID] = [];
           }
@@ -199,7 +199,7 @@ const chatSlice = createSlice({
         state.messages.byId = {};
         state.messages.allIds = [];
         state.messages.loading = false;
-        action.payload.c.forEach((message) => {
+        (action.payload?.c || []).forEach((message) => {
           if (message.MAP.paymail && !validateEmail(message.MAP.paymail)) {
             return;
           }

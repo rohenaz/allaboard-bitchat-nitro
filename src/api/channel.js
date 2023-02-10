@@ -287,14 +287,15 @@ export const getMessages = async (channelId, userId, myId) => {
 
 export const getReactions = async (txIds) => {
   if (!txIds?.length) {
-    return;
+    console.log("no txids for reactions");
+    return [];
   }
   return await api.get(`${queryReactions(txIds)}?d=reactions`);
 };
 
 export const getDiscordReactions = async (messageIds) => {
   if (!messageIds?.length) {
-    return;
+    return [];
   }
   return await api.get(`${queryDiscordReactions(messageIds)}?d-disc-react`);
 };

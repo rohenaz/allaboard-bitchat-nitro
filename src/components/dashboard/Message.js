@@ -8,6 +8,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { FaLock } from "react-icons/fa";
 import { MdAddReaction } from "react-icons/md";
 import OutsideClickHandler from "react-outside-click-handler";
+import sanitize from "sanitize-html";
 import styled from "styled-components";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
@@ -250,8 +251,6 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     // });
 
     if (m.B?.content?.length > 0) {
-      let m = { ...message };
-
       let chunks = m.B.content.split(" ");
       let idxs = [];
       chunks.forEach((c, i) => {
@@ -268,12 +267,13 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
           /[^a-zA-Z\-\d\s:]/g,
           ""
         )}">
-            ${text}
+          ${text}
           </a>`;
       }
       let l = Autolinker.link(chunks.join(" "));
       return l;
     }
+
     return m.B?.content;
   }, [message]);
 
@@ -302,6 +302,10 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     },
     [reactions]
   );
+
+  const parsedContent = useMemo(() => {
+    return parse(sanitize(messageContent));
+  }, [messageContent]);
 
   return (
     <Container>
@@ -384,7 +388,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
             </form>
           </>
         ) : ( */}
-        <Content>{parse(messageContent)}</Content>
+        <Content>{parsedContent}</Content>
         <div
           style={{
             marginTop: ".5rem",

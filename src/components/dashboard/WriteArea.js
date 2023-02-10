@@ -80,7 +80,9 @@ const WriteArea = () => {
     return searchParams.get("m");
   }, [params]);
 
-  const [messageContent, setMessageContent] = useState(pendingMessage || null);
+  const [messageContent, setMessageContent] = useState(
+    pendingMessage || undefined
+  );
 
   const channelName =
     activeChannelId ||

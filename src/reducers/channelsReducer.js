@@ -28,7 +28,7 @@ export const loadChannels = createAsyncThunk(
     try {
       const response = await channelAPI.getChannels();
       dispatch(loadPins());
-      return response.data;
+      return response?.data;
     } catch (err) {
       return rejectWithValue(err.response);
     }
