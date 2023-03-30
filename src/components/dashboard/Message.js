@@ -2,7 +2,7 @@ import { IconButton } from "@mui/material";
 import Autolinker from "autolinker";
 import EmojiPicker from "emoji-picker-react";
 import parse from "html-react-parser";
-import { uniqBy } from "lodash";
+import { head, uniqBy } from "lodash";
 import moment from "moment";
 import React, { useCallback, useMemo, useState } from "react";
 import { FaLock } from "react-icons/fa";
@@ -290,7 +290,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
 
   const emojis = useMemo(() => {
     let allReactions = [
-      ...(reactions?.byMessageTarget[message.MAP.messageID] || []),
+      ...(reactions?.byMessageTarget[head(message.MAP).messageID] || []),
       ...(reactions?.byTxTarget[message.tx.h] || []),
     ];
     return uniqBy(allReactions, (r) => r.tx.h);
@@ -298,7 +298,9 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
 
   const hasReacted = useCallback(
     (emoji, pm) => {
-      return emojis.some((e) => e.MAP.emoji === emoji && e.MAP.paymail === pm);
+      return emojis.some(
+        (e) => head(e.MAP).emoji === emoji && head(e.MAP).paymail === pm
+      );
     },
     [reactions]
   );
@@ -315,14 +317,17 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
           w="40px"
           //bgColor={message.user.avatarColor}
           bgcolor={`#000`}
-          paymail={message.AIP?.identity?.paymail || message.MAP.paymail}
-          icon={message.AIP?.identity?.logo}
+          paymail={
+            head(message.AIP)?.identity?.paymail || head(message.MAP).paymail
+          }
+          icon={head(message.AIP)?.identity?.logo}
         />
       </AvatarWrapper>
       <div style={{ width: "100%" }}>
         <Header>
           <Username onClick={handleClick}>
-            {message.AIP?.identity?.alternateName || message.MAP.paymail}
+            {head(message.AIP)?.identity?.alternateName ||
+              head(message.MAP).paymail}
           </Username>
           <div
             style={{
@@ -359,7 +364,9 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                     marginRight: ".5rem",
                   }}
                 >
-                  {message.AIP.bapId ? message.AIP.bapId.slice(0, 8) : ""}
+                  {head(message.AIP).bapId
+                    ? head(message.AIP).bapId.slice(0, 8)
+                    : ""}
                 </div>
               </div>
             )}
@@ -395,41 +402,50 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
             display: "flex",
           }}
         >
-          {uniqBy(emojis, (reaction) => reaction.MAP.emoji)?.map((reaction) => (
-            <div
-              key={reaction.tx.h}
-              style={{
-                borderRadius: ".3rem",
-                color: "white",
-                fontSize: "14px",
-                border: "1px solid #333",
-                padding: ".25rem",
-                width: "fit-content",
-                marginRight: ".25rem",
-                cursor: hasReacted(
-                  reaction.MAP.emoji,
-                  paymail || profile?.paymail
-                )
-                  ? "default"
-                  : "pointer",
-              }}
-              onClick={() => {
-                if (
-                  !hasReacted(reaction.MAP.emoji, paymail || profile?.paymail)
-                ) {
-                  likeMessage(
-                    paymail || profile?.paymail,
-                    reaction.MAP.context,
-                    reaction.MAP[reaction.MAP.context],
-                    reaction.MAP.emoji
-                  );
-                }
-              }}
-            >
-              {reaction.MAP.emoji}{" "}
-              {emojis.filter((e) => e.MAP.emoji === reaction.MAP.emoji)?.length}{" "}
-            </div>
-          ))}
+          {uniqBy(emojis, (reaction) => head(reaction.MAP).emoji)?.map(
+            (reaction) => (
+              <div
+                key={reaction.tx.h}
+                style={{
+                  borderRadius: ".3rem",
+                  color: "white",
+                  fontSize: "14px",
+                  border: "1px solid #333",
+                  padding: ".25rem",
+                  width: "fit-content",
+                  marginRight: ".25rem",
+                  cursor: hasReacted(
+                    head(reaction.MAP).emoji,
+                    paymail || profile?.paymail
+                  )
+                    ? "default"
+                    : "pointer",
+                }}
+                onClick={() => {
+                  if (
+                    !hasReacted(
+                      head(reaction.MAP).emoji,
+                      paymail || profile?.paymail
+                    )
+                  ) {
+                    likeMessage(
+                      paymail || profile?.paymail,
+                      head(reaction.MAP).context,
+                      head(reaction.MAP)[head(reaction.MAP).context],
+                      head(reaction.MAP).emoji
+                    );
+                  }
+                }}
+              >
+                {head(reaction.MAP).emoji}{" "}
+                {
+                  emojis.filter(
+                    (e) => head(e.MAP).emoji === head(reaction.MAP).emoji
+                  )?.length
+                }{" "}
+              </div>
+            )
+          )}
           <div
             style={{ position: "absolute", bottom: "1rem", right: "1.2rem" }}
           >

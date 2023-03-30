@@ -1,6 +1,7 @@
 import nimble from "@runonbitcoin/nimble";
 import bops from "bops";
 import bsv from "bsv";
+import { head } from "lodash";
 import moment from "moment";
 import React, {
   useCallback,
@@ -359,7 +360,7 @@ const BitcoinProvider = (props) => {
           }
           console.log(
             "trying to use public key from user",
-            friendRequests.incoming.byId[userId]?.MAP.publicKey
+            head(friendRequests.incoming.byId[userId]?.MAP).publicKey
           );
           // const friendPublicKey =
           //   decIdentity?.bapId === userId
@@ -374,8 +375,9 @@ const BitcoinProvider = (props) => {
           );
 
           // get the friend's public key
-          const friendPubKey =
-            friendRequests.incoming.byId[userId]?.MAP.publicKey;
+          const friendPubKey = head(
+            friendRequests.incoming.byId[userId]?.MAP
+          ).publicKey;
 
           console.log({
             f1: friendPrivateKey.publicKey.toString(),

@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { uniq } from "lodash";
+import { head, uniq } from "lodash";
 import { useSelector } from "react-redux";
 import { Nav } from "rsuite";
 import NavItem from "rsuite/esm/Nav/NavItem";
@@ -68,7 +68,7 @@ const Friends = () => {
                   const ifr = incomingFriendRequests.byId[ifrId];
                   return (
                     <div>
-                      To: {ifr.MAP.bapID} From: {ifr.AIP.bapId}
+                      To: {head(ifr.MAP).bapID} From: {head(ifr.AIP).bapId}
                     </div>
                   );
                 })}
@@ -80,7 +80,7 @@ const Friends = () => {
                   const ofr = outgoingFriendRequests.byId[ofrId];
                   return (
                     <div>
-                      To: {ofr.MAP.bapID} From: {ofr.AIP.bapId}
+                      To: {head(ofr.MAP).bapID} From: {head(ofr.AIP).bapId}
                     </div>
                   );
                 })}

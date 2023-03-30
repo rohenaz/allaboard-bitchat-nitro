@@ -193,9 +193,9 @@ const Messages = () => {
       let m = [];
       for (let txid of Object.keys(messages.byId)) {
         if (
-          (!activeChannelId && !messages.byId[txid].MAP.channel) ||
-          messages.byId[txid].AIP?.bapId === activeUser?._id ||
-          messages.byId[txid].MAP.channel === activeChannelId
+          (!activeChannelId && !head(messages.byId[txid].MAP).channel) ||
+          head(messages.byId[txid].AIP)?.bapId === activeUser?._id ||
+          head(messages.byId[txid].MAP).channel === activeChannelId
         ) {
           m.push(messages.byId[txid]);
         }
@@ -203,22 +203,24 @@ const Messages = () => {
       console.log({ m });
       return m
         .map((message) => {
-          if (message.MAP.encrypted === "true") {
+          if (head(message.MAP).encrypted === "true") {
             console.log("encrypted message", activeUser, message);
             // private key is my key from
 
             // If this is self, get the nodes public key
 
-            const messageFromMe = message.AIP?.bapId === session.user?.bapId;
-            const messageToMe = message.MAP?.bapID === session.user?.bapId;
+            const messageFromMe =
+              head(message.AIP)?.bapId === session.user?.bapId;
+            const messageToMe =
+              head(message.MAP)?.bapID === session.user?.bapId;
             const messageSelf = messageToMe && messageFromMe;
 
             const friendPrivateKey = friendPrivateKeyFromSeedString(
               messageSelf
                 ? "notes"
                 : messageToMe
-                ? message.AIP?.bapId
-                : message.MAP?.bapID,
+                ? head(message.AIP)?.bapId
+                : head(message.MAP)?.bapID,
               decIdentity.xprv
             );
 
@@ -242,8 +244,10 @@ const Messages = () => {
             // get the friend's public key
             // TODO: Handle self case
             const friendPubKey = messageToMe
-              ? friendRequests.incoming.byId[message.AIP.bapId]?.MAP.publicKey
-              : friendRequests.incoming.byId[message.MAP.bapID]?.MAP.publicKey;
+              ? head(friendRequests.incoming.byId[head(message.AIP).bapId]?.MAP)
+                  .publicKey
+              : head(friendRequests.incoming.byId[head(message.MAP).bapID]?.MAP)
+                  .publicKey;
 
             if (!messageSelf && (!friendPrivateKey || !friendPubKey)) {
               console.error(
@@ -263,36 +267,40 @@ const Messages = () => {
             });
             try {
               const decryptedContent = decrypt(
-                message.B.content,
+                head(message.B).content,
                 friendPrivateKey,
                 messageSelf
                   ? undefined
                   : messageToMe
                   ? new bsv.PublicKey(
-                      friendRequests.incoming.byId[
-                        message.AIP.bapId
-                      ]?.MAP.publicKey
+                      head(
+                        friendRequests.incoming.byId[head(message.AIP).bapId]
+                          ?.MAP
+                      ).publicKey
                     )
                   : new bsv.PublicKey(
-                      friendRequests.incoming.byId[
-                        message.MAP.bapID
-                      ]?.MAP.publicKey
+                      head(
+                        friendRequests.incoming.byId[head(message.MAP).bapID]
+                          ?.MAP
+                      ).publicKey
                     )
               );
               // console.log("decrypted", decryptedContent);
               return {
                 ...message,
                 ...{
-                  B: {
-                    content: Buffer.from(decryptedContent).toString("utf8"),
-                  },
+                  B: [
+                    {
+                      content: Buffer.from(decryptedContent).toString("utf8"),
+                    },
+                  ],
                 },
               };
             } catch (e) {
               console.error(
                 "failed to decrypt",
-                message.MAP,
-                message.AIP,
+                head(message.MAP),
+                head(message.AIP),
                 friendPubKey,
                 e
               );
@@ -632,7 +640,7 @@ const Messages = () => {
               reactions={hasReactions ? reactions : null}
               handleClick={(event) => handleClick(event, m)}
               appIcon={
-                m.MAP.app === "bitchat" ? (
+                head(m.MAP).app === "bitchat" ? (
                   <div
                     style={{
                       color: "lime",
@@ -642,7 +650,7 @@ const Messages = () => {
                   >
                     <FaTerminal style={{ width: ".75rem", height: ".75rem" }} />
                   </div>
-                ) : m.MAP.app === "blockpost.network" ? (
+                ) : head(m.MAP).app === "blockpost.network" ? (
                   <div
                     style={{
                       color: "white",
@@ -652,9 +660,9 @@ const Messages = () => {
                   >
                     <BlockpostIcon style={{ width: "1rem" }} />
                   </div>
-                ) : m.MAP.app === "bitchatnitro.com" ? (
+                ) : head(m.MAP).app === "bitchatnitro.com" ? (
                   <NitroIcon style={{ width: ".75rem", height: ".75rem" }} />
-                ) : m.MAP.app === "retrofeed.me" ? (
+                ) : head(m.MAP).app === "retrofeed.me" ? (
                   <div style={{ color: "#F42B2C" }}>
                     <RetrofeedIcon
                       style={{
@@ -664,7 +672,7 @@ const Messages = () => {
                       }}
                     />
                   </div>
-                ) : m.MAP.app === "pewnicornsocial.club" ? (
+                ) : head(m.MAP).app === "pewnicornsocial.club" ? (
                   <div style={{ color: "pink" }}>
                     <GiUnicorn
                       style={{

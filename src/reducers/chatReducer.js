@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { last } from "lodash";
+import { head, last } from "lodash";
 import * as channelAPI from "../api/channel";
 import { validateEmail } from "../utils/strings.js";
 
@@ -76,19 +76,21 @@ const chatSlice = createSlice({
     receiveNewReaction(state, action) {
       const reaction = action.payload;
       // state.reactions.byId[reaction.tx.h] = reaction;
-      if (reaction.MAP.context === "tx") {
-        if (!state.reactions.byTxTarget[reaction.MAP.tx]) {
-          state.reactions.byTxTarget[reaction.MAP.tx] = [];
+      if (head(reaction.MAP).context === "tx") {
+        if (!state.reactions.byTxTarget[head(reaction.MAP).tx]) {
+          state.reactions.byTxTarget[head(reaction.MAP).tx] = [];
         }
-        state.reactions.byTxTarget[reaction.MAP.tx].push(reaction);
-        state.reactions.allTxTargets.push(reaction.MAP.tx);
+        state.reactions.byTxTarget[head(reaction.MAP).tx].push(reaction);
+        state.reactions.allTxTargets.push(head(reaction.MAP).tx);
         state.reactions.allTxIds.push(reaction.tx.h);
-      } else if (reaction.MAP.context === "messageID") {
-        if (!state.reactions.byMessageTarget[reaction.MAP.messageID]) {
-          state.reactions.byMessageTarget[reaction.MAP.messageID] = [];
+      } else if (head(reaction.MAP).context === "messageID") {
+        if (!state.reactions.byMessageTarget[head(reaction.MAP).messageID]) {
+          state.reactions.byMessageTarget[head(reaction.MAP).messageID] = [];
         }
-        state.reactions.byMessageTarget[reaction.MAP.messageID].push(reaction);
-        state.reactions.allMessageTargets.push(reaction.MAP.messageID);
+        state.reactions.byMessageTarget[head(reaction.MAP).messageID].push(
+          reaction
+        );
+        state.reactions.allMessageTargets.push(head(reaction.MAP).messageID);
         state.reactions.allMessageIds.push(reaction.tx.h);
       }
     },
@@ -98,9 +100,10 @@ const chatSlice = createSlice({
       const message = action.payload;
       const myBapId = message.myBapId;
       if (
-        (!message.MAP.context || message.MAP.context === "channel") &&
-        message.MAP.paymail &&
-        !validateEmail(message.MAP.paymail)
+        (!head(message.MAP).context ||
+          head(message.MAP).context === "channel") &&
+        head(message.MAP).paymail &&
+        !validateEmail(head(message.MAP).paymail)
       ) {
         console.log("invalid message", message);
         return;
@@ -110,8 +113,8 @@ const chatSlice = createSlice({
       state.messages.byId[message.tx.h] = message;
       state.messages.allIds.push(message.tx.h);
 
-      if (message.MAP.messageID) {
-        state.messages.allMessageIds.push(message.MAP.messageID);
+      if (head(message.MAP).messageID) {
+        state.messages.allMessageIds.push(head(message.MAP).messageID);
       }
 
       // play audio if channel matches or user matches
@@ -119,10 +122,10 @@ const chatSlice = createSlice({
 
       if (message.AIP) {
         // If DM
-        const fromThem = pathId === message.AIP.bapId;
-        const toMe = message.MAP.bapID === myBapId;
-        const fromMe = myBapId === message.AIP.bapId;
-        const toThem = message.MAP.bapID === pathId;
+        const fromThem = pathId === head(message.AIP).bapId;
+        const toMe = head(message.MAP).bapID === myBapId;
+        const fromMe = myBapId === head(message.AIP).bapId;
+        const toThem = head(message.MAP).bapID === pathId;
 
         if ((fromThem && toMe) || (fromMe && toThem)) {
           audio.play();
@@ -172,11 +175,11 @@ const chatSlice = createSlice({
         state.reactions.allMessageTargets = [];
         state.reactions.loading = false;
         (action.payload?.c || []).forEach((reaction) => {
-          if (!state.reactions.byTxTarget[reaction.MAP.tx]) {
-            state.reactions.byTxTarget[reaction.MAP.tx] = [];
+          if (!state.reactions.byTxTarget[head(reaction.MAP).tx]) {
+            state.reactions.byTxTarget[head(reaction.MAP).tx] = [];
           }
-          state.reactions.byTxTarget[reaction.MAP.tx].push(reaction);
-          state.reactions.allTxTargets.push(reaction.MAP.tx);
+          state.reactions.byTxTarget[head(reaction.MAP).tx].push(reaction);
+          state.reactions.allTxTargets.push(head(reaction.MAP).tx);
           state.reactions.allTxIds.push(reaction.tx.h);
         });
       })
@@ -185,13 +188,13 @@ const chatSlice = createSlice({
         state.reactions.allMessageTargets = [];
         state.reactions.loading = false;
         (action.payload?.c || []).forEach((reaction) => {
-          if (!state.reactions.byMessageTarget[reaction.MAP.messageID]) {
-            state.reactions.byMessageTarget[reaction.MAP.messageID] = [];
+          if (!state.reactions.byMessageTarget[head(reaction.MAP).messageID]) {
+            state.reactions.byMessageTarget[head(reaction.MAP).messageID] = [];
           }
-          state.reactions.byMessageTarget[reaction.MAP.messageID].push(
+          state.reactions.byMessageTarget[head(reaction.MAP).messageID].push(
             reaction
           );
-          state.reactions.allMessageTargets.push(reaction.MAP.messageID);
+          state.reactions.allMessageTargets.push(head(reaction.MAP).messageID);
           state.reactions.allMessageIds.push(reaction.tx.h);
         });
       })
@@ -200,14 +203,17 @@ const chatSlice = createSlice({
         state.messages.allIds = [];
         state.messages.loading = false;
         (action.payload?.c || []).forEach((message) => {
-          if (message.MAP.paymail && !validateEmail(message.MAP.paymail)) {
+          if (
+            head(message.MAP).paymail &&
+            !validateEmail(head(message.MAP).paymail)
+          ) {
             return;
           }
 
           // Filter out txs with wrong encoding (oops)
           if (
             message.B.encoding === "utf-8" &&
-            message.MAP.encrypted === "true"
+            head(message.MAP).encrypted === "true"
           ) {
             return;
           }
@@ -215,8 +221,8 @@ const chatSlice = createSlice({
           state.messages.byId[message.tx.h] = message;
           state.messages.allIds.push(message.tx.h);
           // Discord messages
-          if (message.MAP.messageID) {
-            state.messages.allMessageIds.push(message.MAP.messageID);
+          if (head(message.MAP).messageID) {
+            state.messages.allMessageIds.push(head(message.MAP).messageID);
           }
         });
       });
