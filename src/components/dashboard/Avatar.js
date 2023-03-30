@@ -72,6 +72,8 @@ const BitPicIcon = ({ ...delegated }) => {
             ? `https://cloud.handcash.io/v2/users/profilePicture/${head(
                 delegated.paymail.split("@")
               )}`
+            : delegated.paymail?.includes("relayx.io")
+            ? `https://a.relayx.com/u/${delegated.paymail}`
             : `https://bitpic.network/u/${delegated.paymail}`
         }
         {...delegated}
