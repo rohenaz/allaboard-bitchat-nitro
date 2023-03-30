@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { head } from "lodash";
 import * as channelAPI from "../api/channel";
 
 const initialState = {
@@ -57,8 +58,8 @@ const memberListSlice = createSlice({
   reducers: {
     receiveNewFriend(state, action) {
       const friend = action.payload;
-      const requester = friend.AIP.bapId;
-      const recipient = friend.MAP.bapID;
+      const requester = head(friend.AIP).bapId;
+      const recipient = head(friend.MAP).bapID;
       // If logged in user is the recipient
       if (recipient === action.payload.bapId) {
         // build my pending list
@@ -126,8 +127,8 @@ const memberListSlice = createSlice({
           ) {
             return;
           }
-          const requester = friend.AIP.bapId;
-          const recipient = friend.MAP.bapID;
+          const requester = head(friend.AIP).bapId;
+          const recipient = head(friend.MAP).bapID;
           // If logged in user is the recipient
           if (recipient === action.payload.bapId) {
             // build my pending list

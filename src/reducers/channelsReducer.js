@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { find } from "lodash";
+import { find, head } from "lodash";
 import moment from "moment";
 import * as channelAPI from "../api/channel";
 import { minutesPerUnit } from "../components/dashboard/modals/PinChannelModal";
@@ -72,12 +72,12 @@ const channelsSlice = createSlice({
     },
     receiveNewPin(state, action) {
       const pin = action.payload;
-      if (!state.pins.byChannel[pin.MAP.channel]) {
-        state.pins.byChannel[pin.MAP.channel] = [];
+      if (!state.pins.byChannel[head(pin.MAP).channel]) {
+        state.pins.byChannel[head(pin.MAP).channel] = [];
       }
-      state.pins.byChannel[pin.MAP.channel].push(pin);
-      if (!state.pins.allChannels.includes(pin.MAP.channel)) {
-        state.pins.allChannels.push(pin.MAP.channel);
+      state.pins.byChannel[head(pin.MAP).channel].push(pin);
+      if (!state.pins.allChannels.includes(head(pin.MAP).channel)) {
+        state.pins.allChannels.push(head(pin.MAP).channel);
       }
     },
     setActiveChannel(state, action) {
@@ -99,11 +99,11 @@ const channelsSlice = createSlice({
         state.pins.loading = false;
 
         action.payload.c.forEach((pin) => {
-          const channel = state.byId[pin.MAP.channel];
+          const channel = state.byId[head(pin.MAP).channel];
 
           let paymentAmount = 0;
 
-          if (pin.MAP.channel === channel.channel) {
+          if (head(pin.MAP).channel === channel.channel) {
             let paymentOutput = find(
               pin.out,
               (o) => o.e.a === pinPaymentAddress
@@ -120,12 +120,12 @@ const channelsSlice = createSlice({
               if (moment.unix(expireTime).diff(moment(), "minutes") > 0) {
                 console.log(moment.unix(expireTime).diff(moment(), "minutes"));
                 pin.expiresAt = expireTime;
-                if (!state.pins.byChannel[pin.MAP.channel]) {
-                  state.pins.byChannel[pin.MAP.channel] = [];
+                if (!state.pins.byChannel[head(pin.MAP).channel]) {
+                  state.pins.byChannel[head(pin.MAP).channel] = [];
                 }
-                state.pins.byChannel[pin.MAP.channel].push(pin);
-                if (!state.pins.allChannels.includes(pin.MAP.channel)) {
-                  state.pins.allChannels.push(pin.MAP.channel);
+                state.pins.byChannel[head(pin.MAP).channel].push(pin);
+                if (!state.pins.allChannels.includes(head(pin.MAP).channel)) {
+                  state.pins.allChannels.push(head(pin.MAP).channel);
                 }
               }
             }

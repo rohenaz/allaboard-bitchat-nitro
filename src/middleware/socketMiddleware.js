@@ -1,4 +1,4 @@
-import { last } from "lodash";
+import { head, last } from "lodash";
 import { receiveNewChannel, receiveNewPin } from "../reducers/channelsReducer";
 import { receiveNewMessage, receiveNewReaction } from "../reducers/chatReducer";
 import { receiveNewFriend } from "../reducers/memberListReducer";
@@ -39,36 +39,36 @@ const socketMiddleware = () => {
         const { session } = storeAPI.getState();
         const { memberList } = storeAPI.getState();
         data.myBapId = session.user?.bapId;
-        switch (data.MAP.type) {
+        switch (head(data.MAP).type) {
           case "like":
             console.log("dispatch new like", data);
             storeAPI.dispatch(receiveNewReaction(data));
             break;
           case "message":
-            if (data.MAP.context === "channel") {
+            if (head(data.MAP).context === "channel") {
               storeAPI.dispatch(
                 receiveNewChannel({
-                  channel: data.MAP.channel,
+                  channel: head(data.MAP).channel,
                   last_message_time: data.timestamp,
-                  last_message: data.B.content,
-                  creator: data.MAP.paymail || data.AIP.bapId,
+                  last_message: head(data.B).content,
+                  creator: head(data.MAP).paymail || head(data.AIP).bapId,
                   messages: 1,
                 })
               );
             }
 
             // If dm
-            if (data.AIP && data.MAP.context === "bapID") {
-              const toMe = data.MAP.bapID === data.myBapId;
-              const fromMe = data.myBapId === data.AIP.bapId;
+            if (data.AIP && head(data.MAP).context === "bapID") {
+              const toMe = head(data.MAP).bapID === data.myBapId;
+              const fromMe = data.myBapId === head(data.AIP).bapId;
 
               if (toMe) {
                 // new message to me via DM
                 const senderHasSentFriendRequest =
-                  memberList.friendRequests.incoming.byId[data.AIP.bapId];
+                  memberList.friendRequests.incoming.byId[head(data.AIP).bapId];
 
                 const senderIsOutgoingFriend =
-                  memberList.friendRequests.outgoing.byId[data.AIP.bapId];
+                  memberList.friendRequests.outgoing.byId[head(data.AIP).bapId];
 
                 // new message to me via DM from FRIEND
                 if (senderHasSentFriendRequest && senderIsOutgoingFriend) {
@@ -80,7 +80,10 @@ const socketMiddleware = () => {
               }
             } else {
               // Public message
-              if (data.MAP.channel && data.MAP.channel == channelId) {
+              if (
+                head(data.MAP).channel &&
+                head(data.MAP).channel == channelId
+              ) {
                 storeAPI.dispatch(receiveNewMessage(data));
               }
             }
