@@ -167,12 +167,25 @@ var queryChannels = {
     aggregate: [
       {
         $match: {
-          "MAP.type": "message",
-          "MAP.channel": { $not: { $regex: "^\\s*$|^$|_enc$" } },
-        },
+          MAP: {
+            $elemMatch: {
+              type: "message",
+              channel: { $not: { $regex: "^\\s*$|^$|_enc$" } }
+            }
+          }
+        }
       },
       {
         $sort: { "blk.t": 1 },
+      },
+      {
+        $unwind: "$MAP"
+      },
+      {
+        $match: {
+          "MAP.type": "message",
+          "MAP.channel": { $not: { $regex: "^\\s*$|^$|_enc$" } },
+        },
       },
       {
         $group: {
