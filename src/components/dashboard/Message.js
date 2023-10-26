@@ -250,8 +250,8 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     //   },
     // });
 
-    if (m.B?.content?.length > 0) {
-      let chunks = m.B.content.split(" ");
+    if (head(m.B)?.Data?.utf8?.length > 0) {
+      let chunks = head(m.B)?.Data?.utf8?.split(" ");
       let idxs = [];
       chunks.forEach((c, i) => {
         if (c.startsWith("#")) {
@@ -274,7 +274,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
       return l;
     }
 
-    return m.B?.content;
+    return head(m.B)?.Data?.utf8;
   }, [message]);
 
   // useEffect(() => console.log(messageContent), [messageContent]);

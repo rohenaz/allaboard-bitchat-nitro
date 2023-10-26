@@ -17,9 +17,10 @@ const { BAP } = require("bitcoin-bap");
 //
 exports.hcLogin = functions.https.onRequest(async (req, res) => {
   await cors(req, res);
-  console.log("oes htis help?");
+
   // Use this field to redirect the user to the HandCash authorization screen.
   const redirectionLoginUrl = handCashConnect.getRedirectionUrl();
+  console.log("does this help?", redirectionLoginUrl);
   return res.redirect(redirectionLoginUrl);
 });
 
@@ -48,15 +49,15 @@ exports.hcEncrypt = functions.https.onRequest(async (req, res) => {
   return res.status(200).send({ encryptedData: b64encrypted });
 });
 
-exports.login = functions.https.onRequest(async (req, res) => {
-  await cors(req, res);
+// exports.login = functions.https.onRequest(async (req, res) => {
+//   await cors(req, res);
 
-  // load identity and
-  req.body.identity;
-  req.body.authToken;
+//   // load identity and
+//   req.body.identity;
+//   req.body.authToken;
 
-  res.send({ ALIAS });
-});
+//   res.send({ ALIAS });
+// });
 
 exports.hcDecrypt = functions.https.onRequest(async (req, res) => {
   await cors(req, res);
@@ -207,19 +208,24 @@ exports.hcProfile = functions.https.onRequest(async (req, res) => {
 
   const account = handCashConnect.getAccountFromAuthToken(req.body.authToken);
 
-  const currentProfile = await account.profile.getCurrentProfile();
-  functions.logger.info({ currentProfile });
+  functions.logger.info({ account });
+  try {
+    const currentProfile = await account.profile.getCurrentProfile();
 
-  // get public key from request
-  // const { publicKey, privateKey } = handCashConnect.getEncryptionKeypair(req.body.publicKey);
-  // identity = new BAP(identityDec.xprv);
+    // get public key from request
+    // const { publicKey, privateKey } = handCashConnect.getEncryptionKeypair(req.body.publicKey);
+    // identity = new BAP(identityDec.xprv);
 
-  // if (identityDec.ids) {
-  //   identity.importIds(identityDec.ids);
-  // }
+    // if (identityDec.ids) {
+    //   identity.importIds(identityDec.ids);
+    // }
+    functions.logger.info({ currentProfile });
 
-  const { publicProfile, privateProfile } = currentProfile;
-  return res.status(200).send({ publicProfile, privateProfile });
+    const { publicProfile, privateProfile } = currentProfile;
+    return res.status(200).send({ publicProfile, privateProfile });
+  } catch (e) {
+    functions.logger.error({ e });
+  }
 });
 
 exports.hcSendMessage = functions.https.onRequest(async (req, res) => {

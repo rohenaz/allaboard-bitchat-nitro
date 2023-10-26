@@ -103,12 +103,12 @@ const DirectMessageModal = ({ open, onClose }) => {
   };
 
   const onSubmit = useCallback(async () => {
-    // look for inputValue in B.content
+    // look for inputValue in B.Data.utf8
     // search for the term
     const resp = await searchUsers(inputValue);
 
-    setResults(resp.data.c);
-    console.log({ inputValue, resp: resp.data.c });
+    setResults(resp.data.message);
+    console.log({ inputValue, resp: resp.data.message });
   }, [results, inputValue, searchUsers]);
 
   return (

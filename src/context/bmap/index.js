@@ -5,7 +5,8 @@ const BmapContext = React.createContext(undefined);
 const BmapProvider = (props) => {
   const notifyIndexer = useCallback((rawTx) => {
     return new Promise((resolve, reject) => {
-      fetch(`https://b.map.sv/ingest`, {
+      fetch("https://bmap-api-production.up.railway.app/ingest", {
+        // `https://b.map.sv/ingest`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

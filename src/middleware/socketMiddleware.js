@@ -8,9 +8,9 @@ const sockQuery = (verbose) => {
     v: 3,
     q: {
       find: {
-        "MAP.type": verbose
-          ? { $in: ["friend", "post", "message", "like", "pin_channel"] }
-          : { $in: ["friend", "message", "like", "pin_channel"] },
+        // "MAP.type": verbose
+        //  ? { $in: ["friend", "post", "message", "like", "pin_channel"] }
+        //  : { $in: ["friend", "message", "like", "pin_channel"] },
       },
     },
   };
@@ -50,7 +50,7 @@ const socketMiddleware = () => {
                 receiveNewChannel({
                   channel: head(data.MAP).channel,
                   last_message_time: data.timestamp,
-                  last_message: head(data.B).content,
+                  last_message: head(data.B).Data.utf8,
                   creator: head(data.MAP).paymail || head(data.AIP).bapId,
                   messages: 1,
                 })

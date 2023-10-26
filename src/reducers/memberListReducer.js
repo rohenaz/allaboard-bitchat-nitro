@@ -103,7 +103,7 @@ const memberListSlice = createSlice({
       .addCase(loadUsers.fulfilled, (state, action) => {
         state.loading = false;
         console.log("load users fulfilled");
-        action.payload.c.forEach((user) => {
+        action.payload.messages.forEach((user) => {
           if (!state.allIds.includes(user._id)) {
             state.byId[user._id] = user;
             state.allIds.push(user._id);
@@ -116,7 +116,7 @@ const memberListSlice = createSlice({
       .addCase(loadFriends.fulfilled, (state, action) => {
         // console.log("load friends fullfiled");
         state.friendRequests.loading = false;
-        action.payload.c.forEach((friend) => {
+        action.payload.messages.forEach((friend) => {
           // exclude our original broken friend requests
           if (
             [

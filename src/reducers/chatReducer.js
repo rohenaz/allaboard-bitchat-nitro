@@ -174,7 +174,7 @@ const chatSlice = createSlice({
         state.reactions.allTxTargets = [];
         state.reactions.allMessageTargets = [];
         state.reactions.loading = false;
-        (action.payload?.c || []).forEach((reaction) => {
+        (action.payload?.like || []).forEach((reaction) => {
           if (!state.reactions.byTxTarget[head(reaction.MAP).tx]) {
             state.reactions.byTxTarget[head(reaction.MAP).tx] = [];
           }
@@ -187,7 +187,7 @@ const chatSlice = createSlice({
         state.reactions.byMessageTarget = {};
         state.reactions.allMessageTargets = [];
         state.reactions.loading = false;
-        (action.payload?.c || []).forEach((reaction) => {
+        (action.payload?.like || []).forEach((reaction) => {
           if (!state.reactions.byMessageTarget[head(reaction.MAP).messageID]) {
             state.reactions.byMessageTarget[head(reaction.MAP).messageID] = [];
           }
@@ -202,7 +202,7 @@ const chatSlice = createSlice({
         state.messages.byId = {};
         state.messages.allIds = [];
         state.messages.loading = false;
-        (action.payload?.c || []).forEach((message) => {
+        (action.payload?.message || []).forEach((message) => {
           if (
             head(message.MAP).paymail &&
             !validateEmail(head(message.MAP).paymail)

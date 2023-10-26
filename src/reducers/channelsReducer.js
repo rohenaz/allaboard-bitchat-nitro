@@ -98,7 +98,7 @@ const channelsSlice = createSlice({
       .addCase(loadPins.fulfilled, (state, action) => {
         state.pins.loading = false;
 
-        action.payload.c.forEach((pin) => {
+        action.payload.pin_channel.forEach((pin) => {
           const channel = state.byId[head(pin.MAP).channel];
 
           let paymentAmount = 0;
@@ -139,7 +139,7 @@ const channelsSlice = createSlice({
         state.byId = {};
         state.allIds = [];
         state.loading = false;
-        action.payload.c.forEach((c) => {
+        action.payload.message.forEach((c) => {
           //     return c;
           //   })
           //   .sort((a, b) =>

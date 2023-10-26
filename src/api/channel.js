@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://b.map.sv/q/",
+  baseURL: "https://bmap-api-production.up.railway.app/q/", // "https://b.map.sv/q/",
 });
 
 const verboseMode = false;
@@ -12,7 +12,7 @@ var queryPinnedChannels = {
     find: {
       // "blk.i": { $gt: 600000 },
       "MAP.app": "bitchatnitro.com",
-      "MAP.type": "pin_channel",
+      // "MAP.type": "pin_channel",
       "MAP.context": "channel",
     },
     project: {
@@ -57,9 +57,11 @@ var queryUsers = {
       },
       {
         $group: {
-          _id: "$AIP.bapId",
+          // _id: "$AIP.bapId",
+          _id: "$AIP.address",
           user: {
-            $first: "$AIP.identity",
+            // $first: "$AIP.identity",
+            $first: "$AIP.address",
           },
           last_message_time: {
             $last: "$timestamp",
@@ -107,7 +109,6 @@ var queryFriends = (idKey) => {
     v: 3,
     q: {
       find: {
-        "MAP.type": "friend",
         $or: [{ "AIP.bapId": idKey }, { "MAP.bapID": idKey }],
       },
 
@@ -167,7 +168,6 @@ var queryChannels = {
     aggregate: [
       {
         $match: {
-          "MAP.type": "message",
           "MAP.channel": { $not: { $regex: "^\\s*$|^$|_enc$" } },
         },
       },
@@ -176,10 +176,24 @@ var queryChannels = {
       },
       {
         $group: {
-          _id: { $toLower: "$MAP.channel" },
-          channel: { $first: { $toLower: "$MAP.channel" } },
+          _id: {
+            $cond: [
+              { $eq: [{ $type: "$MAP.channel" }, "string"] },
+              { $toLower: "$MAP.channel" },
+              "$MAP.channel",
+            ],
+          },
+          channel: {
+            $first: {
+              $cond: [
+                { $eq: [{ $type: "$MAP.channel" }, "string"] },
+                { $toLower: "$MAP.channel" },
+                "$MAP.channel",
+              ],
+            },
+          },
           creator: { $first: "$MAP.paymail" },
-          last_message: { $last: "$B.content" },
+          last_message: { $last: "$tx.h" },
           last_message_time: { $last: "$timestamp" },
           messages: { $sum: 1 },
         },
@@ -189,6 +203,7 @@ var queryChannels = {
     limit: 100,
   },
 };
+
 var queryChannelsB64 = btoa(JSON.stringify(queryChannels));
 
 const query = (verboseMode, channelId, userId, myId) => {
@@ -197,7 +212,8 @@ const query = (verboseMode, channelId, userId, myId) => {
     v: 3,
     q: {
       find: {
-        "MAP.type": verboseMode ? { $in: ["post", "message"] } : "message",
+        // verbose mode dead for now
+        // "MAP.type": verboseMode ? { $in: ["post", "message"] } : "message",
       },
       sort: {
         timestamp: -1,
@@ -230,7 +246,7 @@ const queryReactions = (txIds) => {
     v: 3,
     q: {
       find: {
-        "MAP.type": "like",
+        // "MAP.type": "like",
         "MAP.tx": { $in: txIds || [] },
       },
       sort: {
@@ -249,7 +265,7 @@ const queryDiscordReactions = (messageIds) => {
     v: 3,
     q: {
       find: {
-        "MAP.type": "like",
+        // "MAP.type": "like",
         "MAP.messageID": { $in: messageIds || [] },
       },
       sort: {
@@ -264,24 +280,24 @@ const queryDiscordReactions = (messageIds) => {
 };
 
 export const getPinnedChannels = async () => {
-  return await api.get(`${queryPinnedChannelsB64}?d=pins`);
+  return await api.get(`pin_channel/${queryPinnedChannelsB64}?d=pins`);
 };
 
 export const getChannels = async () => {
-  return await api.get(`${queryChannelsB64}?d=channels`);
+  return await api.get(`message/${queryChannelsB64}?d=channels`);
 };
 
 export const getUsers = async () => {
-  return await api.get(`${queryUsersB64}?d=users`);
+  return await api.get(`messages/${queryUsersB64}?d=users`);
 };
 
 export const getFriends = async (idKey) => {
-  return await api.get(`${queryFriendsB64(idKey)}?d=friends`);
+  return await api.get(`friend/${queryFriendsB64(idKey)}?d=friends`);
 };
 
 export const getMessages = async (channelId, userId, myId) => {
   return await api.get(
-    `${query(verboseMode, channelId, userId, myId)}?d=messages`
+    `message/${query(verboseMode, channelId, userId, myId)}?d=messages`
   );
 };
 
@@ -290,12 +306,14 @@ export const getReactions = async (txIds) => {
     console.log("no txids for reactions");
     return [];
   }
-  return await api.get(`${queryReactions(txIds)}?d=reactions`);
+  return await api.get(`like/${queryReactions(txIds)}?d=reactions`);
 };
 
 export const getDiscordReactions = async (messageIds) => {
   if (!messageIds?.length) {
     return [];
   }
-  return await api.get(`${queryDiscordReactions(messageIds)}?d-disc-react`);
+  return await api.get(
+    `like/${queryDiscordReactions(messageIds)}?d-disc-react`
+  );
 };

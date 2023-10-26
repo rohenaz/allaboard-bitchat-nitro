@@ -37,8 +37,8 @@ import RetrofeedIcon from "../icons/RetrofeedIcon";
 import Avatar from "./Avatar";
 import Hashtag from "./Hashtag";
 import Message from "./Message";
-import PinChannelModal from "./modals/PinChannelModal";
 import UserPopover from "./UserPopover";
+import PinChannelModal from "./modals/PinChannelModal";
 
 const Wrapper = styled.div`
   background-color: var(--background-primary);
@@ -267,7 +267,7 @@ const Messages = () => {
             });
             try {
               const decryptedContent = decrypt(
-                head(message.B).content,
+                head(message.B)?.Data?.utf8,
                 friendPrivateKey,
                 messageSelf
                   ? undefined
