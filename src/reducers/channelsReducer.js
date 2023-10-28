@@ -54,7 +54,7 @@ const channelsSlice = createSlice({
     receiveNewChannel(state, action) {
       const channel = action.payload;
       if (!state.byId[channel.channel]) {
-        state.byId[channel.channell] = [];
+        state.byId[channel.channel] = [];
       }
 
       if (!state.allIds.includes(channel.channel)) {
@@ -72,12 +72,13 @@ const channelsSlice = createSlice({
     },
     receiveNewPin(state, action) {
       const pin = action.payload;
-      if (!state.pins.byChannel[head(pin.MAP).channel]) {
-        state.pins.byChannel[head(pin.MAP).channel] = [];
+      const mapChannel = head(pin.MAP).channel;
+      if (!state.pins.byChannel[mapChannel]) {
+        state.pins.byChannel[mapChannel] = [];
       }
-      state.pins.byChannel[head(pin.MAP).channel].push(pin);
-      if (!state.pins.allChannels.includes(head(pin.MAP).channel)) {
-        state.pins.allChannels.push(head(pin.MAP).channel);
+      state.pins.byChannel[mapChannel].push(pin);
+      if (!state.pins.allChannels.includes(mapChannel)) {
+        state.pins.allChannels.push(mapChannel);
       }
     },
     setActiveChannel(state, action) {
@@ -99,11 +100,13 @@ const channelsSlice = createSlice({
         state.pins.loading = false;
 
         action.payload.pin_channel.forEach((pin) => {
-          const channel = state.byId[head(pin.MAP).channel];
+          const mapChannel = head(pin.MAP).channel;
+          const channel = state.byId[mapChannel];
 
           let paymentAmount = 0;
-
-          if (head(pin.MAP).channel === channel.channel) {
+          const proxyChannel = channel?.channel;
+          console.log({ channel, mapChannel, proxyChannel });
+          if (channel && mapChannel === channel.channel) {
             let paymentOutput = find(
               pin.out,
               (o) => o.e.a === pinPaymentAddress
@@ -120,12 +123,12 @@ const channelsSlice = createSlice({
               if (moment.unix(expireTime).diff(moment(), "minutes") > 0) {
                 console.log(moment.unix(expireTime).diff(moment(), "minutes"));
                 pin.expiresAt = expireTime;
-                if (!state.pins.byChannel[head(pin.MAP).channel]) {
-                  state.pins.byChannel[head(pin.MAP).channel] = [];
+                if (!state.pins.byChannel[mapChannel]) {
+                  state.pins.byChannel[mapChannel] = [];
                 }
-                state.pins.byChannel[head(pin.MAP).channel].push(pin);
-                if (!state.pins.allChannels.includes(head(pin.MAP).channel)) {
-                  state.pins.allChannels.push(head(pin.MAP).channel);
+                state.pins.byChannel[mapChannel].push(pin);
+                if (!state.pins.allChannels.includes(mapChannel)) {
+                  state.pins.allChannels.push(mapChannel);
                 }
               }
             }
@@ -139,6 +142,7 @@ const channelsSlice = createSlice({
         state.byId = {};
         state.allIds = [];
         state.loading = false;
+        console.log({ channelsPayload: action.payload });
         action.payload.message.forEach((c) => {
           //     return c;
           //   })
@@ -146,7 +150,7 @@ const channelsSlice = createSlice({
           //     a.pinned && !b.pinned ? -1 : a.timestamp > b.timestamp ? -1 : 1
           //   );
           // return newData;
-
+          console.log({ c });
           state.byId[c.channel] = c;
           state.allIds.push(c.channel);
         });

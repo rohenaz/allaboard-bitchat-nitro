@@ -87,7 +87,7 @@ const WriteArea = () => {
   const channelName =
     activeChannelId ||
     activeUserId ||
-    last(window.location.pathname.split("/"));
+    last(window?.location?.pathname?.split("/"));
 
   const changeContent = useCallback(
     (e) => {

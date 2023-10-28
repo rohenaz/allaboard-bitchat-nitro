@@ -247,11 +247,11 @@ exports.hcSendMessage = functions.https.onRequest(async (req, res) => {
   const description = (
     req.body.description ||
     `Message ${
-      req.body.channelId
-        ? "in #" + req.body.channelId
+      req.body.channel
+        ? "in #" + req.body.channel
         : req.body.userId
         ? "to @" + req.body.userId
-        : "global chat"
+        : "in global chat"
     }`
   ).slice(0, 25);
 

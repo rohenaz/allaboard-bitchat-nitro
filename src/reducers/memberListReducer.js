@@ -41,7 +41,7 @@ export const loadFriends = createAsyncThunk(
     try {
       const response = await channelAPI.getFriends(session.user.bapId);
       // dispatch(loadPins());
-      // console.log({ response });
+      console.log({ response });
       if (response?.data) {
         response.data.bapId = session.user.bapId;
       }
@@ -114,9 +114,9 @@ const memberListSlice = createSlice({
         state.friendRequests.loading = true;
       })
       .addCase(loadFriends.fulfilled, (state, action) => {
-        // console.log("load friends fullfiled");
+        console.log("load friends fullfiled", { payload: action.payload });
         state.friendRequests.loading = false;
-        action.payload.messages.forEach((friend) => {
+        action.payload.friend.forEach((friend) => {
           // exclude our original broken friend requests
           if (
             [

@@ -110,9 +110,9 @@ const Messages = () => {
   // Scroll to bottom of the chat history whenever there is a new message
   // or when messages finish loading
   const containerBottomRef = useRef(null);
-  const pathName = window.location.pathname.endsWith("/")
-    ? window.location.pathname.slice(0, -1)
-    : window.location.pathname;
+  const pathName = window?.location?.pathname?.endsWith("/")
+    ? window?.location?.pathname?.slice(0, -1)
+    : window?.location?.pathname;
   let pathId = last(pathName.split("/")) || null;
 
   // const activeChannelId = params.channel;

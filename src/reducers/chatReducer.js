@@ -118,7 +118,7 @@ const chatSlice = createSlice({
       }
 
       // play audio if channel matches or user matches
-      let pathId = last(window.location.pathname.split("/")) || null;
+      let pathId = last(window?.location?.pathname?.split("/")) || null;
 
       if (message.AIP) {
         // If DM

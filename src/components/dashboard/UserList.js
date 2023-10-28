@@ -199,7 +199,7 @@ const UserList = ({ activeUserId }) => {
               onMouseLeave={(e) => mouseOut(e.target.id)}
             />
           </Link>
-          <Link
+          <div
             style={{
               display: "flex",
               alignItems: "center",
@@ -221,7 +221,7 @@ const UserList = ({ activeUserId }) => {
                 height: "12px",
               }}
             />
-          </Link>
+          </div>
         </List>
         <List gap="2px">
           {!memberList.loading && memberList.allIds.map(renderUser)}

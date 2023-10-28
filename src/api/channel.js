@@ -193,7 +193,7 @@ var queryChannels = {
             },
           },
           creator: { $first: "$MAP.paymail" },
-          last_message: { $last: "$tx.h" },
+          last_message: { $last: "$B.Data.utf8" },
           last_message_time: { $last: "$timestamp" },
           messages: { $sum: 1 },
         },
