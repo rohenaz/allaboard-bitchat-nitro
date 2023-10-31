@@ -24,7 +24,7 @@ const sockQuery = (verbose) => {
 
 const socketMiddleware = () => {
   var sock_b64 = btoa(JSON.stringify(sockQuery(false)));
-  var socket_url = "https://b.map.sv/s/" + sock_b64;
+  var socket_url = "https://bmap-api-production.up.railway.app/q/" + sock_b64; // "https://b.map.sv/s/" + sock_b64;
 
   return (storeAPI) => {
     // socket

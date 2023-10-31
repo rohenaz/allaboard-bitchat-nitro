@@ -6,7 +6,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const api = axios.create({
-  baseURL: "https://b.map.sv/q/",
+  baseURL: "https://bmap-api-production.up.railway.app/q/", // "https://b.map.sv/q/",
 });
 
 const DirectMessageModal = ({ open, onClose }) => {
