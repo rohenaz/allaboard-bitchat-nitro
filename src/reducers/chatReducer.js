@@ -212,7 +212,7 @@ const chatSlice = createSlice({
 
           // Filter out txs with wrong encoding (oops)
           if (
-            message.B.encoding === "utf-8" &&
+            head(message.B).encoding === "utf-8" &&
             head(message.MAP).encrypted === "true"
           ) {
             return;
