@@ -330,8 +330,8 @@ const Messages = () => {
 
   useEffect(() => {
     if (messages) {
-      console.log("load reactions for", messages.allTxIds);
-      dispatch(loadReactions(messages.allTxIds));
+      // console.log("load reactions for", messages.allIds, { messages });
+      dispatch(loadReactions(messages.allIds));
       dispatch(loadDiscordReactions(messages.allMessageIds));
     }
   }, [messages, activeUser, activeChannelId]);

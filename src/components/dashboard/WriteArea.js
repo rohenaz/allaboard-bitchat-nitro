@@ -118,14 +118,13 @@ const WriteArea = () => {
       if (content !== "" && (paymail || profile?.paymail)) {
         event.target.reset();
         try {
-          const resp = await sendMessage(
+          await sendMessage(
             paymail || profile?.paymail,
             content,
             activeChannelId,
             activeUserId,
             decIdentity
           );
-          console.log({ resp });
         } catch (e) {
           console.log("dispatch error message", e);
           dispatch(

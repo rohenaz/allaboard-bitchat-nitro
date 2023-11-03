@@ -216,7 +216,6 @@ const query = (verboseMode, channelId, userId, myId) => {
         // "MAP.type": verboseMode ? { $in: ["post", "message"] } : "message",
       },
       sort: {
-        timestamp: -1,
         "blk.t": -1,
       },
       limit: 100,
@@ -250,7 +249,6 @@ const queryReactions = (txIds) => {
         "MAP.tx": { $in: txIds || [] },
       },
       sort: {
-        timestamp: -1,
         "blk.t": -1,
       },
       limit: 1000,
@@ -269,7 +267,6 @@ const queryDiscordReactions = (messageIds) => {
         "MAP.messageID": { $in: messageIds || [] },
       },
       sort: {
-        timestamp: -1,
         "blk.t": -1,
       },
       limit: 1000,
