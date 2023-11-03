@@ -134,8 +134,8 @@ const chatSlice = createSlice({
       }
 
       if (
-        (!pathId && !message.MAP?.channel) ||
-        pathId?.toLowerCase() === message.MAP?.channel?.toLowerCase()
+        (!pathId && !head(message.MAP)?.channel) ||
+        pathId?.toLowerCase() === head(message.MAP)?.channel?.toLowerCase()
       ) {
         // IF CHANNEL or GLOBAL
         audio.play();
