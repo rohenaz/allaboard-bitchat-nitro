@@ -22,7 +22,9 @@ import { getSigningPathFromHex } from "../../utils/sign";
 import { useBap } from "../bap";
 import { useBmap } from "../bmap";
 import { useHandcash } from "../handcash";
+import { usePanda } from "../panda";
 import { useRelay } from "../relay";
+
 const { BAP } = require("bitcoin-bap");
 const ECIES = require("bsv/ecies");
 const BitcoinContext = React.createContext(undefined);
@@ -31,6 +33,7 @@ const BitcoinProvider = (props) => {
   const { notifyIndexer } = useBmap();
   const { authToken, hcDecrypt } = useHandcash();
   const { relayOne, ready } = useRelay();
+  const { pandaProfile, utxos, broadcast, getSignatures } = usePanda();
   const { decIdentity, decryptStatus } = useBap();
   const [pinStatus, setPinStatus] = useState(FetchStatus.Idle);
   const [postStatus, setPostStatus] = useState(FetchStatus.Idle);
@@ -59,6 +62,10 @@ const BitcoinProvider = (props) => {
   const activeUserId = useMemo(() => {
     return params.user;
   }, [params]);
+
+  useEffect(() => {
+    console.log({ utxos });
+  }, [utxos?.length]);
 
   const signOpReturnWithAIP = useCallback(
     async (hexArray) => {
@@ -124,7 +131,7 @@ const BitcoinProvider = (props) => {
   );
 
   useEffect(() => {
-    console.log({ friendRequestsLoading });
+    console.log({ friendRequestsLoading, pandaProfile });
   }, [friendRequestsLoading]);
 
   const sendPin = useCallback(
@@ -299,6 +306,7 @@ const BitcoinProvider = (props) => {
   const sendMessage = useCallback(
     async (pm, content, channel, userId, decIdentity) => {
       setPostStatus(FetchStatus.Loading);
+
       try {
         let dataPayload = [
           B_PREFIX, // B Prefix
@@ -451,6 +459,86 @@ const BitcoinProvider = (props) => {
           return;
         }
 
+        // Send with panda
+        if (pandaProfile && utxos) {
+          let scriptP;
+          if (decIdentity) {
+            const signedOps = await signOpReturnWithAIP(hexArray);
+            scriptP = nimble.Script.fromASM(
+              "OP_0 OP_RETURN " + signedOps.join(" ")
+            );
+          } else {
+            scriptP = nimble.Script.fromASM(
+              "OP_0 OP_RETURN " +
+                dataPayload
+                  .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
+                  .join(" ")
+            );
+          }
+          let outputsP = [
+            { script: scriptP.toASM(), amount: 0, currency: "BSV" },
+          ];
+          console.log("Making a panda tx", { outputsP, pandaProfile });
+          let tx = new nimble.Transaction();
+
+          let sigRequests = [];
+          for (let idx = 0; idx < utxos?.length; idx++) {
+            const input = utxos[idx];
+            tx = tx.input(
+              new nimble.Transaction.Input(
+                input.txid,
+                input.vout,
+                nimble.Script.fromASM(input.script),
+                0xffffffff,
+                new nimble.Transaction.Output(
+                  nimble.Script.fromASM(input.script),
+                  input.satoshis,
+                  tx
+                )
+              )
+            );
+            sigRequests.push({
+              prevTxId: input.txid,
+              outputIndex: input.vout,
+              inputIndex: idx,
+              satoshis: input.satoshis,
+              address: nimble.Script.fromASM(input.script)
+                .toAddress()
+                .toString(),
+              scriptHex: nimble.Script.fromASM(input.script).toHex(),
+            });
+          }
+          // add outputs
+          for (let output of outputsP) {
+            tx = tx.output({
+              script: output.script,
+              satoshis: output.amount,
+            });
+          }
+          tx = tx.change(pandaProfile.addresses.bsvAddress);
+
+          const sigResponses = await getSignatures({
+            txHex: tx.toString(),
+            sigRequests,
+          });
+
+          console.log({ sigRequests, sigResponses });
+
+          // set scripts on inputs
+          for (let idx = 0; idx < sigResponses.length; idx++) {
+            const sigResponse = sigResponses[idx];
+            const input = tx.inputs[idx];
+
+            const asm = `${sigResponse.sig} ${sigResponse.publicKey}`;
+            input.script = nimble.Script.fromASM(asm);
+          }
+
+          const r = await broadcast({ rawtx: tx.toString() });
+
+          console.log("made a tx to send to panda", { tx, r });
+          return;
+        }
+
         // Send with relay
         let script;
         if (decIdentity) {
@@ -502,6 +590,7 @@ const BitcoinProvider = (props) => {
       }
     },
     [
+      broadcast,
       storeAPI,
       activeUserId,
       relayOne,
@@ -511,6 +600,8 @@ const BitcoinProvider = (props) => {
       receiveNewMessage,
       dispatch,
       ready,
+      pandaProfile,
+      utxos,
     ]
   );
 

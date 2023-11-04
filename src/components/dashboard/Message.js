@@ -336,7 +336,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
               justifyContent: "center",
             }}
           >
-            {message.AIP?.verified && (
+            {head(message.AIP)?.verified && (
               <div
                 onClick={() =>
                   window.open(

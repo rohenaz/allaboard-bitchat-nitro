@@ -9,6 +9,7 @@ import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
+import { usePanda } from "../../context/panda";
 import { useRelay } from "../../context/relay";
 import { useActiveUser } from "../../hooks";
 import {
@@ -44,6 +45,7 @@ const WriteArea = () => {
   // const user = useSelector((state) => state.session.user);
   const { paymail, ready } = useRelay();
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
+  const { connected, pandaProfile } = usePanda();
   const { sendMessage, postStatus, pendingFiles, setPendingFiles } =
     useBitcoin();
   const params = useParams();
@@ -97,8 +99,8 @@ const WriteArea = () => {
   );
 
   const guest = useMemo(() => {
-    return !authToken && !paymail;
-  }, [authToken, paymail]);
+    return !authToken && !paymail && !pandaProfile;
+  }, [authToken, paymail, pandaProfile]);
 
   const togglePlusPopover = useCallback(() => {
     setShowPlusPopover(!showPlusPopover);
@@ -106,20 +108,22 @@ const WriteArea = () => {
 
   const handleSubmit = useCallback(
     async (event) => {
-      if (!authToken && !ready) {
+      if (!authToken && !ready && !connected) {
         // TODO: Create
-        console.log("Cannot post. Relay not loaded and no Handcash auth");
+        console.log(
+          "Cannot post. Relay not loaded and no Handcash auth and no panda connection"
+        );
         return;
       }
 
       event.preventDefault();
       const content = event.target.msg_content.value;
       setMessageContent("");
-      if (content !== "" && (paymail || profile?.paymail)) {
+      if (content !== "" && (paymail || profile?.paymail || pandaProfile)) {
         event.target.reset();
         try {
           await sendMessage(
-            paymail || profile?.paymail,
+            paymail || profile?.paymail || pandaProfile?.displayName,
             content,
             activeChannelId,
             activeUserId,
@@ -154,6 +158,7 @@ const WriteArea = () => {
       ready,
       messageContent,
       sendMessage,
+      connected,
     ]
   );
 

@@ -82,7 +82,7 @@ const Header = ({ isFriendsPage }) => {
   }, [params]);
 
   const guest = useMemo(() => {
-    return !authToken && !paymail;
+    return !authToken && !paymail && !activeUser;
   }, [authToken, paymail]);
 
   return (
