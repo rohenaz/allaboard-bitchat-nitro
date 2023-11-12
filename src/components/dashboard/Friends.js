@@ -1,5 +1,6 @@
 import { head, uniq } from "lodash";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Nav } from "rsuite";
 import NavItem from "rsuite/esm/Nav/NavItem";
 import styled from "styled-components";
@@ -25,6 +26,7 @@ const HeaderContainer = styled.div`
 `;
 
 const Friends = () => {
+  const navigate = useNavigate()
   const { onFileChange, identity, loadIdentityStatus } = useBap();
 
   const incomingFriendRequests = useSelector(
@@ -36,9 +38,13 @@ const Friends = () => {
 
   const memberList = useSelector((state) => state.memberList);
 
-  const handleClick = () => {
-    console.log(`clicked`);
+  const handleClick = (e, bapId) => {
+ 
+    // navigate to user page
+    navigate(`/@/${bapId}`)
+
   };
+
 
   if (!identity) {
     return (
@@ -71,28 +77,20 @@ const Friends = () => {
           {!memberList.friendRequests.loading && (
             // make this columnar
             <div>
-              Incoming
+                 <div className="my-4 font-semibold">
+                 Incoming Friend Requests
+              </div>
               <div>
                 {uniq(incomingFriendRequests.allIds).map((ifrId) => {
                   const ifr = incomingFriendRequests.byId[ifrId];
+                  // this is wrong its getting the user recieving the request, not the signer
+                  // const signer = memberList.signers.byId[head(ifr.MAP).bapID];
+                  const signer = ifr.signer
                   console.log({ ifr });
                   return (
                     <div key={ifrId}>
-                      From: {ifr.signer.identity?.paymail || ifr.signer.idKey}
-                    </div>
-                  );
-                })}
-              </div>
-              <br />
-              Outgoing
-              <div>
-                {uniq(outgoingFriendRequests.allIds).map((ofrId) => {
-                  const ofr = outgoingFriendRequests.byId[ofrId];
-                  const signer = memberList.signers.byId[head(ofr.MAP).bapID];
-                  console.log({ ofr });
-                  return (
-                    <div key={ofrId}>
-                      <div onClick={handleClick} className="flex gap-2 my-2">
+
+<div className="flex gap-2 my-2" onClick={(e) => handleClick(e, signer.idKey)}>
                         <Avatar
                           size="27px"
                           w="40px"
@@ -101,7 +99,41 @@ const Friends = () => {
                           paymail={signer.identity?.paymail}
                           icon={signer.identity?.logo}
                         />
-                        {signer.identity?.paymail || signer.idKey}
+                        <div className="flex flex-col">
+                        <div className="text-gray-400">{signer.identity?.paymail || signer.idKey}</div>
+                        <div  >{signer.identity?.alternateName}</div>
+                        
+                        </div>
+                      </div>
+
+
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="my-4 font-semibold">
+              Waiting for Approval
+              </div>
+              <div>
+                {uniq(outgoingFriendRequests.allIds).map((ofrId) => {
+                  const ofr = outgoingFriendRequests.byId[ofrId];
+                  const signer = memberList.signers.byId[head(ofr.MAP).bapID];
+                  console.log({ ofr });
+                  return (
+                    <div key={ofrId}>
+                      <div onClick={(e) => handleClick(e, signer.idKey) } className="flex gap-2 my-2">
+                        <Avatar
+                          size="27px"
+                          w="40px"
+                          //bgColor={message.user.avatarColor}
+                          bgcolor={`#000`}
+                          paymail={signer.identity?.paymail}
+                          icon={signer.identity?.logo}
+                        />
+                        <div className="flex flex-col">
+                        <div className="text-gray-400">{signer.identity?.paymail || signer.idKey}</div>
+                        <div>{signer.identity?.alternateName}</div>
+                        </div>
                       </div>
                     </div>
                   );

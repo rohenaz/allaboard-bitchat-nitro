@@ -208,9 +208,6 @@ const ChannelList = ({ activeChannelId }) => {
     ]
   );
 
-  useEffect(() => {
-    console.log({ user });
-  }, [user]);
 
   return (
     <Container className="disable-select">

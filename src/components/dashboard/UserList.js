@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FaPlus, FaUserFriends } from "react-icons/fa";
 import { MdArrowBack } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -120,8 +120,9 @@ const UserList = ({ activeUserId }) => {
 
   const renderUser = useCallback(
     (id) => {
-      // console.log({ member: memberList.byId[id] });
+      console.log({ member: memberList.byId[id] });
       const member = memberList.byId[id];
+      // TODO avatar needs a vallback image
       return (
         <Link
           key={id}
@@ -129,8 +130,8 @@ const UserList = ({ activeUserId }) => {
           onClick={() => !isInDesktop && dispatch(toggleSidebar())}
         >
           <ListItem
-            icon={<Avatar w={32} h={32} icon={member.user?.logo} />}
-            text={member.user?.alternateName || id || "global"}
+            icon={<Avatar w={32} h={32} icon={member?.identity.logo} />}
+            text={member.identity?.alternateName || id || "global"}
             style={{
               gap: "8px",
               padding: "8px 4px",
@@ -158,6 +159,10 @@ const UserList = ({ activeUserId }) => {
   const clickDm = useCallback(() => {
     setShowDirectMessageModal(true);
   }, [showDirectMessageModal]);
+
+const user = useMemo(() => {
+  return session.memberList?.signers.byId[session.user.idKey]
+}, [session])
 
   return (
     <Container className="disable-select">
@@ -234,11 +239,11 @@ const UserList = ({ activeUserId }) => {
           // bgColor={user.avatarColor}
           bgcolor={"#000"}
           status="online"
-          paymail={session?.user?.paymail || paymail || profile?.paymail}
+          paymail={user?.paymail || paymail || profile?.paymail}
         />
         {/* <Username>{user.username}</Username> */}
         <Username>
-          {session?.user?.alternateName || paymail || profile?.paymail}
+          {user?.identity?.alternateName || paymail || profile?.paymail}
         </Username>
       </Footer>
       <DirectMessageModal

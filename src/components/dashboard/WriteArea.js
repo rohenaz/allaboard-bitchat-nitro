@@ -233,6 +233,7 @@ const WriteArea = () => {
     return activeUser && session.user?.bapId === activeUser?._id;
   }, [session, activeUser]);
 
+  console.log({activeUser})
   return (
     <Container>
       <Form onSubmit={handleSubmit} autocomplete="off" className="relative">
@@ -279,7 +280,7 @@ const WriteArea = () => {
           autocomplete="off"
           className={paymail ? `pl-12` : `pl-4`}
           placeholder={
-            !session.user?.bapId && activeUser
+            !activeUser?.idKey && activeUser
               ? `DMs Disabled`
               : activeUser && loadingMembers
               ? `Loading members...`
