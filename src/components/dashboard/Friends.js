@@ -1,9 +1,9 @@
-import userEvent from "@testing-library/user-event";
 import { head, uniq } from "lodash";
 import { useSelector } from "react-redux";
 import { Nav } from "rsuite";
 import NavItem from "rsuite/esm/Nav/NavItem";
 import styled from "styled-components";
+import { useBap } from "../../context/bap";
 
 const Wrapper = styled.div`
   background-color: var(--background-primary);
@@ -24,15 +24,23 @@ const HeaderContainer = styled.div`
 `;
 
 const Friends = () => {
+
+  const { onFileChange, identity, loadIdentityStatus } = useBap();
+
+
   const incomingFriendRequests = useSelector(
     (state) => state.memberList.friendRequests.incoming
   );
   const outgoingFriendRequests = useSelector(
     (state) => state.memberList.friendRequests.outgoing
   );
+  const signers = useSelector((state) => state.signers);
+  
   const memberList = useSelector((state) => state.memberList);
 
-  if (!userEvent._id) {
+
+  
+  if (!identity) {
     return (
       <Wrapper className="scrollable">
         <Container>
@@ -61,14 +69,17 @@ const Friends = () => {
         <div>
           {memberList.friendRequests.loading ? `Loading...` : ``}
           {!memberList.friendRequests.loading && (
+            // make this columnar
             <div>
               Incoming:
               <div>
                 {uniq(incomingFriendRequests.allIds).map((ifrId) => {
+
                   const ifr = incomingFriendRequests.byId[ifrId];
+                  console.log({ifr})
                   return (
-                    <div>
-                      To: {head(ifr.MAP).bapID} From: {head(ifr.AIP).bapId}
+                    <div className="flex flex-col" key={ifrId}>
+                     <div>To: {head(ifr.MAP).bapID}</div><div>From: {head(ifr.AIP).address}</div>
                     </div>
                   );
                 })}
@@ -78,8 +89,9 @@ const Friends = () => {
               <div>
                 {uniq(outgoingFriendRequests.allIds).map((ofrId) => {
                   const ofr = outgoingFriendRequests.byId[ofrId];
+                  console.log({ofr})
                   return (
-                    <div>
+                    <div key={ofrId} className="flex flex-col">
                       To: {head(ofr.MAP).bapID} From: {head(ofr.AIP).bapId}
                     </div>
                   );

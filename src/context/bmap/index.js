@@ -1,9 +1,9 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 
 const BmapContext = React.createContext(undefined);
 
 const BmapProvider = (props) => {
-  const notifyIndexer = useCallback((rawTx) => {
+  const notifyIndexer = (rawTx) => {
     return new Promise((resolve, reject) => {
       fetch("https://bmap-api-production.up.railway.app/ingest", {
         // `https://b.map.sv/ingest`, {
@@ -13,15 +13,22 @@ const BmapProvider = (props) => {
         },
         body: JSON.stringify({ rawTx }),
       })
-        .then((tx) =>
-          tx
-            .json()
-            .then(resolve)
-            .catch((e) => reject(e))
-        )
-        .catch((e) => reject(e));
+        .then((resp) => {
+          console.log({ resp });
+          const json = resp.json();
+          resolve(json);
+        })
+        .catch((e) => {
+          reject(e);
+        });
+      //     console.log({ resp });
+      //     const json = await resp.json();
+      //     resolve(json);
+      //   } catch (e) {
+      //     reject(e);
+      //   }
     });
-  }, []);
+  };
 
   const value = useMemo(
     () => ({

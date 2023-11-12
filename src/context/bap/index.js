@@ -111,8 +111,11 @@ const BapProvider = (props) => {
           // console.log({ encryptedData });
           setIdentity(encryptedData);
         } else {
-          const { encryptedData } = await relayEncrypt(JSON.parse(text));
-          setIdentity(encryptedData);
+          // TODO: Handle encrypt / decrypt with panda
+          alert("ToDo: Handle encrypt / decrypt with panda");
+          return;
+          // const { encryptedData } = await relayEncrypt(JSON.parse(text));
+          // setIdentity(encryptedData);
         }
         setLoadIdentityStatus(FetchStatus.Success);
       } catch (e) {

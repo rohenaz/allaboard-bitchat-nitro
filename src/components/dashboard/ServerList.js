@@ -131,7 +131,7 @@ const ServerList = () => {
             isDiscord
             onClick={() => {
               if (session?.user?.bapId) {
-                navigate(`/@/${session.user.bapId}`);
+                navigate(`/@/${session.user.idKey}`);
               }
             }}
           >

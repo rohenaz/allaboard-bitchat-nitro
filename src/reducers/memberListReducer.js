@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { head } from "lodash";
+import { find, head } from "lodash";
 import * as channelAPI from "../api/channel";
 
 const initialState = {
@@ -10,6 +10,10 @@ const initialState = {
   isOpen: false,
   loading: true,
   // friends: [],
+  signers: {
+    byId: {},
+    allIds: [],
+  },
   friendRequests: {
     loading: true,
     incoming: { allIds: [], byId: {} },
@@ -37,13 +41,13 @@ export const loadFriends = createAsyncThunk(
   "memberList/loadFriends",
   async (_, { dispatch, rejectWithValue, getState }) => {
     const { session } = getState();
-    console.log("bap id set in state", session.user.bapId);
+    console.log("bap id set in state", session.user.idKey);
     try {
-      const response = await channelAPI.getFriends(session.user.bapId);
+      const response = await channelAPI.getFriends(session.user.idKey);
       // dispatch(loadPins());
       console.log({ response });
       if (response?.data) {
-        response.data.bapId = session.user.bapId;
+        response.data.bapId = session.user.idKey;
       }
       return response?.data;
     } catch (err) {
@@ -103,10 +107,12 @@ const memberListSlice = createSlice({
       .addCase(loadUsers.fulfilled, (state, action) => {
         state.loading = false;
         console.log("load users fulfilled");
-        action.payload.messages.forEach((user) => {
-          if (!state.allIds.includes(user._id)) {
-            state.byId[user._id] = user;
-            state.allIds.push(user._id);
+        action.payload.forEach((user) => {
+          // these are now bap identities
+          console.log("memberList reducer", { user });
+          if (!state.allIds.includes(user.idKey)) {
+            state.byId[user.idKey] = user;
+            state.allIds.push(user.idKey);
           }
         });
       })
@@ -127,15 +133,34 @@ const memberListSlice = createSlice({
           ) {
             return;
           }
-          const requester = head(friend.AIP).bapId;
+          // add to signers
+          action.payload.signers.forEach((signer) => {
+            if (!state.signers.allIds.includes(signer.currentAddress)) {
+              state.signers.allIds.push(signer.currentAddress);
+              state.signers.byId[signer.currentAddress] = signer;
+            }
+          });
+          // add to friend requests
+          const requesterAddress = head(friend.AIP).address;
+          const requester = find(action.payload.signers, (s) => {
+            return s.currentAddress === requesterAddress;
+          })?.idKey;
+          console.log({ requester });
           const recipient = head(friend.MAP).bapID;
+
+          if (!requester) {
+            console.log("wtfd no requester?", {
+              friend,
+              signers: action.payload.signers,
+            })
+          }
           // If logged in user is the recipient
-          if (recipient === action.payload.bapId) {
+          if (requester && recipient === action.payload.bapId) {
             // build my pending list
             state.friendRequests.incoming.allIds.push(requester);
 
             state.friendRequests.incoming.byId[requester] = friend;
-          } else if (requester === action.payload.bapId) {
+          } else if (requester && requester === action.payload.bapId) {
             state.friendRequests.outgoing.allIds.push(recipient);
 
             state.friendRequests.outgoing.byId[recipient] = friend;

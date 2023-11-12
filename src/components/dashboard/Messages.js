@@ -406,7 +406,7 @@ const Messages = () => {
   const addFriend = useCallback(() => {
     if (activeUser && decIdentity.xprv) {
       // console.log("add friend", activeUser);
-      sendFriendRequest(activeUser._id, decIdentity.xprv);
+      sendFriendRequest(activeUser.idKey, decIdentity.xprv);
     } else {
       console.error("no goods!");
     }
@@ -477,8 +477,8 @@ const Messages = () => {
   if (
     activeUser &&
     !friendRequests.loading &&
-    friendRequests.incoming.allIds.includes(activeUser._id) &&
-    !friendRequests.outgoing.allIds.includes(activeUser._id)
+    friendRequests.incoming.allIds.includes(activeUser.idKey) &&
+    !friendRequests.outgoing.allIds.includes(activeUser.idKey)
     // !activeUser.isFriend
   ) {
     console.log({ activeUser, friendRequests });
@@ -508,8 +508,8 @@ const Messages = () => {
   if (
     activeUser &&
     friendRequests &&
-    friendRequests.outgoing.allIds.includes(activeUser._id) &&
-    !friendRequests.incoming.allIds.includes(activeUser._id)
+    friendRequests.outgoing.allIds.includes(activeUser.idKey) &&
+    !friendRequests.incoming.allIds.includes(activeUser.idKey)
   ) {
     return (
       <Wrapper className="scrollable">
@@ -532,8 +532,8 @@ const Messages = () => {
     activeUser &&
     !decIdentity?.result?.commsPublicKey &&
     !(
-      friendRequests.incoming.allIds.includes(activeUser._id) &&
-      friendRequests.outgoing.allIds.includes(activeUser._id)
+      friendRequests.incoming.allIds.includes(activeUser.idKey) &&
+      friendRequests.outgoing.allIds.includes(activeUser.idKey)
     ) &&
     !friendRequests.loading
   ) {
@@ -570,8 +570,8 @@ const Messages = () => {
     !self &&
     !activeUser?.user?.commsPublicKey &&
     !(
-      friendRequests.incoming.allIds.includes(activeUser._id) &&
-      friendRequests.outgoing.allIds.includes(activeUser._id)
+      friendRequests.incoming.allIds.includes(activeUser.idKey) &&
+      friendRequests.outgoing.allIds.includes(activeUser.idKey)
     ) &&
     !friendRequests.loading
   ) {
@@ -604,8 +604,8 @@ const Messages = () => {
           <SecondaryHeading>{subheading}</SecondaryHeading>
           {activeUser &&
             session &&
-            friendRequests.outgoing.allIds.includes(activeUser._id) &&
-            friendRequests.incoming.allIds.includes(activeUser._id) && (
+            friendRequests.outgoing.allIds.includes(activeUser.idKey) &&
+            friendRequests.incoming.allIds.includes(activeUser.idKey) && (
               <div>FRIENDS</div>
             )}
           {decryptStatus !== FetchStatus.Loading &&
@@ -707,7 +707,10 @@ const Messages = () => {
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           user={user}
           setShowPopover={setShowPopover}
-          self={user.AIP?.bapId === session?.user?.bapId}
+          self={
+            head(user.AIP)?.bapId === session?.user?.bapId ||
+            user.idKey === session?.user?.bapId
+          }
         />
         <PinChannelModal
           open={showPinChannelModal}

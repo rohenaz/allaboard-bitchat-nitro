@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://bmap-api-production.up.railway.app/q/", // "https://b.map.sv/q/",
+  baseURL: "https://bmap-api-production.up.railway.app/", // "https://b.map.sv/q/",
 });
 
 const verboseMode = false;
@@ -31,51 +31,51 @@ var queryPinnedChannels = {
 };
 var queryPinnedChannelsB64 = btoa(JSON.stringify(queryPinnedChannels));
 
-var queryUsers = {
-  v: 3,
-  q: {
-    aggregate: [
-      {
-        $match: {
-          "AIP.bapId": {
-            $exists: true,
-          },
-        },
-      },
-      {
-        $project: {
-          user: 1,
-          "AIP.bapId": 1,
-          "AIP.identity": 1,
-          timestamp: 1,
-        },
-      },
-      {
-        $sort: {
-          timestamp: -1,
-        },
-      },
-      {
-        $group: {
-          // _id: "$AIP.bapId",
-          _id: "$AIP.address",
-          user: {
-            // $first: "$AIP.identity",
-            $first: "$AIP.address",
-          },
-          last_message_time: {
-            $last: "$timestamp",
-          },
-          actions: {
-            $sum: 1,
-          },
-        },
-      },
-    ],
-    sort: { last_message_time: -1 },
-    limit: 100,
-  },
-};
+// var queryUsers = {
+//   v: 3,
+//   q: {
+//     aggregate: [
+//       {
+//         $match: {
+//           "AIP.bapId": {
+//             $exists: true,
+//           },
+//         },
+//       },
+//       {
+//         $project: {
+//           user: 1,
+//           "AIP.bapId": 1,
+//           "AIP.identity": 1,
+//           timestamp: 1,
+//         },
+//       },
+//       {
+//         $sort: {
+//           timestamp: -1,
+//         },
+//       },
+//       {
+//         $group: {
+//           // _id: "$AIP.bapId",
+//           _id: "$AIP.address",
+//           user: {
+//             // $first: "$AIP.identity",
+//             $first: "$AIP.address",
+//           },
+//           last_message_time: {
+//             $last: "$timestamp",
+//           },
+//           actions: {
+//             $sum: 1,
+//           },
+//         },
+//       },
+//     ],
+//     sort: { last_message_time: -1 },
+//     limit: 100,
+//   },
+// };
 
 // var queryUsers = {
 //   v: 3,
@@ -102,14 +102,14 @@ var queryUsers = {
 //     limit: 100,
 //   },
 // };
-var queryUsersB64 = btoa(JSON.stringify(queryUsers));
+// var queryUsersB64 = btoa(JSON.stringify(queryUsers));
 
-var queryFriends = (idKey) => {
+var queryFriends = (idKey, signingAddress) => {
   return {
     v: 3,
     q: {
       find: {
-        $or: [{ "AIP.bapId": idKey }, { "MAP.bapID": idKey }],
+        $or: [{ "AIP.address": signingAddress }, { "MAP.bapID": idKey }],
       },
 
       sort: { timestamp: -1 },
@@ -280,24 +280,26 @@ const queryDiscordReactions = (messageIds) => {
 };
 
 export const getPinnedChannels = async () => {
-  return await api.get(`pin_channel/${queryPinnedChannelsB64}?d=pins`);
+  return await api.get(`q/pin_channel/${queryPinnedChannelsB64}?d=pins`);
 };
 
 export const getChannels = async () => {
-  return await api.get(`message/${queryChannelsB64}?d=channels`);
+  return await api.get(`q/message/${queryChannelsB64}?d=channels`);
 };
 
 export const getUsers = async () => {
-  return await api.get(`messages/${queryUsersB64}?d=users`);
+  // https://bmap-api-production.up.railway.app/identities
+  // return await api.get(`q/messages/${queryUsersB64}?d=users`);
+  return await api.get(`/identities`);
 };
 
 export const getFriends = async (idKey) => {
-  return await api.get(`friend/${queryFriendsB64(idKey)}?d=friends`);
+  return await api.get(`q/friend/${queryFriendsB64(idKey)}?d=friends`);
 };
 
 export const getMessages = async (channelId, userId, myId) => {
   return await api.get(
-    `message/${query(verboseMode, channelId, userId, myId)}?d=messages`
+    `q/message/${query(verboseMode, channelId, userId, myId)}?d=messages`
   );
 };
 
@@ -306,7 +308,7 @@ export const getReactions = async (txIds) => {
     console.log("no txids for reactions");
     return [];
   }
-  return await api.get(`like/${queryReactions(txIds)}?d=reactions`);
+  return await api.get(`q/like/${queryReactions(txIds)}?d=reactions`);
 };
 
 export const getDiscordReactions = async (messageIds) => {
@@ -314,6 +316,6 @@ export const getDiscordReactions = async (messageIds) => {
     return [];
   }
   return await api.get(
-    `like/${queryDiscordReactions(messageIds)}?d-disc-react`
+    `q/like/${queryDiscordReactions(messageIds)}?d-disc-react`
   );
 };

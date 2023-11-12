@@ -33,7 +33,7 @@ const BitcoinProvider = (props) => {
   const { notifyIndexer } = useBmap();
   const { authToken, hcDecrypt } = useHandcash();
   const { relayOne, ready } = useRelay();
-  const { pandaProfile, utxos, broadcast, getSignatures } = usePanda();
+  const { pandaProfile, utxos, broadcast, getSignatures, sendBsv } = usePanda();
   const { decIdentity, decryptStatus } = useBap();
   const [pinStatus, setPinStatus] = useState(FetchStatus.Idle);
   const [postStatus, setPostStatus] = useState(FetchStatus.Idle);
@@ -479,63 +479,77 @@ const BitcoinProvider = (props) => {
             { script: scriptP.toASM(), amount: 0, currency: "BSV" },
           ];
           console.log("Making a panda tx", { outputsP, pandaProfile });
-          let tx = new nimble.Transaction();
 
-          let sigRequests = [];
-          for (let idx = 0; idx < utxos?.length; idx++) {
-            const input = utxos[idx];
-            tx = tx.input(
-              new nimble.Transaction.Input(
-                input.txid,
-                input.vout,
-                nimble.Script.fromASM(input.script),
-                0xffffffff,
-                new nimble.Transaction.Output(
-                  nimble.Script.fromASM(input.script),
-                  input.satoshis,
-                  tx
-                )
-              )
-            );
-            sigRequests.push({
-              prevTxId: input.txid,
-              outputIndex: input.vout,
-              inputIndex: idx,
-              satoshis: input.satoshis,
-              address: nimble.Script.fromASM(input.script)
-                .toAddress()
-                .toString(),
-              scriptHex: nimble.Script.fromASM(input.script).toHex(),
-            });
-          }
-          // add outputs
-          for (let output of outputsP) {
-            tx = tx.output({
-              script: output.script,
-              satoshis: output.amount,
-            });
-          }
-          tx = tx.change(pandaProfile.addresses.bsvAddress);
+          //  sendBsv: (params: SendBsv[]) => Promise<string | undefined>;
+          const { txid, rawtx } = await sendBsv([
+            {
+              script: scriptP.toHex(),
+              satAmount: 0,
+            },
+          ]);
+          console.log({ txid });
 
-          const sigResponses = await getSignatures({
-            txHex: tx.toString(),
-            sigRequests,
-          });
+          // let tx = new nimble.Transaction();
 
-          console.log({ sigRequests, sigResponses });
+          // // add outputs
+          // for (let output of outputsP) {
+          //   tx = tx.output({
+          //     script: output.script,
+          //     satoshis: output.amount,
+          //   });
+          // }
 
-          // set scripts on inputs
-          for (let idx = 0; idx < sigResponses.length; idx++) {
-            const sigResponse = sigResponses[idx];
-            const input = tx.inputs[idx];
+          // let sigRequests = [];
+          // for (let idx = 0; idx < utxos?.length; idx++) {
+          //   const input = utxos[idx];
+          //   tx = tx.input(
+          //     new nimble.Transaction.Input(
+          //       input.txid,
+          //       input.vout,
+          //       new nimble.Script(),
+          //       0xffffffff,
+          //       new nimble.Transaction.Output(
+          //         nimble.Script.fromASM(input.script),
+          //         input.satoshis
+          //       )
+          //     )
+          //   );
+          //   sigRequests.push({
+          //     prevTxId: input.txid,
+          //     outputIndex: input.vout,
+          //     inputIndex: idx,
+          //     satoshis: input.satoshis,
+          //     address: pandaProfile.addresses.bsvAddress,
+          //     scriptHex: nimble.Script.fromASM(input.script).toHex(),
+          //   });
+          // }
 
-            const asm = `${sigResponse.sig} ${sigResponse.publicKey}`;
-            input.script = nimble.Script.fromASM(asm);
-          }
+          // tx = tx.change(pandaProfile.addresses.bsvAddress);
 
-          const r = await broadcast({ rawtx: tx.toString() });
+          // const sigResponses = await getSignatures({
+          //   txHex: tx.toString(),
+          //   sigRequests,
+          // });
 
-          console.log("made a tx to send to panda", { tx, r });
+          // console.log({ sigRequests, sigResponses });
+
+          // // set scripts on inputs
+          // for (let idx = 0; idx < sigResponses.length; idx++) {
+          //   const sigResponse = sigResponses[idx];
+          //   const input = tx.inputs[sigResponse.inputIndex];
+
+          //   const asm = `${sigResponse.sig} ${sigResponse.publicKey}`;
+          //   input.script = nimble.Script.fromASM(asm);
+          //   tx.inputs[sigResponse.inputIndex] = input;
+          // }
+
+          // console.log({ rawTx: tx.toString() });
+          // const r = await broadcast({ rawtx: tx.toString() });
+
+          // console.log("made a tx to send to panda", { tx, r });
+
+          const tx = await notifyIndexer(rawtx);
+          console.log("indexer notified", { tx });
           return;
         }
 
@@ -602,6 +616,7 @@ const BitcoinProvider = (props) => {
       ready,
       pandaProfile,
       utxos,
+      sendBsv,
     ]
   );
 

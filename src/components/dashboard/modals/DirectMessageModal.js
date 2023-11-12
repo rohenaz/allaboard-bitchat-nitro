@@ -99,7 +99,7 @@ const DirectMessageModal = ({ open, onClose }) => {
   const queryUsersB64 = (term) => btoa(JSON.stringify(queryUsers(term)));
 
   const searchUsers = async (term) => {
-    return await api.get(`${queryUsersB64(term)}?d=search`);
+    return await api.get(`q/${queryUsersB64(term)}?d=search`);
   };
 
   const onSubmit = useCallback(async () => {

@@ -3,6 +3,7 @@ import React from "react";
 import Popover from "@mui/material/Popover";
 import styled from "styled-components";
 
+import { head } from "lodash";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -94,7 +95,7 @@ const Input = styled.input`
 `;
 
 const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
-  const userId = user.AIP?.bapId || user._id;
+  const userId = head(user.AIP)?.bapId || user.idKey;
   const navigate = useNavigate();
   const { authToken } = useHandcash();
   const { decIdentity } = useBap();

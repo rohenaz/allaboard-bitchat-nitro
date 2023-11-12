@@ -50,7 +50,7 @@ const sessionSlice = createSlice({
     setBapId(state, action) {
       // console.log("setting bap id to", action.payload);
       let newUser = Object.assign({}, state.user || {});
-      newUser.bapId = action.payload;
+      newUser.idKey = action.payload;
       state.user = newUser;
     },
   },
@@ -66,7 +66,7 @@ const sessionSlice = createSlice({
         if (!state.user) {
           state.user = {};
         }
-        state.user.bapId = action.payload;
+        state.user.idKey = action.payload;
         // console.log("login fullfulled", action.payload);
         state.error = null;
       })

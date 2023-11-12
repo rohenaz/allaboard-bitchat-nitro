@@ -73,6 +73,7 @@ const AutoPandaProvider = (props) => {
     broadcast,
     getBalance,
     getSignatures,
+    sendBsv,
   } = usePandaWallet();
   const [pandaProfile, setPandaProfile] = useLocalStorage(profileStorageKey);
   const [connected, setConnected] = useState(undefined);
@@ -122,6 +123,7 @@ const AutoPandaProvider = (props) => {
     setUtxos,
     getBalance,
     pandaProfile,
+    sendBsv,
   ]);
 
   const value = useMemo(
@@ -131,8 +133,9 @@ const AutoPandaProvider = (props) => {
       utxos,
       broadcast,
       getSignatures,
+      sendBsv,
     }),
-    [connected, pandaProfile, utxos, broadcast, getSignatures]
+    [connected, pandaProfile, utxos, broadcast, getSignatures, sendBsv]
   );
 
   return <PandaContext.Provider value={value} {...props} />;

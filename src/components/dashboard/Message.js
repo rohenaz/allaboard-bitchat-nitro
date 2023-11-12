@@ -1,19 +1,28 @@
 import { IconButton } from "@mui/material";
-import Autolinker from "autolinker";
 import EmojiPicker from "emoji-picker-react";
-import parse from "html-react-parser";
 import { head, uniqBy } from "lodash";
 import moment from "moment";
 import React, { useCallback, useMemo, useState } from "react";
 import { FaLock } from "react-icons/fa";
 import { MdAddReaction } from "react-icons/md";
 import OutsideClickHandler from "react-outside-click-handler";
-import sanitize from "sanitize-html";
+import { Remarkable } from "remarkable";
+import RemarkableReactRenderer from "remarkable-react";
 import styled from "styled-components";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import ArrowTooltip from "./ArrowTooltip";
+
+const md = new Remarkable({
+  html: true,
+  typographer: true,
+  breaks: true,
+  linkify: true,
+  linkTarget: "_blank",
+});
+md.renderer = new RemarkableReactRenderer();
+
 import Avatar from "./Avatar";
 
 const MessageButtons = styled.div`
@@ -250,31 +259,38 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     //   },
     // });
 
-    if (head(m.B)?.Data?.utf8?.length > 0) {
-      let chunks = head(m.B)?.Data?.utf8?.split(" ");
-      let idxs = [];
-      chunks.forEach((c, i) => {
-        if (c.startsWith("#")) {
-          idxs.push(i);
-        }
-      });
+    const data = head(m.B)?.Data?.utf8;
+    // if (data?.length > 0) {
+    //   return data;
 
-      for (let idx of idxs) {
-        let text = chunks[idx];
-        chunks[
-          idx
-        ] = `<a href="https://bitchatnitro.com/channels/${text.replace(
-          /[^a-zA-Z\-\d\s:]/g,
-          ""
-        )}">
-          ${text}
-          </a>`;
-      }
-      let l = Autolinker.link(chunks.join(" "));
-      return l;
-    }
+    //   // let chunks = head(m.B)?.Data?.utf8?.split(" ");
+    //   // let idxs = [];
+    //   // chunks.forEach((c, i) => {
+    //   //   if (c.startsWith("#")) {
+    //   //     idxs.push(i);
+    //   //   }
+    //   // });
 
-    return head(m.B)?.Data?.utf8;
+    //   // for (let idx of idxs) {
+    //   //   let text = chunks[idx];
+    //   //   chunks[
+    //   //     idx
+    //   //   ] = `[${text}](https://bitchatnitro.com/channels/${text.replace(
+    //   //     /[^a-zA-Z\-\d\s:]/g,
+    //   //     ""
+    //   //   )})`;
+    //   // }
+    //   // // let l = Autolinker.link(chunks.join(" "));
+    //   // // return DOMPurify.sanitize(marked(chunks.join(" ")));
+    //   // try {
+    //   //   const m = md.render(chunks.join(" "));
+    //   //   return m;
+    //   // } catch (e) {
+    //   //   console.error(e);
+    //   // }
+    // }
+
+    return data;
   }, [message]);
 
   // useEffect(() => console.log(messageContent), [messageContent]);
@@ -306,7 +322,8 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   );
 
   const parsedContent = useMemo(() => {
-    return parse(sanitize(messageContent));
+    return md.render(messageContent);
+    // return parse(sanitize(messageContent));
   }, [messageContent]);
 
   return (
