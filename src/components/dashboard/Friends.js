@@ -4,6 +4,7 @@ import { Nav } from "rsuite";
 import NavItem from "rsuite/esm/Nav/NavItem";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
+import Avatar from "./Avatar";
 
 const Wrapper = styled.div`
   background-color: var(--background-primary);
@@ -24,9 +25,7 @@ const HeaderContainer = styled.div`
 `;
 
 const Friends = () => {
-
   const { onFileChange, identity, loadIdentityStatus } = useBap();
-
 
   const incomingFriendRequests = useSelector(
     (state) => state.memberList.friendRequests.incoming
@@ -34,12 +33,13 @@ const Friends = () => {
   const outgoingFriendRequests = useSelector(
     (state) => state.memberList.friendRequests.outgoing
   );
-  const signers = useSelector((state) => state.signers);
-  
+
   const memberList = useSelector((state) => state.memberList);
 
+  const handleClick = () => {
+    console.log(`clicked`);
+  };
 
-  
   if (!identity) {
     return (
       <Wrapper className="scrollable">
@@ -66,33 +66,43 @@ const Friends = () => {
           </Nav>
         </HeaderContainer>
 
-        <div>
+        <div class="p-4 text-white">
           {memberList.friendRequests.loading ? `Loading...` : ``}
           {!memberList.friendRequests.loading && (
             // make this columnar
             <div>
-              Incoming:
+              Incoming
               <div>
                 {uniq(incomingFriendRequests.allIds).map((ifrId) => {
-
                   const ifr = incomingFriendRequests.byId[ifrId];
-                  console.log({ifr})
+                  console.log({ ifr });
                   return (
-                    <div className="flex flex-col" key={ifrId}>
-                     <div>To: {head(ifr.MAP).bapID}</div><div>From: {head(ifr.AIP).address}</div>
+                    <div key={ifrId}>
+                      From: {ifr.signer.identity?.paymail || ifr.signer.idKey}
                     </div>
                   );
                 })}
               </div>
               <br />
-              Outgoing:
+              Outgoing
               <div>
                 {uniq(outgoingFriendRequests.allIds).map((ofrId) => {
                   const ofr = outgoingFriendRequests.byId[ofrId];
-                  console.log({ofr})
+                  const signer = memberList.signers.byId[head(ofr.MAP).bapID];
+                  console.log({ ofr });
                   return (
-                    <div key={ofrId} className="flex flex-col">
-                      To: {head(ofr.MAP).bapID} From: {head(ofr.AIP).bapId}
+                    <div key={ofrId}>
+                      <div onClick={handleClick} className="flex gap-2 my-2">
+                        <Avatar
+                          size="27px"
+                          w="40px"
+                          //bgColor={message.user.avatarColor}
+                          bgcolor={`#000`}
+                          paymail={signer.identity?.paymail}
+                          icon={signer.identity?.logo}
+                        />
+                        {signer.identity?.paymail || signer.idKey}
+                      </div>
                     </div>
                   );
                 })}

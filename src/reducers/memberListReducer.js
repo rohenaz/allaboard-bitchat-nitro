@@ -135,13 +135,13 @@ const memberListSlice = createSlice({
           }
           // add to signers
           action.payload.signers.forEach((signer) => {
-            if (!state.signers.allIds.includes(signer.currentAddress)) {
-              state.signers.allIds.push(signer.currentAddress);
-              state.signers.byId[signer.currentAddress] = signer;
+            if (!state.signers.allIds.includes(signer.idKey)) {
+              state.signers.allIds.push(signer.idKey);
+              state.signers.byId[signer.idKey] = signer;
             }
           });
           // add to friend requests
-          const requesterAddress = head(friend.AIP).address;
+          const requesterAddress = head(friend.AIP)?.address;
           const requester = find(action.payload.signers, (s) => {
             return s.currentAddress === requesterAddress;
           })?.idKey;
@@ -159,10 +159,19 @@ const memberListSlice = createSlice({
             // build my pending list
             state.friendRequests.incoming.allIds.push(requester);
 
+            // attach the corresponding signer
+            friend = { signer: find(action.payload.signers, (s) => {
+              return s.idKey === requester;
+            }), ...friend };
             state.friendRequests.incoming.byId[requester] = friend;
           } else if (requester && requester === action.payload.bapId) {
             state.friendRequests.outgoing.allIds.push(recipient);
 
+            // attach the corresponding signer
+            friend = { signer: find(action.payload.signers, (s) => {
+              return s.idKey === requester;
+            }), ...friend };
+            
             state.friendRequests.outgoing.byId[recipient] = friend;
 
             // Friend matches
