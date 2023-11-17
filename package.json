@@ -55,7 +55,7 @@
     "tailwindcss": "^3.2.4"
   },
   "scripts": {
-    "start": "react-app-rewired --max-http-header-size=1024 start",
+    "dev": "react-app-rewired --max-http-header-size=1024 start",
     "build": "react-app-rewired build",
     "deploy": "yarn build && firebase deploy",
     "deploy-hosting": "yarn build && firebase deploy --only hosting",
