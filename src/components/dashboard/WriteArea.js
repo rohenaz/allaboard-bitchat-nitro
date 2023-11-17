@@ -28,10 +28,11 @@ import PlusModal from "./modals/PlusModal";
 
 const Container = styled.div`
   background-color: var(--background-primary);
-  padding: 8 16px;
+  padding: 8px 16px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
+  padding-bottom: calc(env(safe-area-inset-bottom)+8px);
 `;
 
 const Form = styled.form``;
@@ -257,7 +258,7 @@ const WriteArea = () => {
             )}
           </div>
         )}
-        {/* Images opnly enabled for relay users */}
+        {/* Images only enabled for relay users */}
         {paymail && (
           <div
             className="flex items-center justify-center absolute left-0 h-full w-12"
