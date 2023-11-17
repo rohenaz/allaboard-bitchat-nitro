@@ -28,7 +28,7 @@ import PlusModal from "./modals/PlusModal";
 
 const Container = styled.div`
   background-color: var(--background-primary);
-  height: 68px;
+  height: 48px;
   padding: 0 16px;
   flex: 0 0 auto;
 `;
