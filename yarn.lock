@@ -3298,7 +3298,7 @@ binary-extensions@^2.0.0:
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.2.0.tgz#75f502eeaf9ffde42fc98829645be4ea76bd9e2d"
   integrity sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==
 
-bitcoin-bap@^1.3.0:
+bitcoin-bap@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/bitcoin-bap/-/bitcoin-bap-1.3.1.tgz#02444fce613614bc8c4b1b0a2410d9b6caf38f05"
   integrity sha512-z7C7+AVXzcTxEv4ar+kjjRRuLjPEcl44+HjatmVWbs58lYBY/Kd++yMUe7JfCU45I76CyCVam8lSENVvDeLJ6A==

@@ -15,7 +15,7 @@
     "assert": "^2.0.0",
     "autolinker": "^4.0.0",
     "axios": "^0.24.0",
-    "bitcoin-bap": "^1.3.0",
+    "bitcoin-bap": "^1.3.1",
     "bops": "^1.0.1",
     "bsv": "^1.5.4",
     "crypto-browserify": "^3.12.0",
