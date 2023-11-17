@@ -2,11 +2,11 @@ import bsv from "bsv";
 import { head, last } from "lodash";
 import moment from "moment";
 import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { AiFillPushpin } from "react-icons/ai";
 import { FaTerminal } from "react-icons/fa";
@@ -18,16 +18,16 @@ import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import {
-  decrypt,
-  friendPrivateKeyFromSeedString,
-  useBitcoin,
+    decrypt,
+    friendPrivateKeyFromSeedString,
+    useBitcoin,
 } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { usePopover } from "../../hooks";
 import {
-  loadDiscordReactions,
-  loadMessages,
-  loadReactions,
+    loadDiscordReactions,
+    loadMessages,
+    loadReactions,
 } from "../../reducers/chatReducer";
 import { FetchStatus } from "../../utils/common";
 import "../common/slider.less";
@@ -45,7 +45,7 @@ const Wrapper = styled.div`
   display: flex;
   flex: 1;
   overflow: auto;
-  height: calc(100vh - 48px - 68px);
+  height: calc(100dvh - 48px - 68px);
 `;
 
 const AddFriendButton = styled.button`

@@ -28,9 +28,10 @@ import PlusModal from "./modals/PlusModal";
 
 const Container = styled.div`
   background-color: var(--background-primary);
-  height: 48px;
-  padding: 0 16px;
+  padding: 8 16px;
   flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Form = styled.form``;

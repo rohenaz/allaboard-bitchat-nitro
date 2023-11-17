@@ -54,7 +54,7 @@ const Heading = styled.h2`
 const Content = styled.div`
   background-color: var(--background-secondary);
   flex: 1;
-  height: calc(100vh - 48px - 52px);
+  height: calc(100dvh - 48px - 52px);
   padding: 10px 2px 10px 8px;
 `;
 

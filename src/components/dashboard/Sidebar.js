@@ -10,7 +10,7 @@ import UserList from "./UserList";
 const Container = styled.div`
   display: flex;
   flex: 0 0 auto;
-  height: 100vh;
+  height: 100dvh;
 `;
 
 const Sidebar = () => {

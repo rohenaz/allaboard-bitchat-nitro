@@ -14,13 +14,13 @@ const Container = styled.div`
   background-color: var(--background-secondary);
   width: 240px;
   flex: 0 0 auto;
-  height: calc(100vh - 48px);
+  height: calc(100dvh - 48px);
   overflow: hidden scroll;
   text-overflow: ellipsis;
   padding: 10px 2px 10px 12px;
 
   @media (max-width: 768px) {
-    height: 100vh;
+    height: 100dvh;
   }
 `;
 

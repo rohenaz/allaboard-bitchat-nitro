@@ -7,7 +7,7 @@ const Wrapper = styled.div`
   display: flex;
   align-items: center;
   background-color: var(--brand);
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   color: var(--text-muted);
   justify-content: center;
@@ -24,7 +24,7 @@ const Container = styled.div`
 
   @media only screen and (max-width: 550px) {
     padding: 16px;
-    min-height: 100vh;
+    min-height: 100dvh;
     min-width: 100vw;
     border-radius: 0;
     justify-content: flex-start;

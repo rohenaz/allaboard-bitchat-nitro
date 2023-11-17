@@ -12,7 +12,7 @@ const Wrapper = styled.div`
   display: flex;
   flex: 1;
   overflow: auto;
-  height: 100vh;
+  height: 100dvh;
   width: 100%;
 `;
 
