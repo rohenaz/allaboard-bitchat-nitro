@@ -25,7 +25,7 @@ const sockQuery = (verbose) => {
 const socketMiddleware = () => {
   var sock_b64 = btoa(JSON.stringify(sockQuery(false)));
   var socket_url =
-    "https://bmap-api-production.up.railway.app/s/message/" + sock_b64; // "https://b.map.sv/s/" + sock_b64;
+    "https://bmap-api-production.up.railway.app/s/$all/" + sock_b64; // "https://b.map.sv/s/" + sock_b64;
 
   return (storeAPI) => {
     // socket
@@ -36,66 +36,61 @@ const socketMiddleware = () => {
       let channelId = last(window?.location?.pathname?.split("/")) || null;
 
       console.log(res);
-      if (res.type === "push") {
-        const { session } = storeAPI.getState();
-        const { memberList } = storeAPI.getState();
-        data.myBapId = session.user?.bapId;
-        switch (head(data.MAP).type) {
-          case "like":
-            console.log("dispatch new like", data);
-            storeAPI.dispatch(receiveNewReaction(data));
-            break;
-          case "message":
-            if (head(data.MAP).context === "channel") {
-              storeAPI.dispatch(
-                receiveNewChannel({
-                  channel: head(data.MAP).channel,
-                  last_message_time: data.timestamp,
-                  last_message: head(data.B).Data.utf8,
-                  creator: head(data.MAP).paymail || head(data.AIP).bapId,
-                  messages: 1,
-                })
-              );
-            }
+      const { session } = storeAPI.getState();
+      const { memberList } = storeAPI.getState();
+      data.myBapId = session.user?.bapId;
+      switch (head(data.MAP).type) {
+        case "like":
+          console.log("dispatch new like", data);
+          storeAPI.dispatch(receiveNewReaction(data));
+          break;
+        case "message":
+          if (head(data.MAP).context === "channel") {
+            storeAPI.dispatch(
+              receiveNewChannel({
+                channel: head(data.MAP).channel,
+                last_message_time: data.timestamp,
+                last_message: head(data.B).Data.utf8,
+                creator: head(data.MAP).paymail || head(data.AIP).bapId,
+                messages: 1,
+              })
+            );
+          }
 
-            // If dm
-            if (data.AIP && head(data.MAP).context === "bapID") {
-              const toMe = head(data.MAP).bapID === data.myBapId;
-              const fromMe = data.myBapId === head(data.AIP).bapId;
+          // If dm
+          if (data.AIP && head(data.MAP).context === "bapID") {
+            const toMe = head(data.MAP).bapID === data.myBapId;
+            const fromMe = data.myBapId === head(data.AIP).bapId;
 
-              if (toMe) {
-                // new message to me via DM
-                const senderHasSentFriendRequest =
-                  memberList.friendRequests.incoming.byId[head(data.AIP).bapId];
+            if (toMe) {
+              // new message to me via DM
+              const senderHasSentFriendRequest =
+                memberList.friendRequests.incoming.byId[head(data.AIP).bapId];
 
-                const senderIsOutgoingFriend =
-                  memberList.friendRequests.outgoing.byId[head(data.AIP).bapId];
+              const senderIsOutgoingFriend =
+                memberList.friendRequests.outgoing.byId[head(data.AIP).bapId];
 
-                // new message to me via DM from FRIEND
-                if (senderHasSentFriendRequest && senderIsOutgoingFriend) {
-                  storeAPI.dispatch(receiveNewMessage(data));
-                }
-              } else if (fromMe) {
-                // new message from self via DM
+              // new message to me via DM from FRIEND
+              if (senderHasSentFriendRequest && senderIsOutgoingFriend) {
                 storeAPI.dispatch(receiveNewMessage(data));
               }
-            } else {
-              // Public message
-              if (
-                head(data.MAP).channel &&
-                head(data.MAP).channel == channelId
-              ) {
-                storeAPI.dispatch(receiveNewMessage(data));
-              }
+            } else if (fromMe) {
+              // new message from self via DM
+              storeAPI.dispatch(receiveNewMessage(data));
             }
-            break;
-          case "friend":
-            storeAPI.dispatch(receiveNewFriend(data));
-            break;
-          case "pin_channel":
-            storeAPI.dispatch(receiveNewPin(data));
-            break;
-        }
+          } else {
+            // Public message
+            if (head(data.MAP).channel && head(data.MAP).channel == channelId) {
+              storeAPI.dispatch(receiveNewMessage(data));
+            }
+          }
+          break;
+        case "friend":
+          storeAPI.dispatch(receiveNewFriend(data));
+          break;
+        case "pin_channel":
+          storeAPI.dispatch(receiveNewPin(data));
+          break;
       }
     };
 
