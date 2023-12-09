@@ -340,52 +340,55 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
         />
       </AvatarWrapper>
       <div style={{ width: "100%" }}>
-        <Header>
-          <Username onClick={handleClick}>
-            {head(message.AIP)?.identity?.alternateName ||
-              head(message.MAP).paymail}
-          </Username>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {head(message.AIP)?.verified && (
-              <div
-                onClick={() =>
-                  window.open(
-                    `https://whatsonchain.com/tx/${message.tx.h}`,
-                    "_blank"
-                  )
-                }
-                style={{
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <FaLock
-                  style={{
-                    width: ".6rem",
-                    marginRight: ".5rem",
-                    color: "#777",
-                  }}
-                />
+        <Header className="justify-between w-full !items-start">
+          <div className="flex flex-col md:flex-row justify-start">
+            <Username onClick={handleClick}>
+              {head(message.AIP)?.identity?.alternateName ||
+                head(message.MAP).paymail}
+            </Username>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {head(message.AIP)?.verified && (
                 <div
+                  onClick={() =>
+                    window.open(
+                      `https://whatsonchain.com/tx/${message.tx.h}`,
+                      "_blank"
+                    )
+                  }
                   style={{
-                    fontSize: ".75rem",
-                    color: "#777",
-                    marginRight: ".5rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  {head(message.AIP).bapId
-                    ? head(message.AIP).bapId.slice(0, 8)
-                    : ""}
+                  <FaLock
+                    style={{
+                      width: ".6rem",
+                      marginRight: ".5rem",
+                      color: "#777",
+                    }}
+                  />
+                  <div
+                    style={{
+                      fontSize: ".75rem",
+                      color: "#777",
+                      marginRight: ".5rem",
+                    }}
+                  >
+                    {head(message.AIP).bapId
+                      ? head(message.AIP).bapId.slice(0, 8)
+                      : ""}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             <Timestamp>
               {message.timestamp
                 ? moment.unix(message.timestamp).fromNow()
