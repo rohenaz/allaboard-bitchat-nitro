@@ -63,22 +63,29 @@ const IdentityIcon = ({ ...delegated }) => {
   );
 };
 
-const BitPicIcon = ({ ...delegated }) => {
+const BitPicIcon = ({ paymail, ...delegated }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const imageUrl = paymail?.includes("handcash.io")
+    ? `https://cloud.handcash.io/v2/users/profilePicture/${
+        paymail.split("@")[0]
+      }`
+    : paymail?.includes("relayx.io")
+    ? `https://a.relayx.com/u/${paymail}`
+    : `https://bitpic.network/u/${paymail}`;
+
   return (
     <Wrapper color="white" {...delegated}>
-      <img
-        src={
-          delegated.paymail?.includes("handcash.io")
-            ? `https://cloud.handcash.io/v2/users/profilePicture/${head(
-                delegated.paymail.split("@")
-              )}`
-            : delegated.paymail?.includes("relayx.io")
-            ? `https://a.relayx.com/u/${delegated.paymail}`
-            : `https://bitpic.network/u/${delegated.paymail}`
-        }
-        {...delegated}
-        style={{ borderRadius: "50%" }}
-      />
+      {imageError ? (
+        <FaTerminal {...delegated} style={{ borderRadius: "50%" }} />
+      ) : (
+        <img
+          src={imageUrl}
+          {...delegated}
+          style={{ borderRadius: "50%" }}
+          onError={() => setImageError(true)}
+        />
+      )}
     </Wrapper>
   );
 };
