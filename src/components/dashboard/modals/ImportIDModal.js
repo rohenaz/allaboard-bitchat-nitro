@@ -74,7 +74,7 @@ const ImportIDModal = () => {
               {loadIdentityStatus === FetchStatus.Error && (
                 <div>Error loading identity file</div>
               )}
-              <ol style={{ marginBottom: "1rem" }}>
+              <ol className="mb-2">
                 <li>Visit blockpost.network</li>
                 <li>Export your identity file</li>
                 <li>Import it here</li>
@@ -82,14 +82,7 @@ const ImportIDModal = () => {
 
               <button
                 onClick={uploadIdentity}
-                style={{
-                  background: "#000",
-                  padding: "1rem",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  margin: "auto",
-                }}
+                className="bg-slate-800 px-2 py-1 text-white flex items-center m-auto rounded"
               >
                 <FaUpload style={{ marginRight: ".5rem" }} />{" "}
                 {loadIdentityStatus === FetchStatus.Loading
