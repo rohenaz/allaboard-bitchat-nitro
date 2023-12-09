@@ -17,7 +17,7 @@ const HandcashProvider = (props) => {
     // if we dont have the paymail, get it
     if (authToken) {
       try {
-        const resp = await fetch(`https://bitchatnitro.com/hcprofile`, {
+        const resp = await fetch(`https://api.bitchatnitro.com/hcProfile`, {
           method: "POST",
           headers: {
             "Content-type": "application/json",
@@ -46,7 +46,7 @@ const HandcashProvider = (props) => {
 
         // if we dont have the paymail, get it
         if (authToken) {
-          fetch(`https://bitchatnitro.com/hcencrypt`, {
+          fetch(`https://api.bitchatnitro.com/hcEncrypt`, {
             method: "POST",
             headers: {
               "Content-type": "application/json",
@@ -84,7 +84,7 @@ const HandcashProvider = (props) => {
         if (authToken) {
           if (encryptedData) {
             setDecryptStatus(FetchStatus.Loading);
-            fetch(`https://bitchatnitro.com/hcdecrypt`, {
+            fetch(`https://api.bitchatnitro.com/hcDecrypt`, {
               method: "POST",
               headers: {
                 "Content-type": "application/json",

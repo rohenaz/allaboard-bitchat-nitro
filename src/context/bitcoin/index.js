@@ -163,7 +163,7 @@ const BitcoinProvider = (props) => {
           // decrypt and import identity
           const signedOps = await signOpReturnWithAIP(hexArray);
 
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -202,7 +202,7 @@ const BitcoinProvider = (props) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({ hexArray, authToken, channel }),
@@ -423,7 +423,7 @@ const BitcoinProvider = (props) => {
             console.log({ signedOps });
           }
 
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -652,7 +652,7 @@ const BitcoinProvider = (props) => {
 
           setLikeStatus(FetchStatus.Loading);
 
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -747,7 +747,7 @@ const BitcoinProvider = (props) => {
           const signedOps = await signOpReturnWithAIP(hexArray);
 
           // console.log({ signedOps });
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -783,7 +783,7 @@ const BitcoinProvider = (props) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`https://bitchatnitro.com/hcsend/`, {
+          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({ hexArray, authToken, userId: friendIdKey }),

@@ -36,7 +36,7 @@ const LoginPage = () => {
       //   dispatch(login({ identity }));
       // }
       if (event.target.wallet.value === "handcash") {
-        window.location.href = "https://bitchatnitro.com/hclogin";
+        window.location.href = "https://api.bitchatnitro.com/hcLogin";
         return;
       }
 
