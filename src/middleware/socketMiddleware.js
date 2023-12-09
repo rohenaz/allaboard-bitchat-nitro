@@ -33,6 +33,9 @@ const socketMiddleware = () => {
     socket.onmessage = (e) => {
       var res = JSON.parse(e.data);
       var data = res.data[0];
+      if (!data) {
+        return;
+      }
       let channelId = last(window?.location?.pathname?.split("/")) || null;
 
       console.log(res);
