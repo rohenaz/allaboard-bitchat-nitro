@@ -240,7 +240,11 @@ const WriteArea = () => {
   console.log({ activeUser });
   return (
     <Container>
-      <Form onSubmit={handleSubmit} autocomplete="off" className="relative">
+      <Form
+        onSubmit={handleSubmit}
+        autocomplete="off"
+        className="relative flex gap-2"
+      >
         {pendingFiles.length > 0 && (
           <div className="flex items-center absolute -mt-10 bg-[#222] w-full rounded p-2">
             <span className="font-semibold mr-2">Attachments:</span>
