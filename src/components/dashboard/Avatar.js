@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { head } from "lodash";
 import { FaTerminal } from "react-icons/fa";
@@ -82,7 +82,7 @@ const BitPicIcon = ({ paymail, ...delegated }) => {
         <img
           src={imageUrl}
           {...delegated}
-          style={{ borderRadius: "50%" }}
+          className="rounded-full transition"
           onError={() => setImageError(true)}
         />
       )}
