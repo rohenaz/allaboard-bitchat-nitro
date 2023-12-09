@@ -12,7 +12,7 @@ import { useHandcash } from "../../context/handcash";
 import { usePanda } from "../../context/panda";
 import { useRelay } from "../../context/relay";
 import { useActiveUser } from "../../hooks";
-import { SubmitButton } from "./SubmitButton";
+import SubmitButton from "./SubmitButton";
 
 import {
   receiveNewMessage,
