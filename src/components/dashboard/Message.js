@@ -18,7 +18,6 @@ const md = new Remarkable({
   html: true,
   typographer: true,
   breaks: true,
-  linkify: true,
   linkTarget: "_blank",
 });
 md.renderer = new RemarkableReactRenderer();
