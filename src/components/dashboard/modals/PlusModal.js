@@ -4,7 +4,7 @@ import OutsideClickHandler from "react-outside-click-handler";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { useBitcoin } from "../../../context/bitcoin";
-import { toggleFileUpload } from "../../../reducers/chatReducer";
+import { toggleFileUpload } from "../../../reducers/chatReducer.js";
 import { FetchStatus } from "../../../utils/common";
 
 export const costPerUnit = 0.025;

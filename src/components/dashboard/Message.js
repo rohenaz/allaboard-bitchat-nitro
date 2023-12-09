@@ -10,8 +10,8 @@ import { Remarkable } from "remarkable";
 import RemarkableReactRenderer from "remarkable-react";
 import styled from "styled-components";
 import { useBitcoin } from "../../context/bitcoin";
-import { useHandcash } from "../../context/handcash";
-import { useRelay } from "../../context/relay";
+import { useHandcash } from "../../context/handcash/index.js";
+import { useRelay } from "../../context/relay/index.js";
 import ArrowTooltip from "./ArrowTooltip";
 
 const md = new Remarkable({
@@ -341,18 +341,13 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
         />
       </AvatarWrapper>
       <div style={{ width: "100%" }}>
-        <Header>
-          <Username onClick={handleClick}>
-            {head(message.AIP)?.identity?.alternateName ||
-              head(message.MAP).paymail}
-          </Username>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+        <Header className="justify-between w-full !items-start">
+          <div className="flex flex-col md:flex-row justify-start">
+            <Username onClick={handleClick}>
+              {head(message.AIP)?.identity?.alternateName ||
+                head(message.MAP).paymail}
+            </Username>
+
             {head(message.AIP)?.verified && (
               <div
                 onClick={() =>
@@ -387,13 +382,14 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                 </div>
               </div>
             )}
-            <Timestamp>
-              {message.timestamp
-                ? moment.unix(message.timestamp).fromNow()
-                : moment.unix(message.blk.t).fromNow()}
-              {/* {message.editedAt ? " (edited)" : ""} */}
-            </Timestamp>
           </div>
+
+          <Timestamp>
+            {message.timestamp
+              ? moment.unix(message.timestamp).fromNow()
+              : moment.unix(message.blk.t).fromNow()}
+            {/* {message.editedAt ? " (edited)" : ""} */}
+          </Timestamp>
         </Header>
         {/* {showTextArea ? (
           <>

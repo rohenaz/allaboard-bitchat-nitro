@@ -3,8 +3,8 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 
-import { useRelay } from "../../context/relay";
-import { loadChannels } from "../../reducers/channelsReducer";
+import { useRelay } from "../../context/relay/index.js";
+import { loadChannels } from "../../reducers/channelsReducer.js";
 import Layout from "./Layout";
 
 const HomePage = () => {

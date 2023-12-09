@@ -1,6 +1,7 @@
 import nimble from "@runonbitcoin/nimble";
 import bops from "bops";
 import bsv from "bsv";
+import { Script, Transaction, TxOut } from "bsv-wasm";
 import { head } from "lodash";
 import moment from "moment";
 import React, {
@@ -12,11 +13,12 @@ import React, {
 } from "react";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import { useParams } from "react-router-dom";
-import { pinPaymentAddress } from "../../reducers/channelsReducer";
+import { useTokenPass } from "use-tokenpass";
+import { pinPaymentAddress } from "../../reducers/channelsReducer.js";
 import {
   receiveNewMessage,
   receiveNewReaction,
-} from "../../reducers/chatReducer";
+} from "../../reducers/chatReducer.js";
 import { FetchStatus } from "../../utils/common";
 import { getSigningPathFromHex } from "../../utils/sign";
 import { useBap } from "../bap";
@@ -30,6 +32,7 @@ const ECIES = require("bsv/ecies");
 const BitcoinContext = React.createContext(undefined);
 
 const BitcoinProvider = (props) => {
+  const { auth, signData } = useTokenPass();
   const { notifyIndexer } = useBmap();
   const { authToken, hcDecrypt } = useHandcash();
   const { relayOne, ready } = useRelay();
@@ -411,6 +414,33 @@ const BitcoinProvider = (props) => {
           return;
         }
 
+        // try sending with tokenpass first...
+        if (auth) {
+          const signedDataOuts = await signData(hexArray, "aip");
+
+          const tx = new Transaction(0, 0);
+          tx.add_output(
+            new TxOut(0, Script.from_asm_string(signedDataOuts.join(" ")))
+          );
+          const rawtx = tx.to_hex();
+          const resp = await fetch(`http://localhost:21000/vault/fund`, {
+            method: "POST",
+            headers: {
+              "Content-type": "application/json",
+            },
+            body: JSON.stringify({
+              rawtx,
+              broadcast: true,
+            }),
+          });
+          const filledTx = await resp.text();
+
+          console.log({ filledTx });
+
+          await notifyIndexer(rawtx);
+          console.log("indexer notified");
+          return;
+        }
         // Send with Handcash
         if (authToken) {
           let signedOps;
@@ -466,6 +496,12 @@ const BitcoinProvider = (props) => {
             const signedOps = await signOpReturnWithAIP(hexArray);
             scriptP = nimble.Script.fromASM(
               "OP_0 OP_RETURN " + signedOps.join(" ")
+            );
+          } else if (auth) {
+            // sign with tokenpass
+            const signedDataOuts = await signData(hexArray, "aip");
+            scriptP = nimble.Script.fromASM(
+              "OP_0 OP_RETURN " + signedDataOuts.join(" ")
             );
           } else {
             scriptP = nimble.Script.fromASM(

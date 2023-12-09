@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { find, head } from "lodash";
-import * as channelAPI from "../api/channel";
+import * as channelAPI from "../api/channel.js";
 
 const initialState = {
   active: null,
@@ -152,7 +152,7 @@ const memberListSlice = createSlice({
             console.log("wtfd no requester?", {
               friend,
               signers: action.payload.signers,
-            })
+            });
           }
           // If logged in user is the recipient
           if (requester && recipient === action.payload.bapId) {
@@ -160,18 +160,24 @@ const memberListSlice = createSlice({
             state.friendRequests.incoming.allIds.push(requester);
 
             // attach the corresponding signer
-            friend = { signer: find(action.payload.signers, (s) => {
-              return s.idKey === requester;
-            }), ...friend };
+            friend = {
+              signer: find(action.payload.signers, (s) => {
+                return s.idKey === requester;
+              }),
+              ...friend,
+            };
             state.friendRequests.incoming.byId[requester] = friend;
           } else if (requester && requester === action.payload.bapId) {
             state.friendRequests.outgoing.allIds.push(recipient);
 
             // attach the corresponding signer
-            friend = { signer: find(action.payload.signers, (s) => {
-              return s.idKey === requester;
-            }), ...friend };
-            
+            friend = {
+              signer: find(action.payload.signers, (s) => {
+                return s.idKey === requester;
+              }),
+              ...friend,
+            };
+
             state.friendRequests.outgoing.byId[recipient] = friend;
 
             // Friend matches

@@ -1,9 +1,9 @@
-const webpack = require("webpack");
-const path = require("path");
+import WebpackPluginReplaceNpm from "replace-module-webpack-plugin";
+import webpack from "webpack";
 
-module.exports = {
+const conf = {
   // The Webpack config to use when compiling your react app for development or production.
-  webpack: function (config, env) {
+  webpack: (config, env) => {
     // ...add your webpack config
     config.resolve.fallback = {
       ...config.resolve.fallback,
@@ -11,6 +11,7 @@ module.exports = {
       crypto: require.resolve("crypto-browserify"),
       assert: require.resolve("assert/"),
       stream: require.resolve("stream-browserify"),
+      fs: false,
     };
     config.resolve.extensions = [...config.resolve.extensions, ".ts", ".js"];
 
@@ -31,6 +32,18 @@ module.exports = {
       new webpack.ProvidePlugin({
         process: "process/browser",
         Buffer: ["buffer", "Buffer"],
+      }),
+      new WebpackPluginReplaceNpm({
+        rules: [
+          {
+            originModule: "path",
+            replaceModule: "path-browserify",
+          },
+          {
+            originModule: "bsv-wasm",
+            replaceModule: "bsv-wasm-web",
+          },
+        ],
       }),
     ];
 
@@ -53,3 +66,5 @@ module.exports = {
     return config;
   },
 };
+
+export default conf;

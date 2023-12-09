@@ -1,12 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import socketMiddleware from "./middleware/socketMiddleware";
-import channelsReducer from "./reducers/channelsReducer";
-import chatReducer from "./reducers/chatReducer";
-import memberListReducer from "./reducers/memberListReducer";
-import profileReducer from "./reducers/profileReducer";
-import sessionReducer from "./reducers/sessionReducer";
-import sidebarReducer from "./reducers/sidebarReducer";
+import socketMiddleware from "./middleware/socketMiddleware.js";
+import channelsReducer from "./reducers/channelsReducer.js";
+import chatReducer from "./reducers/chatReducer.js";
+import memberListReducer from "./reducers/memberListReducer.js";
+import profileReducer from "./reducers/profileReducer.js";
+import sessionReducer from "./reducers/sessionReducer.js";
+import sidebarReducer from "./reducers/sidebarReducer.js";
 
 const store = configureStore({
   reducer: {

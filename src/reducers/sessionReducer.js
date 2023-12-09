@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { loadFriends } from "../reducers/memberListReducer";
+import { loadFriends } from "../reducers/memberListReducer.js";
 
 export const login = createAsyncThunk(
   "session/login",

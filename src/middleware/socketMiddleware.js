@@ -1,7 +1,13 @@
 import { head, last } from "lodash";
-import { receiveNewChannel, receiveNewPin } from "../reducers/channelsReducer";
-import { receiveNewMessage, receiveNewReaction } from "../reducers/chatReducer";
-import { receiveNewFriend } from "../reducers/memberListReducer";
+import {
+  receiveNewChannel,
+  receiveNewPin,
+} from "../reducers/channelsReducer.js";
+import {
+  receiveNewMessage,
+  receiveNewReaction,
+} from "../reducers/chatReducer.js";
+import { receiveNewFriend } from "../reducers/memberListReducer.js";
 
 const sockQuery = (verbose) => {
   let q = {

@@ -6,19 +6,21 @@ import { IoMdClose } from "react-icons/io";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
-import { useBap } from "../../context/bap";
+import { useTokenPass } from "use-tokenpass";
+import { useBap } from "../../context/bap/index.js";
 import { useBitcoin } from "../../context/bitcoin";
-import { useHandcash } from "../../context/handcash";
+import { useHandcash } from "../../context/handcash/index.js";
 import { usePanda } from "../../context/panda";
-import { useRelay } from "../../context/relay";
+import { useRelay } from "../../context/relay/index.js";
 import { useActiveUser } from "../../hooks";
 import {
   receiveNewMessage,
   toggleFileUpload,
-} from "../../reducers/chatReducer";
+} from "../../reducers/chatReducer.js";
 import { FetchStatus } from "../../utils/common";
 import ChannelTextArea from "./ChannelTextArea";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
+import SubmitButton from "./SubmitButton";
 import PlusModal from "./modals/PlusModal";
 
 // if (typeof Buffer === "undefined") {
@@ -32,7 +34,6 @@ const Container = styled.div`
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  padding-bottom: calc(env(safe-area-inset-bottom)+8px);
 `;
 
 const Form = styled.form``;
@@ -48,6 +49,7 @@ const WriteArea = () => {
   const { paymail, ready } = useRelay();
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
   const { connected, pandaProfile } = usePanda();
+  const { auth } = useTokenPass();
   const { sendMessage, postStatus, pendingFiles, setPendingFiles } =
     useBitcoin();
   const params = useParams();
@@ -101,8 +103,8 @@ const WriteArea = () => {
   );
 
   const guest = useMemo(() => {
-    return !authToken && !paymail && !pandaProfile;
-  }, [authToken, paymail, pandaProfile]);
+    return !auth && !authToken && !paymail && !pandaProfile;
+  }, [authToken, paymail, pandaProfile, auth]);
 
   const togglePlusPopover = useCallback(() => {
     setShowPlusPopover(!showPlusPopover);
@@ -235,10 +237,14 @@ const WriteArea = () => {
     return activeUser && session.user?.bapId === activeUser?._id;
   }, [session, activeUser]);
 
-  console.log({activeUser})
+  console.log({ activeUser, guest, self });
   return (
     <Container>
-      <Form onSubmit={handleSubmit} autocomplete="off" className="relative">
+      <Form
+        onSubmit={handleSubmit}
+        autocomplete="off"
+        className="relative flex gap-2"
+      >
         {pendingFiles.length > 0 && (
           <div className="flex items-center absolute -mt-10 bg-[#222] w-full rounded p-2">
             <span className="font-semibold mr-2">Attachments:</span>
@@ -325,6 +331,7 @@ const WriteArea = () => {
               !decIdentity?.result?.commsPublicKey)
           }
         />
+        <SubmitButton />
         <InvisibleSubmitButton />
       </Form>
       <TypingStatus>

@@ -5,13 +5,13 @@ import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RDLink } from "react-router-dom";
 import styled from "styled-components";
-import { useBap } from "../../context/bap";
+import { useBap } from "../../context/bap/index.js";
 import { useBitcoin } from "../../context/bitcoin";
-import { useHandcash } from "../../context/handcash";
-import { useRelay } from "../../context/relay";
+import { useHandcash } from "../../context/handcash/index.js";
+import { useRelay } from "../../context/relay/index.js";
 import { useWindowWidth } from "../../hooks";
-import { loadChannels, unpinChannel } from "../../reducers/channelsReducer";
-import { toggleSidebar } from "../../reducers/sidebarReducer";
+import { loadChannels, unpinChannel } from "../../reducers/channelsReducer.js";
+import { toggleSidebar } from "../../reducers/sidebarReducer.js";
 import { FetchStatus } from "../../utils/common";
 import Avatar from "./Avatar";
 import Hashtag from "./Hashtag";
@@ -207,7 +207,6 @@ const ChannelList = ({ activeChannelId }) => {
       channels,
     ]
   );
-
 
   return (
     <Container className="disable-select">

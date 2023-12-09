@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { find, head } from "lodash";
 import moment from "moment";
-import * as channelAPI from "../api/channel";
-import { minutesPerUnit } from "../components/dashboard/modals/PinChannelModal";
+import * as channelAPI from "../api/channel.js";
+import { minutesPerUnit } from "../components/dashboard/modals/PinChannelModal.js";
 // TODO: Derive this from actual rates? tricky.. because pin expiration would become unpredictable
 const satsPerUnit = 100000;
 const msPerMinute = 100;
@@ -150,7 +150,7 @@ const channelsSlice = createSlice({
           //     a.pinned && !b.pinned ? -1 : a.timestamp > b.timestamp ? -1 : 1
           //   );
           // return newData;
-          console.log({ c });
+          // console.log({ c });
           state.byId[c.channel] = c;
           state.allIds.push(c.channel);
         });

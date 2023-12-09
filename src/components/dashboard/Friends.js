@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Nav } from "rsuite";
 import NavItem from "rsuite/esm/Nav/NavItem";
 import styled from "styled-components";
-import { useBap } from "../../context/bap";
+import { useBap } from "../../context/bap/index.js";
 import Avatar from "./Avatar";
 
 const Wrapper = styled.div`
@@ -26,7 +26,7 @@ const HeaderContainer = styled.div`
 `;
 
 const Friends = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { onFileChange, identity, loadIdentityStatus } = useBap();
 
   const incomingFriendRequests = useSelector(
@@ -39,12 +39,9 @@ const Friends = () => {
   const memberList = useSelector((state) => state.memberList);
 
   const handleClick = (e, bapId) => {
- 
     // navigate to user page
-    navigate(`/@/${bapId}`)
-
+    navigate(`/@/${bapId}`);
   };
-
 
   if (!identity) {
     return (
@@ -77,20 +74,20 @@ const Friends = () => {
           {!memberList.friendRequests.loading && (
             // make this columnar
             <div>
-                 <div className="my-4 font-semibold">
-                 Incoming Friend Requests
-              </div>
+              <div className="my-4 font-semibold">Incoming Friend Requests</div>
               <div>
                 {uniq(incomingFriendRequests.allIds).map((ifrId) => {
                   const ifr = incomingFriendRequests.byId[ifrId];
                   // this is wrong its getting the user recieving the request, not the signer
                   // const signer = memberList.signers.byId[head(ifr.MAP).bapID];
-                  const signer = ifr.signer
+                  const signer = ifr.signer;
                   console.log({ ifr });
                   return (
                     <div key={ifrId}>
-
-<div className="flex gap-2 my-2" onClick={(e) => handleClick(e, signer.idKey)}>
+                      <div
+                        className="flex gap-2 my-2"
+                        onClick={(e) => handleClick(e, signer.idKey)}
+                      >
                         <Avatar
                           size="27px"
                           w="40px"
@@ -100,20 +97,17 @@ const Friends = () => {
                           icon={signer.identity?.logo}
                         />
                         <div className="flex flex-col">
-                        <div className="text-gray-400">{signer.identity?.paymail || signer.idKey}</div>
-                        <div  >{signer.identity?.alternateName}</div>
-                        
+                          <div className="text-gray-400">
+                            {signer.identity?.paymail || signer.idKey}
+                          </div>
+                          <div>{signer.identity?.alternateName}</div>
                         </div>
                       </div>
-
-
                     </div>
                   );
                 })}
               </div>
-              <div className="my-4 font-semibold">
-              Waiting for Approval
-              </div>
+              <div className="my-4 font-semibold">Waiting for Approval</div>
               <div>
                 {uniq(outgoingFriendRequests.allIds).map((ofrId) => {
                   const ofr = outgoingFriendRequests.byId[ofrId];
@@ -121,7 +115,10 @@ const Friends = () => {
                   console.log({ ofr });
                   return (
                     <div key={ofrId}>
-                      <div onClick={(e) => handleClick(e, signer.idKey) } className="flex gap-2 my-2">
+                      <div
+                        onClick={(e) => handleClick(e, signer.idKey)}
+                        className="flex gap-2 my-2"
+                      >
                         <Avatar
                           size="27px"
                           w="40px"
@@ -131,8 +128,10 @@ const Friends = () => {
                           icon={signer.identity?.logo}
                         />
                         <div className="flex flex-col">
-                        <div className="text-gray-400">{signer.identity?.paymail || signer.idKey}</div>
-                        <div>{signer.identity?.alternateName}</div>
+                          <div className="text-gray-400">
+                            {signer.identity?.paymail || signer.idKey}
+                          </div>
+                          <div>{signer.identity?.alternateName}</div>
                         </div>
                       </div>
                     </div>

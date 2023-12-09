@@ -7,9 +7,9 @@ import { head } from "lodash";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useBap } from "../../context/bap";
-import { useHandcash } from "../../context/handcash";
-import { receiveNewMessage } from "../../reducers/chatReducer";
+import { useBap } from "../../context/bap/index.js";
+import { useHandcash } from "../../context/handcash/index.js";
+import { receiveNewMessage } from "../../reducers/chatReducer.js";
 import Avatar, { GreenDotWrapper } from "./Avatar";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
 

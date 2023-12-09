@@ -8,7 +8,7 @@ import React, {
 import Script from "react-load-script";
 import { FetchStatus } from "../../utils/common";
 import { lsTest, useLocalStorage } from "../../utils/storage";
-import { MAP_PREFIX } from "../bitcoin";
+import { MAP_PREFIX } from "../bitcoin.js";
 
 // export interface RelaySignResult {
 //   algorithm: 'bitcoin-signed-message';

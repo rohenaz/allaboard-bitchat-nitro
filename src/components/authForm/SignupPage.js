@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 
-import { loadChannels } from "../../reducers/channelsReducer";
+import { loadChannels } from "../../reducers/channelsReducer.js";
 import Form from "./Form";
 import Input from "./Input";
 import Label from "./Label";

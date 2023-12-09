@@ -83,10 +83,10 @@ const AutoPandaProvider = (props) => {
   useEffect(() => {
     const fire = async () => {
       try {
-        // const c = await isConnected();
-        // if (!c || ) {
-        await connect();
-        // }
+        const c = await isConnected();
+        if (!c && props.autoconnect) {
+          await connect();
+        }
         setConnected(true);
       } catch (e) {
         setConnected(false);
@@ -95,7 +95,7 @@ const AutoPandaProvider = (props) => {
     if (isReady && connected === undefined) {
       fire();
     }
-  }, [isConnected, isReady, connected, connect]);
+  }, [isConnected, isReady, connected, connect, props]);
 
   useEffect(() => {
     const fire = async () => {

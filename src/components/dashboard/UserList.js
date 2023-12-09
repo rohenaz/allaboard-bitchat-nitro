@@ -4,12 +4,12 @@ import { MdArrowBack } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RDLink } from "react-router-dom";
 import styled from "styled-components";
-import { useBap } from "../../context/bap";
-import { useHandcash } from "../../context/handcash";
-import { useRelay } from "../../context/relay";
+import { useBap } from "../../context/bap/index.js";
+import { useHandcash } from "../../context/handcash/index.js";
+import { useRelay } from "../../context/relay/index.js";
 import { useWindowWidth } from "../../hooks";
-import { loadUsers } from "../../reducers/memberListReducer";
-import { toggleSidebar } from "../../reducers/sidebarReducer";
+import { loadUsers } from "../../reducers/memberListReducer.js";
+import { toggleSidebar } from "../../reducers/sidebarReducer.js";
 import Avatar from "./Avatar";
 import List from "./List";
 import ListItem from "./ListItem";
@@ -160,9 +160,9 @@ const UserList = ({ activeUserId }) => {
     setShowDirectMessageModal(true);
   }, [showDirectMessageModal]);
 
-const user = useMemo(() => {
-  return session.memberList?.signers.byId[session.user.idKey]
-}, [session])
+  const user = useMemo(() => {
+    return session.memberList?.signers.byId[session.user.idKey];
+  }, [session]);
 
   return (
     <Container className="disable-select">

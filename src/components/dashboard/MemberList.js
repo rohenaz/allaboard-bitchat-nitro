@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { usePopover } from "../../hooks";
-import { loadUsers } from "../../reducers/memberListReducer";
+import { loadUsers } from "../../reducers/memberListReducer.js";
 import Avatar from "./Avatar";
 import List from "./List";
 import ListItem from "./ListItem";

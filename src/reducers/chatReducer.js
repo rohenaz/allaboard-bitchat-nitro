@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { head, last } from "lodash";
-import * as channelAPI from "../api/channel";
+import * as channelAPI from "../api/channel.js";
 import { validateEmail } from "../utils/strings.js";
 
 var audio = new Audio("https://bitchatnitro.com/audio/notify.mp3");

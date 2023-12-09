@@ -6,16 +6,16 @@ import { useParams } from "react-router-dom";
 import Drawer from "@mui/material/Drawer";
 import styled, { css } from "styled-components";
 
-import { useBap } from "../../context/bap";
+import { useBap } from "../../context/bap/index.js";
 import { hideInDesktop } from "../../design/mixins";
 import { useWindowWidth } from "../../hooks";
-import { setActiveChannel } from "../../reducers/channelsReducer";
+import { setActiveChannel } from "../../reducers/channelsReducer.js";
 import {
   setActiveUser,
   toggleMemberList,
-} from "../../reducers/memberListReducer";
-import { login } from "../../reducers/sessionReducer";
-import { toggleSidebar } from "../../reducers/sidebarReducer";
+} from "../../reducers/memberListReducer.js";
+import { login } from "../../reducers/sessionReducer.js";
+import { toggleSidebar } from "../../reducers/sidebarReducer.js";
 import ChatArea from "./ChatArea";
 import Friends from "./Friends";
 import Header from "./Header";
