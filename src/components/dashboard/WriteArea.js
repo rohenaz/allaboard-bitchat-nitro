@@ -12,6 +12,8 @@ import { useHandcash } from "../../context/handcash";
 import { usePanda } from "../../context/panda";
 import { useRelay } from "../../context/relay";
 import { useActiveUser } from "../../hooks";
+import { SubmitButton } from "./SubmitButton";
+
 import {
   receiveNewMessage,
   toggleFileUpload,
@@ -235,7 +237,7 @@ const WriteArea = () => {
     return activeUser && session.user?.bapId === activeUser?._id;
   }, [session, activeUser]);
 
-  console.log({activeUser})
+  console.log({ activeUser });
   return (
     <Container>
       <Form onSubmit={handleSubmit} autocomplete="off" className="relative">
@@ -325,6 +327,7 @@ const WriteArea = () => {
               !decIdentity?.result?.commsPublicKey)
           }
         />
+        <SubmitButton />
         <InvisibleSubmitButton />
       </Form>
       <TypingStatus>
