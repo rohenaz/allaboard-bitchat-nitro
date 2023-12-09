@@ -59,7 +59,7 @@
     "dev": "react-app-rewired --max-http-header-size=1024 start",
     "build": "react-app-rewired build",
     "deploy": "yarn build && firebase deploy",
-    "serve": "serve -s build --omit=dev",
+    "serve": "serve -s build",
     "deploy-hosting": "yarn build && firebase deploy --only hosting",
     "deploy-functions": "firebase deploy --only functions",
     "test": "react-app-rewired test",
