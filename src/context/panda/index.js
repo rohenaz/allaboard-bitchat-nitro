@@ -95,7 +95,7 @@ const AutoPandaProvider = (props) => {
     if (isReady && connected === undefined) {
       fire();
     }
-  }, [isConnected, isReady, connected, connect]);
+  }, [isConnected, isReady, connected, connect, props]);
 
   useEffect(() => {
     const fire = async () => {
