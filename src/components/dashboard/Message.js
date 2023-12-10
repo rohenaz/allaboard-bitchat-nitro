@@ -389,7 +389,10 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                 </div>
               )}
             </div>
-            <a href={`https://whatsonchain.com/tx/${message.tx.h}`}>
+            <a
+              href={`https://whatsonchain.com/tx/${message.tx.h}`}
+              target="_blank"
+            >
               <Timestamp>
                 {message.timestamp
                   ? moment.unix(message.timestamp).fromNow()
