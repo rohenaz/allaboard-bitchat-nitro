@@ -58,10 +58,7 @@
   "scripts": {
     "dev": "react-app-rewired --max-http-header-size=1024 start",
     "build": "react-app-rewired build",
-    "deploy": "yarn build && firebase deploy",
     "serve": "serve -s build -p 3000",
-    "deploy-hosting": "yarn build && firebase deploy --only hosting",
-    "deploy-functions": "firebase deploy --only functions",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
