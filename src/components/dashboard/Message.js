@@ -389,7 +389,14 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                 </div>
               )}
             </div>
-            <Timestamp>
+            <Timestamp
+              onClick={() => {
+                window.open(
+                  `https://whatsonchain.com/tx/${message.tx.h}`,
+                  "_blank"
+                );
+              }}
+            >
               {message.timestamp
                 ? moment.unix(message.timestamp).fromNow()
                 : moment.unix(message.blk.t).fromNow()}
