@@ -24,6 +24,7 @@ import { useBmap } from "../bmap";
 import { useHandcash } from "../handcash";
 import { usePanda } from "../panda";
 import { useRelay } from "../relay";
+import env from "../../utils/env";
 
 const { BAP } = require("bitcoin-bap");
 const ECIES = require("bsv/ecies");
@@ -163,7 +164,7 @@ const BitcoinProvider = (props) => {
           // decrypt and import identity
           const signedOps = await signOpReturnWithAIP(hexArray);
 
-          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
+          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -202,7 +203,7 @@ const BitcoinProvider = (props) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
+          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({ hexArray, authToken, channel }),
@@ -423,7 +424,7 @@ const BitcoinProvider = (props) => {
             console.log({ signedOps });
           }
 
-          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
+          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -652,7 +653,7 @@ const BitcoinProvider = (props) => {
 
           setLikeStatus(FetchStatus.Loading);
 
-          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
+          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -747,7 +748,7 @@ const BitcoinProvider = (props) => {
           const signedOps = await signOpReturnWithAIP(hexArray);
 
           // console.log({ signedOps });
-          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
+          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({
@@ -783,7 +784,7 @@ const BitcoinProvider = (props) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`https://api.bitchatnitro.com/hcSend/`, {
+          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
             method: "POST",
             headers: new Headers({ "Content-Type": "application/json" }),
             body: JSON.stringify({ hexArray, authToken, userId: friendIdKey }),
