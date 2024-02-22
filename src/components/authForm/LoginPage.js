@@ -10,6 +10,7 @@ import Form from "./Form";
 import Label from "./Label";
 import Layout from "./Layout";
 import SubmitButton from "./SubmitButton";
+import env from "../../utils/env";
 
 const LoginPage = () => {
   const { isReady, connect, isConnected } = usePandaWallet();
@@ -36,7 +37,7 @@ const LoginPage = () => {
       //   dispatch(login({ identity }));
       // }
       if (event.target.wallet.value === "handcash") {
-        window.location.href = "https://api.bitchatnitro.com/hcLogin";
+        window.location.href = `${env.REACT_APP_API_URL}/hcLogin`;
         return;
       }
 
