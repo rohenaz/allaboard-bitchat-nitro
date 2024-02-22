@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { FetchStatus } from "../../utils/common";
 import { lsTest, useLocalStorage } from "../../utils/storage";
+import env from "../../utils/env";
 
 const HandcashContext = React.createContext(undefined);
 
@@ -17,7 +18,7 @@ const HandcashProvider = (props) => {
     // if we dont have the paymail, get it
     if (authToken) {
       try {
-        const resp = await fetch(`https://api.bitchatnitro.com/hcProfile`, {
+        const resp = await fetch(`${env.REACT_APP_API_URL}/hcProfile`, {
           method: "POST",
           headers: {
             "Content-type": "application/json",
@@ -46,7 +47,7 @@ const HandcashProvider = (props) => {
 
         // if we dont have the paymail, get it
         if (authToken) {
-          fetch(`https://api.bitchatnitro.com/hcEncrypt`, {
+          fetch(`${env.REACT_APP_API_URL}/hcEncrypt`, {
             method: "POST",
             headers: {
               "Content-type": "application/json",
@@ -84,7 +85,7 @@ const HandcashProvider = (props) => {
         if (authToken) {
           if (encryptedData) {
             setDecryptStatus(FetchStatus.Loading);
-            fetch(`https://api.bitchatnitro.com/hcDecrypt`, {
+            fetch(`${env.REACT_APP_API_URL}/hcDecrypt`, {
               method: "POST",
               headers: {
                 "Content-type": "application/json",
