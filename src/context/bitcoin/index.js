@@ -484,7 +484,7 @@ const BitcoinProvider = (props) => {
           const { txid, rawtx } = await sendBsv([
             {
               script: scriptP.toHex(),
-              satAmount: 0,
+              satoshis: 0,
             },
           ]);
           console.log({ txid });
