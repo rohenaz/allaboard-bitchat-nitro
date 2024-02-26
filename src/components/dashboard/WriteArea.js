@@ -264,10 +264,10 @@ const WriteArea = () => {
             )}
           </div>
         )}
-        {/* Images only enabled for relay users */}
-        {paymail && (
+        {/* Images only enabled for HandCash users */}
+        {profile && (
           <div
-            className="flex items-center justify-center absolute left-0 h-full w-12"
+            className="flex items-center justify-center absolute left-0 h-full w-12 cursor-pointer"
             onClick={(e) => {
               if (
                 signStatus === FetchStatus.Loading ||
@@ -286,7 +286,7 @@ const WriteArea = () => {
           id="channelTextArea"
           name="msg_content"
           autocomplete="off"
-          className={paymail ? `pl-12` : `pl-4`}
+          className={profile ? `pl-12` : `pl-4`}
           placeholder={
             !activeUser?.idKey && activeUser
               ? `DMs Disabled`
@@ -337,7 +337,10 @@ const WriteArea = () => {
       <TypingStatus>
         {typingUser && `${typingUser.paymail} is typing...`}
       </TypingStatus>
-      <PlusModal open={showPlusPopover} onClose={inputRef.current?.focus()} />
+      <PlusModal
+        open={showPlusPopover}
+        onClose={() => inputRef.current?.focus()}
+      />
     </Container>
   );
 };
