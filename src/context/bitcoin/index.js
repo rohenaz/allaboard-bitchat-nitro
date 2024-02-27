@@ -260,44 +260,29 @@ const BitcoinProvider = (props) => {
     [pinStatus, decIdentity, relayOne, authToken, notifyIndexer]
   );
 
-  useEffect(() => {
-    const loadFile = async (f) => {
-      f.b64 = await toB64(f);
-
-      setPendingFiles([...pendingFiles, f]);
-    };
-
-    // Load pending files
-    for (let file of pendingFiles) {
-      if (file.loadStatus === FetchStatus.Idle) {
-        loadFile(file);
-      }
-    }
-  }, [pendingFiles, setPendingFiles]);
-
   const pendingFilesOutputs = useMemo(() => {
-    let outputs = [];
-    pendingFiles.forEach((f) => {
-      if (!!f.b64 && f.b64.length > 0) {
-        // 1. Detect mime type
-        const mimeType = "image/png";
+    return pendingFiles
+      .map((f) => {
+        if (!!f.b64 && f.b64.length > 0) {
+          // 1. Detect mime type
+          const mimeType = f.type;
 
-        // 2. Get b64 encoded binary content
+          // 2. Get b64 encoded binary content
+          const [, base64Data] = f.b64.split(";base64,");
+          const content = Buffer.from(base64Data, "base64");
+          const filename = f.name;
 
-        const content = f.b64;
-        const filename = f.name;
+          let dataPayload = [
+            B_PREFIX, // B Prefix
+            content,
+            mimeType,
+            "base64",
+          ];
 
-        let dataPayload = [
-          B_PREFIX, // B Prefix
-          content,
-          "image/png",
-          "binary",
-        ];
-
-        return dataPayload;
-      }
-    });
-    return outputs;
+          return dataPayload;
+        }
+      })
+      .filter(Boolean);
   }, [pendingFiles]);
 
   const sendMessageWithRelay = useCallback(async (signedDataOuts) => {}, []);
@@ -309,11 +294,33 @@ const BitcoinProvider = (props) => {
       setPostStatus(FetchStatus.Loading);
 
       try {
+        const contentPayload = content
+          ? [
+              B_PREFIX, // B Prefix
+              content,
+              "text/plain",
+              "utf-8",
+            ]
+          : [];
+
+        const filesPayload = pendingFilesOutputs
+          ? pendingFilesOutputs.flatMap((f, i) => (i === 0 ? f : ["|", ...f]))
+          : [];
+
+        const contentFilesSeparator =
+          contentPayload.length > 0 && filesPayload.length > 0 ? ["|"] : [];
+
+        /**
+         * Allow messages with optional text and files
+         */
+        const bPayload = [
+          ...contentPayload,
+          ...contentFilesSeparator,
+          ...filesPayload,
+        ];
+
         let dataPayload = [
-          B_PREFIX, // B Prefix
-          content,
-          "text/plain",
-          "utf-8",
+          ...bPayload,
           "|",
           MAP_PREFIX, // MAP Prefix
           "SET",
@@ -403,6 +410,7 @@ const BitcoinProvider = (props) => {
 
           // lets make sure we can decrypt it too
         }
+
         const hexArray = dataPayload.map((d) =>
           Buffer.from(d, "utf8").toString("hex")
         );
@@ -618,6 +626,7 @@ const BitcoinProvider = (props) => {
       pandaProfile,
       utxos,
       sendBsv,
+      pendingFilesOutputs,
     ]
   );
 
@@ -940,11 +949,3 @@ export const friendPrivateKeyFromSeedString = (seedString, xprv) => {
 
   return hdPrivateFriendKey.privateKey;
 };
-
-const toB64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsBinaryString(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });

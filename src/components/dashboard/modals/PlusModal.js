@@ -6,6 +6,12 @@ import styled from "styled-components";
 import { useBitcoin } from "../../../context/bitcoin";
 import { toggleFileUpload } from "../../../reducers/chatReducer";
 import { FetchStatus } from "../../../utils/common";
+import {
+  UPLOAD_FILE_SIZE_LIMIT,
+  formatBytes,
+  toB64,
+  validateFile,
+} from "../../../utils/file";
 
 export const costPerUnit = 0.025;
 export const minutesPerUnit = 10;
@@ -34,6 +40,7 @@ const PopupContainer = styled.div`
 const PlusModal = ({ open, onClose, channel }) => {
   const inputRef = useRef(null);
   const { setPendingFiles, pendingFiles } = useBitcoin();
+  const [error, setError] = useState("");
   const isFileUploadOpen = useSelector((state) => state.chat.isFileUploadOpen);
   const dispatch = useDispatch();
 
@@ -49,7 +56,9 @@ const PlusModal = ({ open, onClose, channel }) => {
     return false;
   };
   const handleFileChange = useCallback(
-    (event, file) => {
+    async (event, file) => {
+      setError("");
+
       console.log("file change 1", event);
       const fileObj = file ? file : event.target.files[0];
       console.log("file change 2", fileObj);
@@ -58,7 +67,15 @@ const PlusModal = ({ open, onClose, channel }) => {
         return;
       }
 
-      fileObj.loadingStatus === FetchStatus.Idle;
+      const { valid, error } = validateFile(fileObj);
+
+      if (!valid) {
+        setError(error);
+        return;
+      }
+
+      fileObj.b64 = await toB64(fileObj);
+      fileObj.loadingStatus = FetchStatus.Idle;
       setPendingFiles([...pendingFiles, fileObj]);
 
       console.log("fileObj is", fileObj);
@@ -123,6 +140,7 @@ const PlusModal = ({ open, onClose, channel }) => {
         onOutsideClick={() => {
           if (isFileUploadOpen) {
             dispatch(toggleFileUpload());
+            setError("");
             onClose();
           }
         }}
@@ -146,8 +164,19 @@ const PlusModal = ({ open, onClose, channel }) => {
               >
                 <RiImageAddFill className="mx-auto text-6xl" />
                 <span className="mt-2 block text-sm font-medium text-gray-400">
-                  Drag image or click to upload
+                  Drag file or click to upload
                 </span>
+                <span className="mt-2 block text-sm font-medium text-gray-400 italic">
+                  Note: Video (.mp4), audio (.mp3), and images (.png, .jpg,
+                  .jpeg, .gif...) are supported. Max file size is{" "}
+                  {formatBytes(UPLOAD_FILE_SIZE_LIMIT)} at the moment.
+                </span>
+
+                {!!error && (
+                  <span className="mt-2 block text-sm font-medium text-red-400">
+                    {error}
+                  </span>
+                )}
               </button>
               {/* <div className="flex items-center">
               <HiUpload className="mr-2" />
