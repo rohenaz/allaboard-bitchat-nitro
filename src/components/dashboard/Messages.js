@@ -39,6 +39,7 @@ import Hashtag from "./Hashtag";
 import Message from "./Message";
 import UserPopover from "./UserPopover";
 import PinChannelModal from "./modals/PinChannelModal";
+import { isValidEmail } from "../../utils/strings";
 
 const Wrapper = styled.div`
   background-color: var(--background-primary);
@@ -101,6 +102,7 @@ const Messages = () => {
   const pins = useSelector((state) => state.channels.pins);
   const users = useSelector((state) => state.memberList);
   const reactions = useSelector((state) => state.chat.reactions);
+  const { hideUnverifiedMessages } = useSelector((state) => state.settings);
   const hasReactions =
     (reactions.allTxIds || []).concat(reactions.allMessageIds)?.length > 0;
   const [showPinChannelModal, setShowPinChannelModal] = useState(false);
@@ -115,7 +117,6 @@ const Messages = () => {
     ? window?.location?.pathname?.slice(0, -1)
     : window?.location?.pathname;
   let pathId = last(pathName.split("/")) || null;
-
   // const activeChannelId = params.channel;
   // const activeUserId = params.user;
 
@@ -192,13 +193,23 @@ const Messages = () => {
     // console.log({ loading: friendRequests.loading, decIdentity });
     if (hasMessages) {
       let m = [];
+
       for (let txid of Object.keys(messages.byId)) {
+        const message = messages.byId[txid];
+
         if (
-          (!activeChannelId && !head(messages.byId[txid].MAP).channel) ||
-          head(messages.byId[txid].AIP)?.bapId === activeUser?._id ||
-          head(messages.byId[txid].MAP).channel === activeChannelId
+          hideUnverifiedMessages &&
+          !isValidEmail(head(message.MAP).paymail)
         ) {
-          m.push(messages.byId[txid]);
+          continue;
+        }
+
+        if (
+          (!activeChannelId && !head(message.MAP).channel) ||
+          head(message.AIP)?.bapId === activeUser?._id ||
+          head(message.MAP).channel === activeChannelId
+        ) {
+          m.push(message);
         }
       }
       console.log({ m });
@@ -323,6 +334,7 @@ const Messages = () => {
     activeUserId,
     activeUser,
     hasMessages,
+    hideUnverifiedMessages,
     messages.allIds,
     activeChannelId,
     users,
