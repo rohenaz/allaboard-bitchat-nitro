@@ -549,8 +549,14 @@ const BitcoinProvider = (props) => {
 
           // console.log("made a tx to send to panda", { tx, r });
 
-          const tx = await notifyIndexer(rawtx);
-          console.log("indexer notified", { tx });
+          try {
+            const tx = await notifyIndexer(rawtx);
+            console.log("indexer notified", { tx });
+            setPostStatus(FetchStatus.Success);
+          } catch (e) {
+            console.log("notifying indexer failed", e);
+            setPostStatus(FetchStatus.Error);
+          }
           return;
         }
 

@@ -96,15 +96,9 @@ const chatSlice = createSlice({
     },
     receiveNewMessage(state, action) {
       // TODO: If channel is set, update channel updateAt time
-
       const message = action.payload;
       const myBapId = message.myBapId;
-      if (
-        (!head(message.MAP).context ||
-          head(message.MAP).context === "channel") &&
-        head(message.MAP).paymail &&
-        !validateEmail(head(message.MAP).paymail)
-      ) {
+      if (!head(message.MAP).context) {
         console.log("invalid message", message);
         return;
       }
@@ -203,13 +197,6 @@ const chatSlice = createSlice({
         state.messages.allIds = [];
         state.messages.loading = false;
         (action.payload?.message || []).forEach((message) => {
-          if (
-            head(message.MAP).paymail &&
-            !validateEmail(head(message.MAP).paymail)
-          ) {
-            return;
-          }
-
           // Filter out txs with wrong encoding (oops)
           if (
             head(message.B).encoding === "utf-8" &&

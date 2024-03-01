@@ -13,6 +13,9 @@ import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import ArrowTooltip from "./ArrowTooltip";
+import { isValidEmail } from "../../utils/strings";
+import { FaCheckCircle } from "react-icons/fa";
+import Avatar from "./Avatar";
 
 const md = new Remarkable({
   html: true,
@@ -21,8 +24,6 @@ const md = new Remarkable({
   linkTarget: "_blank",
 });
 md.renderer = new RemarkableReactRenderer();
-
-import Avatar from "./Avatar";
 
 const MessageButtons = styled.div`
   background-color: var(--background-primary);
@@ -84,6 +85,12 @@ const Username = styled.a`
     text-decoration: underline;
     cursor: pointer;
   }
+`;
+
+const InfoContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const Timestamp = styled.div`
@@ -202,6 +209,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   const { paymail } = useRelay();
   const { profile } = useHandcash();
   const { likeMessage, likeStatus } = useBitcoin();
+  const isVerified = isValidEmail(head(message.MAP).paymail || "");
   // const handleSubmit = (event) => {
   //   event.preventDefault();
   //   const content = event.target.value;
@@ -389,17 +397,22 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                 </div>
               )}
             </div>
-            <a
-              href={`https://whatsonchain.com/tx/${message.tx.h}`}
-              target="_blank"
-            >
-              <Timestamp>
-                {message.timestamp
-                  ? moment.unix(message.timestamp).fromNow()
-                  : moment.unix(message.blk.t).fromNow()}
-                {/* {message.editedAt ? " (edited)" : ""} */}
-              </Timestamp>
-            </a>
+
+            <InfoContainer>
+              {isVerified && <FaCheckCircle color="green" />}
+
+              <a
+                href={`https://whatsonchain.com/tx/${message.tx.h}`}
+                target="_blank"
+              >
+                <Timestamp>
+                  {message.timestamp
+                    ? moment.unix(message.timestamp).fromNow()
+                    : moment.unix(message.blk.t).fromNow()}
+                  {/* {message.editedAt ? " (edited)" : ""} */}
+                </Timestamp>
+              </a>
+            </InfoContainer>
           </div>
         </Header>
         {/* {showTextArea ? (
