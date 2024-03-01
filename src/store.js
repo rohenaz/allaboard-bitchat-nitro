@@ -7,6 +7,7 @@ import memberListReducer from "./reducers/memberListReducer";
 import profileReducer from "./reducers/profileReducer";
 import sessionReducer from "./reducers/sessionReducer";
 import sidebarReducer from "./reducers/sidebarReducer";
+import settingsReducer from "./reducers/settingsReducer";
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     sidebar: sidebarReducer,
     memberList: memberListReducer,
     profile: profileReducer,
+    settings: settingsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).concat(socketMiddleware),
