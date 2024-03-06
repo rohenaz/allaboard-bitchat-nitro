@@ -122,8 +122,9 @@ const WriteArea = () => {
 
       event.preventDefault();
       const content = event.target.msg_content.value;
+      const hasContent = content !== "" || pendingFiles.length > 0;
       setMessageContent("");
-      if (content !== "" && (paymail || profile?.paymail || pandaProfile)) {
+      if (hasContent && (paymail || profile?.paymail || pandaProfile)) {
         event.target.reset();
         try {
           await sendMessage(
@@ -264,29 +265,28 @@ const WriteArea = () => {
             )}
           </div>
         )}
-        {/* Images only enabled for relay users */}
-        {paymail && (
-          <div
-            className="flex items-center justify-center absolute left-0 h-full w-12"
-            onClick={(e) => {
-              if (
-                signStatus === FetchStatus.Loading ||
-                postStatus === FetchStatus.Loading
-              ) {
-                return;
-              }
-              dispatch(toggleFileUpload());
-            }}
-          >
-            <HiPlusCircle className="text-2xl ml-2 text-[#aaa]" />
-          </div>
-        )}
+
+        <div
+          className="flex items-center justify-center absolute left-0 h-full w-12 cursor-pointer"
+          onClick={(e) => {
+            if (
+              signStatus === FetchStatus.Loading ||
+              postStatus === FetchStatus.Loading
+            ) {
+              return;
+            }
+            dispatch(toggleFileUpload());
+          }}
+        >
+          <HiPlusCircle className="text-2xl ml-2 text-[#aaa]" />
+        </div>
+
         <ChannelTextArea
           type="text"
           id="channelTextArea"
           name="msg_content"
           autocomplete="off"
-          className={paymail ? `pl-12` : `pl-4`}
+          className={profile ? `pl-12` : `pl-4`}
           placeholder={
             !activeUser?.idKey && activeUser
               ? `DMs Disabled`
@@ -337,7 +337,10 @@ const WriteArea = () => {
       <TypingStatus>
         {typingUser && `${typingUser.paymail} is typing...`}
       </TypingStatus>
-      <PlusModal open={showPlusPopover} onClose={inputRef.current?.focus()} />
+      <PlusModal
+        open={showPlusPopover}
+        onClose={() => inputRef.current?.focus()}
+      />
     </Container>
   );
 };
