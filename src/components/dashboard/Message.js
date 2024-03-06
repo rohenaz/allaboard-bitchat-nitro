@@ -1,6 +1,6 @@
 import { IconButton } from "@mui/material";
 import EmojiPicker from "emoji-picker-react";
-import { head, uniqBy } from "lodash";
+import { head, tail, uniqBy } from "lodash";
 import moment from "moment";
 import React, { useCallback, useMemo, useState } from "react";
 import { FaLock } from "react-icons/fa";
@@ -13,9 +13,10 @@ import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { useRelay } from "../../context/relay";
 import ArrowTooltip from "./ArrowTooltip";
+import Avatar from "./Avatar";
+import MessageFiles from "./MessageFiles";
 import { isValidEmail } from "../../utils/strings";
 import { FaCheckCircle } from "react-icons/fa";
-import Avatar from "./Avatar";
 
 const md = new Remarkable({
   html: true,
@@ -297,8 +298,25 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     //   // }
     // }
 
+    /**
+     * If there is no text message, we don't want to render it.
+     * This can happen when a message contains only file(s).
+     */
+    if (head(m.B)?.["content-type"] !== "text/plain") {
+      return null;
+    }
+
     return data;
   }, [message]);
+
+  /**
+   * When a message contains text, the files are after the text.
+   * When a message contains only files, the files are the message.
+   */
+  const messageFiles = useMemo(
+    () => (messageContent ? tail(message.B) : message.B),
+    [message, messageContent]
+  );
 
   // useEffect(() => console.log(messageContent), [messageContent]);
 
@@ -329,6 +347,10 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   );
 
   const parsedContent = useMemo(() => {
+    if (!messageContent) {
+      return null;
+    }
+
     return md.render(messageContent);
     // return parse(sanitize(messageContent));
   }, [messageContent]);
@@ -432,7 +454,10 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
             </form>
           </>
         ) : ( */}
-        <Content>{parsedContent}</Content>
+        {parsedContent && <Content>{parsedContent}</Content>}
+
+        <MessageFiles files={messageFiles} />
+
         <div
           style={{
             marginTop: ".5rem",
