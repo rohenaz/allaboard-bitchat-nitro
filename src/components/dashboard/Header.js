@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 
 import {
   FaBars,
+  FaCog,
   FaGithub,
   FaSignInAlt,
   FaSignOutAlt,
@@ -23,6 +24,8 @@ import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ArrowTooltip from "./ArrowTooltip";
 import At from "./At";
 import Hashtag from "./Hashtag";
+import { toggleSettings } from "../../reducers/settingsReducer";
+import { SettingsModal } from "./modals/SettingsModal";
 
 const Container = styled.div`
   background-color: var(--background-primary);
@@ -109,6 +112,11 @@ const Header = ({ isFriendsPage }) => {
         </div>
       </div>
       <div className="flex flex-1 justify-end">
+        <ArrowTooltip title="Settings">
+          <IconButton onClick={() => dispatch(toggleSettings())}>
+            <FaCog />
+          </IconButton>
+        </ArrowTooltip>
         <ArrowTooltip title="GitHub Repo">
           <IconButton
             href="https://github.com/rohenaz/allaboard-bitchat-nitro"
@@ -150,6 +158,7 @@ const Header = ({ isFriendsPage }) => {
           </ArrowTooltip>
         )}
       </div>
+      <SettingsModal />
     </Container>
   );
 };

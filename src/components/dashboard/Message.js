@@ -15,6 +15,8 @@ import { useRelay } from "../../context/relay";
 import ArrowTooltip from "./ArrowTooltip";
 import Avatar from "./Avatar";
 import MessageFiles from "./MessageFiles";
+import { isValidEmail } from "../../utils/strings";
+import { FaCheckCircle } from "react-icons/fa";
 
 const md = new Remarkable({
   html: true,
@@ -84,6 +86,12 @@ const Username = styled.a`
     text-decoration: underline;
     cursor: pointer;
   }
+`;
+
+const InfoContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const Timestamp = styled.div`
@@ -202,6 +210,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   const { paymail } = useRelay();
   const { profile } = useHandcash();
   const { likeMessage, likeStatus } = useBitcoin();
+  const isVerified = isValidEmail(head(message.MAP).paymail || "");
   // const handleSubmit = (event) => {
   //   event.preventDefault();
   //   const content = event.target.value;
@@ -410,17 +419,22 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                 </div>
               )}
             </div>
-            <a
-              href={`https://whatsonchain.com/tx/${message.tx.h}`}
-              target="_blank"
-            >
-              <Timestamp>
-                {message.timestamp
-                  ? moment.unix(message.timestamp).fromNow()
-                  : moment.unix(message.blk.t).fromNow()}
-                {/* {message.editedAt ? " (edited)" : ""} */}
-              </Timestamp>
-            </a>
+
+            <InfoContainer>
+              {isVerified && <FaCheckCircle color="green" />}
+
+              <a
+                href={`https://whatsonchain.com/tx/${message.tx.h}`}
+                target="_blank"
+              >
+                <Timestamp>
+                  {message.timestamp
+                    ? moment.unix(message.timestamp).fromNow()
+                    : moment.unix(message.blk.t).fromNow()}
+                  {/* {message.editedAt ? " (edited)" : ""} */}
+                </Timestamp>
+              </a>
+            </InfoContainer>
           </div>
         </Header>
         {/* {showTextArea ? (
