@@ -32,7 +32,8 @@ const MessageFile = ({ file, onClick }) => {
     return null;
   }
 
-  const fileType = file["content-type"].split("/")[0];
+  const contentType = file["content-type"] ?? file["media_type"];
+  const fileType = contentType.split("/")[0];
 
   return (
     <Container>
