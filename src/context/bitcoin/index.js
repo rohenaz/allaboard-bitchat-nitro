@@ -463,101 +463,104 @@ const BitcoinProvider = (props) => {
         // Send with panda
         if (pandaProfile && utxos) {
           let scriptP;
-          if (decIdentity) {
-            const signedOps = await signOpReturnWithAIP(hexArray);
-            scriptP = nimble.Script.fromASM(
-              "OP_0 OP_RETURN " + signedOps.join(" ")
-            );
-          } else {
-            scriptP = nimble.Script.fromASM(
-              "OP_0 OP_RETURN " +
-                dataPayload
-                  .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
-                  .join(" ")
-            );
-          }
-          let outputsP = [
-            { script: scriptP.toASM(), amount: 0, currency: "BSV" },
-          ];
-          console.log("Making a panda tx", { outputsP, pandaProfile });
-
-          //  sendBsv: (params: SendBsv[]) => Promise<string | undefined>;
-          const { txid, rawtx } = await sendBsv([
-            {
-              script: scriptP.toHex(),
-              satoshis: 0,
-            },
-          ]);
-          console.log({ txid });
-
-          // let tx = new nimble.Transaction();
-
-          // // add outputs
-          // for (let output of outputsP) {
-          //   tx = tx.output({
-          //     script: output.script,
-          //     satoshis: output.amount,
-          //   });
-          // }
-
-          // let sigRequests = [];
-          // for (let idx = 0; idx < utxos?.length; idx++) {
-          //   const input = utxos[idx];
-          //   tx = tx.input(
-          //     new nimble.Transaction.Input(
-          //       input.txid,
-          //       input.vout,
-          //       new nimble.Script(),
-          //       0xffffffff,
-          //       new nimble.Transaction.Output(
-          //         nimble.Script.fromASM(input.script),
-          //         input.satoshis
-          //       )
-          //     )
-          //   );
-          //   sigRequests.push({
-          //     prevTxId: input.txid,
-          //     outputIndex: input.vout,
-          //     inputIndex: idx,
-          //     satoshis: input.satoshis,
-          //     address: pandaProfile.addresses.bsvAddress,
-          //     scriptHex: nimble.Script.fromASM(input.script).toHex(),
-          //   });
-          // }
-
-          // tx = tx.change(pandaProfile.addresses.bsvAddress);
-
-          // const sigResponses = await getSignatures({
-          //   txHex: tx.toString(),
-          //   sigRequests,
-          // });
-
-          // console.log({ sigRequests, sigResponses });
-
-          // // set scripts on inputs
-          // for (let idx = 0; idx < sigResponses.length; idx++) {
-          //   const sigResponse = sigResponses[idx];
-          //   const input = tx.inputs[sigResponse.inputIndex];
-
-          //   const asm = `${sigResponse.sig} ${sigResponse.publicKey}`;
-          //   input.script = nimble.Script.fromASM(asm);
-          //   tx.inputs[sigResponse.inputIndex] = input;
-          // }
-
-          // console.log({ rawTx: tx.toString() });
-          // const r = await broadcast({ rawtx: tx.toString() });
-
-          // console.log("made a tx to send to panda", { tx, r });
 
           try {
+            if (decIdentity) {
+              const signedOps = await signOpReturnWithAIP(hexArray);
+              scriptP = nimble.Script.fromASM(
+                "OP_0 OP_RETURN " + signedOps.join(" ")
+              );
+            } else {
+              scriptP = nimble.Script.fromASM(
+                "OP_0 OP_RETURN " +
+                  dataPayload
+                    .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
+                    .join(" ")
+              );
+            }
+            let outputsP = [
+              { script: scriptP.toASM(), amount: 0, currency: "BSV" },
+            ];
+            console.log("Making a panda tx", { outputsP, pandaProfile });
+
+            //  sendBsv: (params: SendBsv[]) => Promise<string | undefined>;
+
+            const { txid, rawtx } = await sendBsv([
+              {
+                script: scriptP.toHex(),
+                satoshis: 0,
+              },
+            ]);
+            console.log({ txid });
+
+            // let tx = new nimble.Transaction();
+
+            // // add outputs
+            // for (let output of outputsP) {
+            //   tx = tx.output({
+            //     script: output.script,
+            //     satoshis: output.amount,
+            //   });
+            // }
+
+            // let sigRequests = [];
+            // for (let idx = 0; idx < utxos?.length; idx++) {
+            //   const input = utxos[idx];
+            //   tx = tx.input(
+            //     new nimble.Transaction.Input(
+            //       input.txid,
+            //       input.vout,
+            //       new nimble.Script(),
+            //       0xffffffff,
+            //       new nimble.Transaction.Output(
+            //         nimble.Script.fromASM(input.script),
+            //         input.satoshis
+            //       )
+            //     )
+            //   );
+            //   sigRequests.push({
+            //     prevTxId: input.txid,
+            //     outputIndex: input.vout,
+            //     inputIndex: idx,
+            //     satoshis: input.satoshis,
+            //     address: pandaProfile.addresses.bsvAddress,
+            //     scriptHex: nimble.Script.fromASM(input.script).toHex(),
+            //   });
+            // }
+
+            // tx = tx.change(pandaProfile.addresses.bsvAddress);
+
+            // const sigResponses = await getSignatures({
+            //   txHex: tx.toString(),
+            //   sigRequests,
+            // });
+
+            // console.log({ sigRequests, sigResponses });
+
+            // // set scripts on inputs
+            // for (let idx = 0; idx < sigResponses.length; idx++) {
+            //   const sigResponse = sigResponses[idx];
+            //   const input = tx.inputs[sigResponse.inputIndex];
+
+            //   const asm = `${sigResponse.sig} ${sigResponse.publicKey}`;
+            //   input.script = nimble.Script.fromASM(asm);
+            //   tx.inputs[sigResponse.inputIndex] = input;
+            // }
+
+            // console.log({ rawTx: tx.toString() });
+            // const r = await broadcast({ rawtx: tx.toString() });
+
+            // console.log("made a tx to send to panda", { tx, r });
+
             const tx = await notifyIndexer(rawtx);
             console.log("indexer notified", { tx });
             setPostStatus(FetchStatus.Success);
+            return;
           } catch (e) {
-            console.log("notifying indexer failed", e);
+            console.log("sending message via panda wallet failed", e);
             setPostStatus(FetchStatus.Error);
+            return;
           }
-          return;
         }
 
         // Send with relay
