@@ -302,7 +302,9 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
      * If there is no text message, we don't want to render it.
      * This can happen when a message contains only file(s).
      */
-    if (head(m.B)?.["content-type"] !== "text/plain") {
+    const contentType =
+      head(m.B)?.["content-type"] ?? head(m.B)?.["media_type"];
+    if (contentType !== "text/plain") {
       return null;
     }
 
