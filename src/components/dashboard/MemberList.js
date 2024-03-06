@@ -66,14 +66,14 @@ const MemberList = ({ isMobile }) => {
                 <Avatar
                   size="21px"
                   w="32px"
-                  // bgColor={user.avatarColor}
+                  // bgColor={identity?.avatarColor}
                   bgcolor={`#000`}
                   status="online"
-                  paymail={u.user?.paymail}
-                  icon={u.user?.logo}
+                  paymail={u?.identity?.paymail}
+                  icon={u?.identity?.logo}
                 />
               }
-              text={u.user?.alternateName}
+              text={u?.identity?.alternateName}
               style={{ gap: "12px", padding: "6px 8px" }}
               onClick={(event) => handleClick(event, u)}
             />

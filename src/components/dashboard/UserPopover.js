@@ -107,6 +107,11 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
     return state.memberList.friendRequests.outgoing;
   });
   const session = useSelector((state) => state.session);
+  const userName =
+    user?.user?.alternateName ||
+    user?.MAP?.paymail ||
+    user?.identity?.alternateName ||
+    user?.identity?.paymail;
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -159,12 +164,12 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
           border="6px solid var(--background-floating)"
           //bgColor={user.avatarColor}
           bgcolor={`#000`}
-          paymail={user.MAP?.paymail}
-          icon={user.user?.logo}
+          paymail={user?.MAP?.paymail || user?.identity?.paymail}
+          icon={user?.user?.logo || user?.identity?.logo}
         />
       </AvatarWrapper>
       <Header>
-        <Username>{user.user?.alternateName || user.MAP?.paymail}</Username>
+        <Username>{userName}</Username>
       </Header>
       <Content>
         <Divider></Divider>
@@ -193,9 +198,11 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
             <Input
               type="text"
               name="content"
-              placeholder={`message @${
-                user.user?.alternateName || user.MAP?.paymail
-              } ${(user._id || user.AIP?.bapId || "").slice(0, 8)}`}
+              placeholder={`message @${userName} ${(
+                user._id ||
+                user.AIP?.bapId ||
+                ""
+              ).slice(0, 8)}`}
             />
             <InvisibleSubmitButton />
           </form>
