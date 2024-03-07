@@ -109,7 +109,7 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
   const session = useSelector((state) => state.session);
   const userName =
     user?.user?.alternateName ||
-    user?.MAP?.paymail ||
+    head(user?.MAP)?.paymail ||
     user?.identity?.alternateName ||
     user?.identity?.paymail;
 
@@ -164,7 +164,7 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
           border="6px solid var(--background-floating)"
           //bgColor={user.avatarColor}
           bgcolor={`#000`}
-          paymail={user?.MAP?.paymail || user?.identity?.paymail}
+          paymail={head(user?.MAP)?.paymail || user?.identity?.paymail}
           icon={user?.user?.logo || user?.identity?.logo}
         />
       </AvatarWrapper>
@@ -200,7 +200,7 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
               name="content"
               placeholder={`message @${userName} ${(
                 user._id ||
-                user.AIP?.bapId ||
+                head(user.AIP)?.bapId ||
                 ""
               ).slice(0, 8)}`}
             />
