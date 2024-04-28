@@ -119,11 +119,8 @@ const AutoPandaProvider = (props) => {
     getSocialProfile,
     setPandaProfile,
     getAddresses,
-    getUtxos,
-    setUtxos,
+    utxos,
     getBalance,
-    pandaProfile,
-    sendBsv,
   ]);
 
   const value = useMemo(
