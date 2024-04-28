@@ -6,7 +6,6 @@ import { Link as RDLink } from "react-router-dom";
 import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import { useHandcash } from "../../context/handcash";
-import { useRelay } from "../../context/relay";
 import { useWindowWidth } from "../../hooks";
 import { loadUsers } from "../../reducers/memberListReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
@@ -89,7 +88,6 @@ const UserList = ({ activeUserId }) => {
   //   }
   // }, [decIdentity, dispatch]);
 
-  const { paymail } = useRelay();
   const { profile } = useHandcash();
 
   // const user = useSelector((state) => state.session.user);
@@ -160,9 +158,9 @@ const UserList = ({ activeUserId }) => {
     setShowDirectMessageModal(true);
   }, [showDirectMessageModal]);
 
-const user = useMemo(() => {
-  return session.memberList?.signers.byId[session.user.idKey]
-}, [session])
+  const user = useMemo(() => {
+    return session.memberList?.signers.byId[session.user.idKey];
+  }, [session]);
 
   return (
     <Container className="disable-select">
@@ -239,12 +237,10 @@ const user = useMemo(() => {
           // bgColor={user.avatarColor}
           bgcolor={"#000"}
           status="online"
-          paymail={user?.paymail || paymail || profile?.paymail}
+          paymail={user?.paymail || profile?.paymail}
         />
         {/* <Username>{user.username}</Username> */}
-        <Username>
-          {user?.identity?.alternateName || paymail || profile?.paymail}
-        </Username>
+        <Username>{user?.identity?.alternateName || profile?.paymail}</Username>
       </Footer>
       <DirectMessageModal
         open={showDirectMessageModal}

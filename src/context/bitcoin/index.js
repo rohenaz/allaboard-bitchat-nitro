@@ -18,13 +18,12 @@ import {
   receiveNewReaction,
 } from "../../reducers/chatReducer";
 import { FetchStatus } from "../../utils/common";
+import env from "../../utils/env";
 import { getSigningPathFromHex } from "../../utils/sign";
 import { useBap } from "../bap";
 import { useBmap } from "../bmap";
 import { useHandcash } from "../handcash";
 import { usePanda } from "../panda";
-import { useRelay } from "../relay";
-import env from "../../utils/env";
 
 const { BAP } = require("bitcoin-bap");
 const ECIES = require("bsv/ecies");
@@ -33,7 +32,6 @@ const BitcoinContext = React.createContext(undefined);
 const BitcoinProvider = (props) => {
   const { notifyIndexer } = useBmap();
   const { authToken, hcDecrypt } = useHandcash();
-  const { relayOne, ready } = useRelay();
   const { pandaProfile, utxos, broadcast, getSignatures, sendBsv } = usePanda();
   const { decIdentity, decryptStatus } = useBap();
   const [pinStatus, setPinStatus] = useState(FetchStatus.Idle);
@@ -137,6 +135,7 @@ const BitcoinProvider = (props) => {
 
   const sendPin = useCallback(
     async (pm, channel, units) => {
+      // TODO: Add panda support
       // in minutes
       // 0.001 BSV/10 minutes
       const pinPaymentAmount = 0.001 * units;
@@ -218,25 +217,25 @@ const BitcoinProvider = (props) => {
           // https://bitchatnitro.com/hcsend/
           // { hexArray, authToken}
         }
-        const script = nimble.Script.fromASM(
-          "OP_0 OP_RETURN " +
-            dataPayload
-              .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
-              .join(" ")
-        );
-        let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
+        // const script = nimble.Script.fromASM(
+        //   "OP_0 OP_RETURN " +
+        //     dataPayload
+        //       .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
+        //       .join(" ")
+        // );
+        // let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
 
-        if (pinPaymentAddress && units) {
-          outputs.push({
-            to: pinPaymentAddress,
-            amount: pinPaymentAmount,
-            currency: "BSV",
-          });
-        }
-        let resp = await relayOne.send({ outputs });
-        setPinStatus(FetchStatus.Success);
+        // if (pinPaymentAddress && units) {
+        //   outputs.push({
+        //     to: pinPaymentAddress,
+        //     amount: pinPaymentAmount,
+        //     currency: "BSV",
+        //   });
+        // }
+        // let resp = await relayOne.send({ outputs });
+        // setPinStatus(FetchStatus.Success);
 
-        console.log("Sent pin", resp);
+        // console.log("Sent pin", resp);
         // interface SendResult {
         //   txid: string;
         //   rawTx: string;
@@ -246,18 +245,18 @@ const BitcoinProvider = (props) => {
         //   paymail: string; // user paymail deprecated
         //   identity: string; // user pki deprecated
         // }
-        try {
-          await notifyIndexer(resp.rawTx);
-        } catch (e) {
-          console.log("failed to notify indexer", e);
-          return;
-        }
+        // try {
+        //   await notifyIndexer(resp.rawTx);
+        // } catch (e) {
+        //   console.log("failed to notify indexer", e);
+        //   return;
+        // }
       } catch (e) {
         console.error(e);
         setPinStatus(FetchStatus.Error);
       }
     },
-    [pinStatus, decIdentity, relayOne, authToken, notifyIndexer]
+    [pinStatus, decIdentity, authToken, notifyIndexer]
   );
 
   const pendingFilesOutputs = useMemo(() => {
@@ -572,51 +571,51 @@ const BitcoinProvider = (props) => {
         }
 
         // Send with relay
-        let script;
-        if (decIdentity) {
-          const signedOps = await signOpReturnWithAIP(hexArray);
-          script = nimble.Script.fromASM(
-            "OP_0 OP_RETURN " + signedOps.join(" ")
-          );
-        } else {
-          script = nimble.Script.fromASM(
-            "OP_0 OP_RETURN " +
-              dataPayload
-                .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
-                .join(" ")
-          );
-        }
-        let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
-
-        console.log({ ready });
-        let resp = await relayOne.send({ outputs });
-        // reset pending files
-        if (pendingFiles) {
-          setPendingFiles([]);
-        }
-        console.log("Sent message", resp);
-        // interface SendResult {
-        //   txid: string;
-        //   rawTx: string;
-        //   amount: number; // amount spent in button currency
-        //   currency: string; // button currency
-        //   satoshis: number; // amount spent in sats
-        //   paymail: string; // user paymail deprecated
-        //   identity: string; // user pki deprecated
+        // let script;
+        // if (decIdentity) {
+        //   const signedOps = await signOpReturnWithAIP(hexArray);
+        //   script = nimble.Script.fromASM(
+        //     "OP_0 OP_RETURN " + signedOps.join(" ")
+        //   );
+        // } else {
+        //   script = nimble.Script.fromASM(
+        //     "OP_0 OP_RETURN " +
+        //       dataPayload
+        //         .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
+        //         .join(" ")
+        //   );
         // }
-        try {
-          const tx = await notifyIndexer(resp.rawTx);
-          console.log(`dang dispatched new message`, tx);
-          tx.timestamp = moment().unix();
-          setPostStatus(FetchStatus.Success);
+        // let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
 
-          dispatch(receiveNewMessage(tx));
-        } catch (e) {
-          console.log("failed to notify indexer", e);
-          setPostStatus(FetchStatus.Error);
+        // console.log({ ready });
+        // let resp = await relayOne.send({ outputs });
+        // // reset pending files
+        // if (pendingFiles) {
+        //   setPendingFiles([]);
+        // }
+        // console.log("Sent message", resp);
+        // // interface SendResult {
+        // //   txid: string;
+        // //   rawTx: string;
+        // //   amount: number; // amount spent in button currency
+        // //   currency: string; // button currency
+        // //   satoshis: number; // amount spent in sats
+        // //   paymail: string; // user paymail deprecated
+        // //   identity: string; // user pki deprecated
+        // // }
+        // try {
+        //   const tx = await notifyIndexer(resp.rawTx);
+        //   console.log(`dang dispatched new message`, tx);
+        //   tx.timestamp = moment().unix();
+        //   setPostStatus(FetchStatus.Success);
 
-          return;
-        }
+        //   dispatch(receiveNewMessage(tx));
+        // } catch (e) {
+        //   console.log("failed to notify indexer", e);
+        //   setPostStatus(FetchStatus.Error);
+
+        //   return;
+        // }
       } catch (e) {
         console.error(e);
       }
@@ -625,13 +624,11 @@ const BitcoinProvider = (props) => {
       broadcast,
       storeAPI,
       activeUserId,
-      relayOne,
       authToken,
       decIdentity,
       notifyIndexer,
       receiveNewMessage,
       dispatch,
-      ready,
       pandaProfile,
       utxos,
       sendBsv,
@@ -685,35 +682,36 @@ const BitcoinProvider = (props) => {
 
           console.log({ paymentResult });
           if (paymentResult) {
-            await notifyIndexer(paymentResult.rawTransactionHex);
+            const tx = await notifyIndexer(paymentResult.rawTransactionHex);
+            dispatch(receiveNewReaction(tx));
           }
 
           return;
           // https://bitchatnitro.com/hcsend/
           // { hexArray, authToken}
         }
-        const script = nimble.Script.fromASM(
-          "OP_0 OP_RETURN " +
-            dataPayload
-              .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
-              .join(" ")
-        );
-        let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
+        // const script = nimble.Script.fromASM(
+        //   "OP_0 OP_RETURN " +
+        //     dataPayload
+        //       .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
+        //       .join(" ")
+        // );
+        // let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
 
-        let resp = await relayOne.send({ outputs });
+        // let resp = await relayOne.send({ outputs });
 
-        console.log("Sent", resp);
-        setLikeStatus(FetchStatus.Success);
+        // console.log("Sent", resp);
+        // setLikeStatus(FetchStatus.Success);
 
-        const tx = await notifyIndexer(resp.rawTx);
-        dispatch(receiveNewReaction(tx));
+        // const tx = await notifyIndexer(resp.rawTx);
+        // dispatch(receiveNewReaction(tx));
         // let txid = resp.txid;
       } catch (e) {
         console.error(e);
         setLikeStatus(FetchStatus.Error);
       }
     },
-    [dispatch, likeStatus, relayOne, authToken, ready, activeChannelId]
+    [dispatch, likeStatus, authToken, activeChannelId]
   );
 
   const self = useMemo(() => {
@@ -817,33 +815,33 @@ const BitcoinProvider = (props) => {
           // https://bitchatnitro.com/hcsend/
           // { hexArray, authToken}
         }
-        const script = nimble.Script.fromASM(
-          "OP_0 OP_RETURN " +
-            dataPayload
-              .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
-              .join(" ")
-        );
-        let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
+        // const script = nimble.Script.fromASM(
+        //   "OP_0 OP_RETURN " +
+        //     dataPayload
+        //       .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
+        //       .join(" ")
+        // );
+        // let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
 
-        let resp = await relayOne.send({ outputs });
-        setFriendRequestStatus(FetchStatus.Success);
+        // let resp = await relayOne.send({ outputs });
+        // setFriendRequestStatus(FetchStatus.Success);
 
-        console.log("Sent friend request", resp);
-        // interface SendResult {
-        //   txid: string;
-        //   rawTx: string;
-        //   amount: number; // amount spent in button currency
-        //   currency: string; // button currency
-        //   satoshis: number; // amount spent in sats
-        //   paymail: string; // user paymail deprecated
-        //   identity: string; // user pki deprecated
+        // console.log("Sent friend request", resp);
+        // // interface SendResult {
+        // //   txid: string;
+        // //   rawTx: string;
+        // //   amount: number; // amount spent in button currency
+        // //   currency: string; // button currency
+        // //   satoshis: number; // amount spent in sats
+        // //   paymail: string; // user paymail deprecated
+        // //   identity: string; // user pki deprecated
+        // // }
+        // try {
+        //   await notifyIndexer(resp.rawTx);
+        // } catch (e) {
+        //   console.log("failed to notify indexer", e);
+        //   return;
         // }
-        try {
-          await notifyIndexer(resp.rawTx);
-        } catch (e) {
-          console.log("failed to notify indexer", e);
-          return;
-        }
       } catch (e) {
         console.error(e);
         setFriendRequestStatus(FetchStatus.Error);
@@ -853,7 +851,6 @@ const BitcoinProvider = (props) => {
       self,
       decIdentity,
       friendRequestStatus,
-      relayOne,
       authToken,
       notifyIndexer,
       hcDecrypt,

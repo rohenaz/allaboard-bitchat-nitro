@@ -8,7 +8,6 @@ import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
-import { useRelay } from "../../context/relay";
 import { useWindowWidth } from "../../hooks";
 import { loadChannels, unpinChannel } from "../../reducers/channelsReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
@@ -86,7 +85,6 @@ const ChannelList = ({ activeChannelId }) => {
     dispatch(loadChannels());
   }, [dispatch]);
 
-  const { paymail } = useRelay();
   const { profile } = useHandcash();
 
   // const user = useSelector((state) => state.session.user);
@@ -208,7 +206,6 @@ const ChannelList = ({ activeChannelId }) => {
     ]
   );
 
-
   return (
     <Container className="disable-select">
       <Header>
@@ -241,11 +238,11 @@ const ChannelList = ({ activeChannelId }) => {
           // bgColor={user.avatarColor}
           bgcolor={"#000"}
           status="online"
-          paymail={paymail || profile?.paymail}
+          paymail={profile?.paymail}
         />
         {/* <Username>{user.username}</Username> */}
         <Username>
-          <div>{user?.alternativeName || paymail || profile?.paymail}</div>
+          <div>{user?.alternativeName || profile?.paymail}</div>
           <div style={{ fontSize: ".75rem", color: "#777" }}>
             {decIdentity?.bapId?.slice(0, 8)}
           </div>

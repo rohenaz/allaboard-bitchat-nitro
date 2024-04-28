@@ -10,7 +10,6 @@ import { BitcoinProvider } from "./context/bitcoin";
 import { BmapProvider } from "./context/bmap";
 import { HandcashProvider } from "./context/handcash";
 import { AutoPandaProvider } from "./context/panda";
-import { RelayProvider } from "./context/relay";
 import "./index.css";
 import store from "./store";
 
@@ -18,17 +17,15 @@ ReactDOM.render(
   <Provider store={store}>
     <PandaProvider>
       <AutoPandaProvider autoconnect={false}>
-        <RelayProvider>
-          <HandcashProvider>
-            <BmapProvider>
-              <BapProvider>
-                <BitcoinProvider>
-                  <App />
-                </BitcoinProvider>
-              </BapProvider>
-            </BmapProvider>
-          </HandcashProvider>
-        </RelayProvider>
+        <HandcashProvider>
+          <BmapProvider>
+            <BapProvider>
+              <BitcoinProvider>
+                <App />
+              </BitcoinProvider>
+            </BapProvider>
+          </BmapProvider>
+        </HandcashProvider>
       </AutoPandaProvider>
     </PandaProvider>
   </Provider>,

@@ -5,7 +5,6 @@ import { Slider } from "rsuite";
 import styled from "styled-components";
 import { useBitcoin } from "../../../context/bitcoin";
 import { useHandcash } from "../../../context/handcash";
-import { useRelay } from "../../../context/relay";
 import { FetchStatus } from "../../../utils/common";
 import { useLocalStorage } from "../../../utils/storage";
 export const costPerUnit = 0.025;
@@ -87,7 +86,6 @@ const PopupContainer = styled.div`
 const PinChannelModal = ({ open, onClose, channel }) => {
   const [units, setUnits] = useState(1);
   const { profile } = useHandcash();
-  const { paymail } = useRelay();
   const { sendPin, pinStatus, pinnedScopes } = useBitcoin();
   const [selectedScope, setSelectedScope] = useState(Scope.Everyone);
   const [myPins, setMyPins] = useLocalStorage("bitchat-local-pins", []);
@@ -119,7 +117,7 @@ const PinChannelModal = ({ open, onClose, channel }) => {
     if (selectedScope === Scope.Everyone) {
       if (channel) {
         try {
-          await sendPin(paymail || profile?.paymail, channel, units);
+          await sendPin(profile?.paymail, channel, units);
           onClose();
         } catch (e) {
           console.error(e);
@@ -130,7 +128,7 @@ const PinChannelModal = ({ open, onClose, channel }) => {
         setMyPins([...pinnedScopes, channel]);
       }
     }
-  }, [myPins, selectedScope, units, paymail, profile, channel, sendPin]);
+  }, [myPins, selectedScope, units, profile, channel, sendPin]);
 
   return (
     open && (
