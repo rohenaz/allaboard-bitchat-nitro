@@ -2,11 +2,11 @@ import React from "react";
 
 import { Navigate } from "react-router-dom";
 import { useHandcash } from "../context/handcash";
-import { useRelay } from "../context/relay";
+import { usePanda } from "../context/panda";
 
 export const RequireAuth = ({ children }) => {
-  const { authenticated } = useRelay();
   const { authToken } = useHandcash();
+  const { connected } = usePanda();
 
-  return authenticated || authToken ? children : <Navigate to="/" />;
+  return connected && authToken ? children : <Navigate to="/" />;
 };

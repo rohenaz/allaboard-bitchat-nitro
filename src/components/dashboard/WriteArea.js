@@ -10,7 +10,6 @@ import { useBap } from "../../context/bap";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
 import { usePanda } from "../../context/panda";
-import { useRelay } from "../../context/relay";
 import { useActiveUser } from "../../hooks";
 import SubmitButton from "./SubmitButton";
 
@@ -47,7 +46,6 @@ const TypingStatus = styled.span`
 
 const WriteArea = () => {
   // const user = useSelector((state) => state.session.user);
-  const { paymail, ready } = useRelay();
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
   const { connected, pandaProfile } = usePanda();
   const { sendMessage, postStatus, pendingFiles, setPendingFiles } =
@@ -103,8 +101,8 @@ const WriteArea = () => {
   );
 
   const guest = useMemo(() => {
-    return !authToken && !paymail && !pandaProfile;
-  }, [authToken, paymail, pandaProfile]);
+    return !authToken && !pandaProfile;
+  }, [authToken, pandaProfile]);
 
   const togglePlusPopover = useCallback(() => {
     setShowPlusPopover(!showPlusPopover);
@@ -112,11 +110,9 @@ const WriteArea = () => {
 
   const handleSubmit = useCallback(
     async (event) => {
-      if (!authToken && !ready && !connected) {
+      if (!authToken && !connected) {
         // TODO: Create
-        console.log(
-          "Cannot post. Relay not loaded and no Handcash auth and no panda connection"
-        );
+        console.log("Cannot post. No Handcash auth and no panda connection");
         return;
       }
 
@@ -124,11 +120,11 @@ const WriteArea = () => {
       const content = event.target.msg_content.value;
       const hasContent = content !== "" || pendingFiles.length > 0;
       setMessageContent("");
-      if (hasContent && (paymail || profile?.paymail || pandaProfile)) {
+      if (hasContent && (profile?.paymail || pandaProfile)) {
         event.target.reset();
         try {
           await sendMessage(
-            paymail || profile?.paymail || pandaProfile?.displayName,
+            profile?.paymail || pandaProfile?.displayName,
             content,
             activeChannelId,
             activeUserId,
@@ -157,10 +153,9 @@ const WriteArea = () => {
       decIdentity,
       activeUserId,
       activeChannelId,
-      paymail,
       profile,
       authToken,
-      ready,
+
       messageContent,
       sendMessage,
       connected,

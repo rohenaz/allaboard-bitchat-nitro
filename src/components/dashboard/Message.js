@@ -3,7 +3,7 @@ import EmojiPicker from "emoji-picker-react";
 import { head, tail, uniqBy } from "lodash";
 import moment from "moment";
 import React, { useCallback, useMemo, useState } from "react";
-import { FaLock } from "react-icons/fa";
+import { FaCheckCircle, FaLock } from "react-icons/fa";
 import { MdAddReaction } from "react-icons/md";
 import OutsideClickHandler from "react-outside-click-handler";
 import { Remarkable } from "remarkable";
@@ -11,12 +11,10 @@ import RemarkableReactRenderer from "remarkable-react";
 import styled from "styled-components";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
-import { useRelay } from "../../context/relay";
+import { isValidEmail } from "../../utils/strings";
 import ArrowTooltip from "./ArrowTooltip";
 import Avatar from "./Avatar";
 import MessageFiles from "./MessageFiles";
-import { isValidEmail } from "../../utils/strings";
-import { FaCheckCircle } from "react-icons/fa";
 
 const md = new Remarkable({
   html: true,
@@ -207,7 +205,6 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   const [showReactions, setShowReactions] = useState(false);
   // const dispatch = useDispatch();
   // const [openDeleteMessage, setOpenPopup] = useState(false);
-  const { paymail } = useRelay();
   const { profile } = useHandcash();
   const { likeMessage, likeStatus } = useBitcoin();
   const isVerified = isValidEmail(head(message.MAP).paymail || "");
@@ -326,9 +323,9 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     async (e, txId) => {
       console.log("emoji clicked", e, txId);
       setShowReactions(false);
-      await likeMessage(paymail || profile?.paymail, "tx", txId, e.emoji);
+      await likeMessage(profile?.paymail, "tx", txId, e.emoji);
     },
-    [paymail, profile, showReactions]
+    [profile, showReactions]
   );
 
   const emojis = useMemo(() => {
@@ -478,22 +475,14 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                   padding: ".25rem",
                   width: "fit-content",
                   marginRight: ".25rem",
-                  cursor: hasReacted(
-                    head(reaction.MAP).emoji,
-                    paymail || profile?.paymail
-                  )
+                  cursor: hasReacted(head(reaction.MAP).emoji, profile?.paymail)
                     ? "default"
                     : "pointer",
                 }}
                 onClick={() => {
-                  if (
-                    !hasReacted(
-                      head(reaction.MAP).emoji,
-                      paymail || profile?.paymail
-                    )
-                  ) {
+                  if (!hasReacted(head(reaction.MAP).emoji, profile?.paymail)) {
                     likeMessage(
-                      paymail || profile?.paymail,
+                      profile?.paymail,
                       head(reaction.MAP).context,
                       head(reaction.MAP)[head(reaction.MAP).context],
                       head(reaction.MAP).emoji

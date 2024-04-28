@@ -14,17 +14,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import tw from "twin.macro";
 import { useHandcash } from "../../context/handcash";
-import { useRelay } from "../../context/relay";
 import { hideInDesktop, interactiveColor } from "../../design/mixins";
 import { useActiveUser } from "../../hooks";
 import { toggleMemberList } from "../../reducers/memberListReducer";
 import { toggleProfile } from "../../reducers/profileReducer";
 import { logout } from "../../reducers/sessionReducer";
+import { toggleSettings } from "../../reducers/settingsReducer";
 import { toggleSidebar } from "../../reducers/sidebarReducer";
 import ArrowTooltip from "./ArrowTooltip";
 import At from "./At";
 import Hashtag from "./Hashtag";
-import { toggleSettings } from "../../reducers/settingsReducer";
 import { SettingsModal } from "./modals/SettingsModal";
 
 const Container = styled.div`
@@ -74,7 +73,6 @@ const Header = ({ isFriendsPage }) => {
   const channels = useSelector((state) => state.channels);
   const activeUser = useActiveUser();
   const navigate = useNavigate();
-  const { paymail } = useRelay();
   const { authToken } = useHandcash();
   const activeChannelId = useMemo(() => {
     return params.channel;
@@ -85,8 +83,8 @@ const Header = ({ isFriendsPage }) => {
   }, [params]);
 
   const guest = useMemo(() => {
-    return !authToken && !paymail && !activeUser;
-  }, [authToken, paymail]);
+    return !authToken && !activeUser;
+  }, [authToken, activeUser]);
 
   return (
     <Container id="header" className="disable-select">

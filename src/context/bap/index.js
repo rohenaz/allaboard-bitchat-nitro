@@ -10,7 +10,6 @@ import { useDispatch } from "react-redux";
 import { FetchStatus } from "../../utils/common";
 import { useLocalStorage } from "../../utils/storage";
 import { useHandcash } from "../handcash";
-import { useRelay } from "../relay";
 const { BAP } = require("bitcoin-bap");
 
 const BapContext = React.createContext(undefined);
@@ -24,7 +23,6 @@ const BapProvider = (props) => {
     FetchStatus.Idle
   );
   const { authToken, hcEncrypt, hcDecrypt, decryptStatus } = useHandcash();
-  const { relayEncrypt, relayDecrypt } = useRelay();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -33,7 +31,7 @@ const BapProvider = (props) => {
       if (authToken) {
         id = await hcDecrypt(identity);
       } else {
-        id = await relayDecrypt(identity);
+        return;
       }
       let bapId = new BAP(id.xprv);
       // console.log("BAP id", id.xprv);
@@ -57,7 +55,6 @@ const BapProvider = (props) => {
     decryptStatus,
     decIdentity,
     setDecIdentity,
-    relayDecrypt,
   ]);
 
   const isValidIdentity = useCallback((decryptedIdString) => {
@@ -122,14 +119,7 @@ const BapProvider = (props) => {
         setLoadIdentityStatus(FetchStatus.Error);
       }
     },
-    [
-      loadIdentityStatus,
-      isValidIdentity,
-      relayEncrypt,
-      authToken,
-      hcEncrypt,
-      setIdentity,
-    ]
+    [loadIdentityStatus, isValidIdentity, authToken, hcEncrypt, setIdentity]
   );
 
   const getIdentity = useCallback(async () => {
