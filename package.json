@@ -9,7 +9,7 @@
     "@mui/styled-engine-sc": "^5.1.0",
     "@reduxjs/toolkit": "^1.9.7",
     "@runonbitcoin/nimble": "^1.0.14",
-    "@testing-library/jest-dom": "^5.15.0",
+    "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
     "assert": "^2.0.0",
