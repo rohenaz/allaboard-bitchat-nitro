@@ -44,7 +44,7 @@ const LoginPage = () => {
       if (event.target.wallet.value === "panda") {
         if (!isReady) {
           window.open(
-            "https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
+            "https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj",
             "_blank"
           );
           return;
