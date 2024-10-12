@@ -290,7 +290,7 @@ export const getChannels = async () => {
 export const getUsers = async () => {
   // https://bmap-api-production.up.railway.app/identities
   // return await api.get(`q/messages/${queryUsersB64}?d=users`);
-  return await api.get(`/identities`);
+  return await api.get("/identities");
 };
 
 export const getFriends = async (idKey) => {
