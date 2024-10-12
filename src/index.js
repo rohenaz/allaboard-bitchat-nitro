@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 
 import { Provider } from "react-redux";
 
-import { PandaProvider } from "panda-wallet-provider";
+import { YoursProvider } from "yours-wallet-provider";
 import App from "./App";
 import { BapProvider } from "./context/bap";
 import { BitcoinProvider } from "./context/bitcoin";
@@ -15,7 +15,7 @@ import store from "./store";
 
 ReactDOM.render(
   <Provider store={store}>
-    <PandaProvider>
+    <YoursProvider>
       <AutoPandaProvider autoconnect={false}>
         <HandcashProvider>
           <BmapProvider>
@@ -27,7 +27,7 @@ ReactDOM.render(
           </BmapProvider>
         </HandcashProvider>
       </AutoPandaProvider>
-    </PandaProvider>
+    </YoursProvider>
   </Provider>,
   document.getElementById("root")
 );

@@ -1,4 +1,4 @@
-import { PandaIcon, usePandaWallet } from "panda-wallet-provider";
+import { YoursIcon, useYoursWallet } from "yours-wallet-provider";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
@@ -13,7 +13,7 @@ import SubmitButton from "./SubmitButton";
 import env from "../../utils/env";
 
 const LoginPage = () => {
-  const { isReady, connect, isConnected } = usePandaWallet();
+  const { isReady, connect, isConnected } = useYoursWallet();
   const [pandaAuth, setPandaAuth] = useState();
 
   const { setAuthToken, profile, getProfile } = useHandcash();
@@ -44,7 +44,7 @@ const LoginPage = () => {
       if (event.target.wallet.value === "panda") {
         if (!isReady) {
           window.open(
-            "https://chromewebstore.google.com/detail/panda-wallet/mlbnicldlpdimbjdcncnklfempedeipj",
+            "https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
             "_blank"
           );
           return;
@@ -162,7 +162,7 @@ const LoginPage = () => {
             <HandcashIcon style={{ width: "1rem", marginRight: "1rem" }} />
           ) : selectedWallet === "panda" ? (
             <div className="mr-3">
-              <PandaIcon size={"1rem"} />
+              <YoursIcon size={"1rem"} />
             </div>
           ) : (
             <></>
@@ -180,7 +180,7 @@ const LoginPage = () => {
           <a
             href={
               selectedWallet === "panda"
-                ? "https://chromewebstore.google.com/detail/panda-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
+                ? "https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
                 : "https://app.handcash.io/"
             }
             target="_blank"

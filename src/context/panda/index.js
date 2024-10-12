@@ -1,5 +1,5 @@
 import bsv from "bsv";
-import { usePandaWallet } from "panda-wallet-provider";
+import { usePandaWallet } from "yours-wallet-provider";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "../../utils/storage";
 
