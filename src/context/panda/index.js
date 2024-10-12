@@ -1,5 +1,5 @@
 import bsv from "bsv";
-import { usePandaWallet } from "yours-wallet-provider";
+import { useYoursWallet } from "yours-wallet-provider";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "../../utils/storage";
 
@@ -74,7 +74,7 @@ const AutoPandaProvider = (props) => {
     getBalance,
     getSignatures,
     sendBsv,
-  } = usePandaWallet();
+  } = useYoursWallet();
   const [pandaProfile, setPandaProfile] = useLocalStorage(profileStorageKey);
   const [connected, setConnected] = useState(undefined);
   const [utxos, setUtxos] = useState(undefined);
