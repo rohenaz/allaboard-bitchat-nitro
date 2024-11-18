@@ -128,7 +128,7 @@ const UserList = ({ activeUserId }) => {
           onClick={() => !isInDesktop && dispatch(toggleSidebar())}
         >
           <ListItem
-            icon={<Avatar w={32} h={32} icon={member?.identity.logo} />}
+            icon={<Avatar w={32} h={32} icon={member?.identity?.logo} />}
             text={member.identity?.alternateName || id || "global"}
             style={{
               gap: "8px",
