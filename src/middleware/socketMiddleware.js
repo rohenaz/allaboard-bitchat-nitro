@@ -153,7 +153,7 @@ const socketMiddleware = () => {
           break;
         case "session/logout":
           localStorage.clear();
-          window.location.href = "https://bitchatnitro.com";
+          window.location.href = "/";
           console.log("deleteme? - socket logout");
           // socket.close();
           break;

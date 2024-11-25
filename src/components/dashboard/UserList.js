@@ -13,6 +13,7 @@ import Avatar from "./Avatar";
 import List from "./List";
 import ListItem from "./ListItem";
 import DirectMessageModal from "./modals/DirectMessageModal";
+import ListFooter from "./ListFooter";
 
 const Link = styled(RDLink)`
   &:hover {
@@ -53,25 +54,6 @@ const Content = styled.div`
   flex: 1;
   height: calc(100dvh - 48px - 52px);
   padding: 10px 2px 10px 8px;
-`;
-
-const Footer = styled.div`
-  background-color: var(--background-secondary-alt);
-  height: 52px;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 8px;
-`;
-
-const Username = styled.div`
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  color: var(--header-primary);
-  font-weight: 600;
-  font-size: 14px;
 `;
 
 const UserList = ({ activeUserId }) => {
@@ -230,18 +212,7 @@ const UserList = ({ activeUserId }) => {
           {!memberList.loading && memberList.allIds.map(renderUser)}
         </List>
       </Content>
-      <Footer>
-        <Avatar
-          size="21px"
-          w="32px"
-          // bgColor={user.avatarColor}
-          bgcolor={"#000"}
-          status="online"
-          paymail={user?.paymail || profile?.paymail}
-        />
-        {/* <Username>{user.username}</Username> */}
-        <Username>{user?.identity?.alternateName || profile?.paymail}</Username>
-      </Footer>
+      <ListFooter user={user} profile={profile} decIdentity={decIdentity} />
       <DirectMessageModal
         open={showDirectMessageModal}
         onClose={() => setShowDirectMessageModal(false)}

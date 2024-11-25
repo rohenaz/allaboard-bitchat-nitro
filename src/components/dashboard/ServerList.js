@@ -141,24 +141,11 @@ const ServerList = () => {
           <Pill isActive />
         </ArrowTooltip>
       </ListItem>
-      <ListItem>
+      {/*<ListItem>
         <ArrowTooltip title="Bitchat Classic" placement="left">
           <a href="https://bitchat.allaboardbitcoin.com" target="_blank">
             <ServerIcon color="lime" bgcolor="#000">
               <FaTerminal />
-            </ServerIcon>
-          </a>
-        </ArrowTooltip>
-      </ListItem>
-      <ListItem>
-        <ArrowTooltip title="BlockPost.network" placement="left">
-          <a href="https://blockpost.network/bitchat" target="_blank">
-            <ServerIcon
-              color="white"
-              bgcolor="#49485a"
-              style={{ padding: ".25rem" }}
-            >
-              <BlockpostIcon />
             </ServerIcon>
           </a>
         </ArrowTooltip>
@@ -188,7 +175,7 @@ const ServerList = () => {
             </ServerIcon>
           </a>
         </ArrowTooltip>
-      </ListItem>
+      </ListItem>*/}
       <ListItem>
         <ArrowTooltip title="Create New App" placement="left">
           <a
