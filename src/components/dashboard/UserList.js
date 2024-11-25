@@ -14,6 +14,7 @@ import List from "./List";
 import ListItem from "./ListItem";
 import DirectMessageModal from "./modals/DirectMessageModal";
 import ListFooter from "./ListFooter";
+import getLogo from "../../utils/logo";
 
 const Link = styled(RDLink)`
   &:hover {
@@ -110,7 +111,7 @@ const UserList = ({ activeUserId }) => {
           onClick={() => !isInDesktop && dispatch(toggleSidebar())}
         >
           <ListItem
-            icon={<Avatar w={32} h={32} icon={member?.identity?.logo} />}
+            icon={<Avatar w={32} h={32} icon={getLogo(member?.identity?.logo)} />}
             text={member.identity?.alternateName || id || "global"}
             style={{
               gap: "8px",
