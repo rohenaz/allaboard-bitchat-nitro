@@ -720,7 +720,7 @@ const BitcoinProvider = (props) => {
 
   const sendFriendRequest = useCallback(
     async (friendIdKey, xprv) => {
-      if (decIdentity) {
+      if (!decIdentity) {
         console.log("Can't make friend requests without identity");
         return;
       }

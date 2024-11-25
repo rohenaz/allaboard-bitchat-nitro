@@ -125,7 +125,7 @@ const LoginPage = () => {
             style={{ marginRight: ".5rem" }}
             checked={selectedWallet === "panda"}
           />
-          Panda
+          Yours
         </Label>
 
         {/* <Label error={usernameError}>
@@ -171,7 +171,7 @@ const LoginPage = () => {
             selectedWallet === "handcash"
               ? "Handcash"
               : selectedWallet === "panda"
-              ? "Panda"
+              ? "Yours"
               : ""
           }`}
         </SubmitButton>

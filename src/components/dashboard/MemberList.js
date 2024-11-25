@@ -9,6 +9,7 @@ import Avatar from "./Avatar";
 import List from "./List";
 import ListItem from "./ListItem";
 import UserPopover from "./UserPopover";
+import getLogo from "../../utils/logo";
 
 const Container = styled.div`
   background-color: var(--background-secondary);
@@ -70,7 +71,7 @@ const MemberList = ({ isMobile }) => {
                   bgcolor={`#000`}
                   status="online"
                   paymail={u?.identity?.paymail}
-                  icon={u?.identity?.logo}
+                  icon={getLogo(u?.identity?.logo)}
                 />
               }
               text={u?.identity?.alternateName}
