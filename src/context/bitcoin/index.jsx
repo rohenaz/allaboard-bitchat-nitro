@@ -1,6 +1,6 @@
 import nimble from "@runonbitcoin/nimble";
 import bops from "bops";
-import bsv from "bsv";
+import { PrivateKey, PublicKey, ECIES, Hash, Utils } from "@bsv/sdk";
 import { head } from "lodash";
 import moment from "moment";
 import React, {
@@ -23,16 +23,15 @@ import { getSigningPathFromHex } from "../../utils/sign";
 import { useBap } from "../bap";
 import { useBmap } from "../bmap";
 import { useHandcash } from "../handcash";
-import { usePanda } from "../panda";
+import { useYours } from "../yours";
+import { BAP } from "bsv-bap";
 
-const { BAP } = require("bitcoin-bap");
-const ECIES = require("bsv/ecies");
 const BitcoinContext = React.createContext(undefined);
 
 const BitcoinProvider = (props) => {
   const { notifyIndexer } = useBmap();
   const { authToken, hcDecrypt } = useHandcash();
-  const { pandaProfile, utxos, broadcast, getSignatures, sendBsv } = usePanda();
+  const { pandaProfile, utxos, broadcast, getSignatures, sendBsv } = useYours();
   const { decIdentity, decryptStatus } = useBap();
   const [pinStatus, setPinStatus] = useState(FetchStatus.Idle);
   const [postStatus, setPostStatus] = useState(FetchStatus.Idle);
@@ -467,7 +466,7 @@ const BitcoinProvider = (props) => {
           return;
         }
 
-        // Send with panda
+        // Send with yours
         if (pandaProfile && utxos) {
           let scriptP;
 
@@ -488,7 +487,7 @@ const BitcoinProvider = (props) => {
             let outputsP = [
               { script: scriptP.toASM(), amount: 0, currency: "BSV" },
             ];
-            console.log("Making a panda tx", { outputsP, pandaProfile });
+            console.log("Making a youra tx", { outputsP, pandaProfile });
 
             //  sendBsv: (params: SendBsv[]) => Promise<string | undefined>;
 
@@ -916,42 +915,33 @@ const AIP_PREFIX = `15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva`;
 export const MAP_PREFIX = `1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5`;
 
 export const decrypt = (data, privateKey, publicKey) => {
-  // console.log("decrypt", { data, privateKey });
   return publicKey
-    ? ECIES()
-        .privateKey(privateKey)
-        .publicKey(publicKey)
-        .decrypt(Buffer.from(data, "base64"))
-    : ECIES().privateKey(privateKey).decrypt(Buffer.from(data, "base64"));
+    ? ECIES.decrypt(Buffer.from(data, "base64"), privateKey, publicKey)
+    : ECIES.decrypt(Buffer.from(data, "base64"), privateKey);
 };
 
 export const encrypt = (data, privateKey, publicKey) => {
   console.log("encrypt", { data, privateKey, publicKey });
   if (publicKey) {
-    return ECIES().privateKey(privateKey).publicKey(publicKey).encrypt(data);
-  } else {
-    return ECIES()
-      .privateKey(privateKey)
-      .publicKey(privateKey.publicKey)
-      .encrypt(data);
+    return ECIES.encrypt(data, privateKey, publicKey);
   }
+    return ECIES.encrypt(data, privateKey, privateKey.toPublicKey());
 };
 
 export const friendPublicKeyFromSeedString = (seedString, xprv) => {
-  return friendPrivateKeyFromSeedString(seedString, xprv).publicKey;
+  return friendPrivateKeyFromSeedString(seedString, xprv).toPublicKey();
 };
 
 export const friendPrivateKeyFromSeedString = (seedString, xprv) => {
   if (!xprv) {
-    throw new Error(`no xprv!`);
+    throw new Error("no xprv!");
   }
   // Generate a key based on the other users id hash
-  const seedHex = bsv.crypto.Hash.sha256(Buffer.from(seedString)).toString(
-    "hex"
-  );
+  const seedHex = Hash.sha256(Buffer.from(seedString)).toString("hex");
   const signingPath = getSigningPathFromHex(seedHex);
 
-  const hdPrivateFriendKey = bsv.HDPrivateKey(xprv).deriveChild(signingPath);
-
-  return hdPrivateFriendKey.privateKey;
+  // Note: Since @bsv/sdk doesn't have HD key support yet, we'll rely on bsv-bap's BAP class
+  // to handle the HD key derivation. The BAP class should handle this internally.
+  const bapInstance = new BAP(xprv);
+  return bapInstance.derivePrivateKey(signingPath);
 };

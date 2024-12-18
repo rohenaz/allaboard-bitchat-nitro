@@ -1,11 +1,10 @@
-import bsv from "bsv";
 import { useYoursWallet } from "yours-wallet-provider";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "../../utils/storage";
 
 const wocApiUrl = "https://api.whatsonchain.com/v1/bsv/main";
 
-const PandaContext = React.createContext(undefined);
+const YoursContext = React.createContext(undefined);
 
 const getUtxos = async (fromAddress, pullFresh) => {
   try {
@@ -42,8 +41,8 @@ const getUtxos = async (fromAddress, pullFresh) => {
   }
 };
 
-const AutoPandaProvider = (props) => {
-  // export type PandaProviderType = {
+const AutoYoursProvider = (props) => {
+  // export type YoursProviderType = {
   //   isReady: boolean;
   //   connect: () => Promise<PubKeys | undefined>;
   //   disconnect: () => Promise<boolean>;
@@ -135,21 +134,21 @@ const AutoPandaProvider = (props) => {
     [connected, pandaProfile, utxos, broadcast, getSignatures, sendBsv]
   );
 
-  return <PandaContext.Provider value={value} {...props} />;
+  return <YoursContext.Provider value={value} {...props} />;
 };
 
-const usePanda = () => {
-  const context = useContext(PandaContext);
+const useYours = () => {
+  const context = useContext(YoursContext);
   if (context === undefined) {
-    throw new Error("usePanda must be used within an PandaProvider");
+    throw new Error("useYours must be used within a YoursProvider");
   }
   return context;
 };
 
-export { AutoPandaProvider, usePanda };
+export { AutoYoursProvider, useYours };
 
 //
 // Utils
 //
 
-const profileStorageKey = "nitro__PandaProvider_profile";
+const profileStorageKey = "nitro__YoursProvider_profile";

@@ -1,3 +1,4 @@
+// src/reducers/channelsReducer.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { find, head } from "lodash";
 import moment from "moment";
@@ -62,8 +63,7 @@ const channelsSlice = createSlice({
         state.allIds.push(channel.channel);
       } else {
         // existing channel - update it
-        // TODO: its less code to merge these the other way
-        let c = Object.assign(state.byId[channel.channel], {});
+        const c = Object.assign(state.byId[channel.channel], {});
         c.last_message_time = channel.last_message_time;
         c.last_message = channel.last_message;
         c.messages = c.messages + 1;
@@ -93,7 +93,7 @@ const channelsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loadPins.pending, (state, action) => {
+      .addCase(loadPins.pending, (state) => {
         state.pins.loading = true;
       })
       .addCase(loadPins.fulfilled, (state, action) => {
@@ -105,9 +105,8 @@ const channelsSlice = createSlice({
 
           let paymentAmount = 0;
           const proxyChannel = channel?.channel;
-          console.log({ channel, mapChannel, proxyChannel });
           if (channel && mapChannel === channel.channel) {
-            let paymentOutput = find(
+            const paymentOutput = find(
               pin.out,
               (o) => o.e.a === pinPaymentAddress
             );
@@ -115,13 +114,11 @@ const channelsSlice = createSlice({
 
             if (paymentAmount > 0) {
               const units = Math.floor(paymentAmount / satsPerUnit);
-              let expireMinutesFromTimestamp = minutesPerUnit * units;
-              let expireTime =
+              const expireMinutesFromTimestamp = minutesPerUnit * units;
+              const expireTime =
                 expireMinutesFromTimestamp * msPerMinute + pin.timestamp; // 100 sat / minute
 
-              // (calculate .00100000 bsv per 10 minutes) e.v/100000 (5c)
               if (moment.unix(expireTime).diff(moment(), "minutes") > 0) {
-                console.log(moment.unix(expireTime).diff(moment(), "minutes"));
                 pin.expiresAt = expireTime;
                 if (!state.pins.byChannel[mapChannel]) {
                   state.pins.byChannel[mapChannel] = [];
@@ -135,25 +132,34 @@ const channelsSlice = createSlice({
           }
         });
       })
-      .addCase(loadChannels.pending, (state, action) => {
+      .addCase(loadChannels.pending, (state) => {
         state.loading = true;
       })
       .addCase(loadChannels.fulfilled, (state, action) => {
         state.byId = {};
         state.allIds = [];
         state.loading = false;
-        console.log({ channelsPayload: action.payload });
-        action.payload.message.forEach((c) => {
-          //     return c;
-          //   })
-          //   .sort((a, b) =>
-          //     a.pinned && !b.pinned ? -1 : a.timestamp > b.timestamp ? -1 : 1
-          //   );
-          // return newData;
-          // console.log({ c });
-          state.byId[c.channel] = c;
-          state.allIds.push(c.channel);
-        });
+        
+        // Ensure payload.message exists and is an array
+        const messages = Array.isArray(action.payload?.message) ? action.payload.message : [];
+        
+        // Process each message
+        for (const message of messages) {
+          if (message?.MAP && Array.isArray(message.MAP)) {
+            // Find the first MAP entry with channel info
+            const channelInfo = message.MAP.find(map => map.channel && map.context === 'channel');
+            if (channelInfo?.channel) {
+              const channelId = channelInfo.channel;
+              if (!state.byId[channelId]) {
+                state.byId[channelId] = {
+                  channel: channelId,
+                  timestamp: message.timestamp
+                };
+                state.allIds.push(channelId);
+              }
+            }
+          }
+        }
       });
   },
 });

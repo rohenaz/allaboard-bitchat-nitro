@@ -1,3 +1,4 @@
+// src/components/dashboard/Sidebar.js
 import React, { useMemo } from "react";
 import { useParams } from "react-router-dom";
 

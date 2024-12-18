@@ -26,7 +26,7 @@ const PillWrapper = styled.div`
 
 const PillContainer = styled.div`
   width: 8px;
-  height: ${(p) => (p.isActive ? "40px" : "0")};
+  height: ${(p) => (p.$isActive ? "40px" : "0")};
   margin-left: -4px;
   border-radius: 0 4px 4px 0;
   background-color: var(--header-primary);
@@ -83,13 +83,23 @@ const IconWrapper = styled.div`
   ${(p) => p.isActive && codeIconStyle}
 `;
 
-const ServerIcon = ({ children, ...delegated }) => {
-  return (
-    <IconWrapper size="28px" w="48px" {...delegated}>
-      {children}
-    </IconWrapper>
-  );
-};
+const ServerIcon = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: ${(p) => (p.$isDiscord ? "16px" : "50%")};
+  background-color: var(--background-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+  position: relative;
+  
+  &:hover {
+    border-radius: 16px;
+    background-color: var(--brand);
+  }
+`;
 
 const ListItem = styled.div`
   position: relative;
@@ -127,8 +137,7 @@ const ServerList = () => {
       <ListItem>
         <ArrowTooltip title="Bitchat Nitro" placement="left">
           <ServerIcon
-            isActive
-            isDiscord
+            $isDiscord
             onClick={() => {
               if (session?.user?.bapId) {
                 navigate(`/@/${session.user.idKey}`);

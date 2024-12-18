@@ -41,7 +41,7 @@ const LoginPage = () => {
         return;
       }
 
-      if (event.target.wallet.value === "panda") {
+      if (event.target.wallet.value === "yours") {
         if (!isReady) {
           window.open(
             "https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj",
@@ -115,17 +115,17 @@ const LoginPage = () => {
           />
           Handcash
         </Label>
-        <Label htmlFor="panda">
+        <Label htmlFor="yours">
           <input
             type="radio"
             name="wallet"
-            id="panda"
-            value="panda"
+            id="yours"
+            value="yours"
             onChange={walletChanged}
             style={{ marginRight: ".5rem" }}
-            checked={selectedWallet === "panda"}
+            checked={selectedWallet === "yours"}
           />
-          Panda
+          Yours
         </Label>
 
         {/* <Label error={usernameError}>
@@ -146,21 +146,21 @@ const LoginPage = () => {
           bgcolor={
             selectedWallet === "handcash"
               ? "#2fac69"
-              : selectedWallet === "panda"
+              : selectedWallet === "your"
               ? "rgba(154, 224, 133, 0.25)"
               : "rgb(88, 101, 242)"
           }
           bgcolorhover={
             selectedWallet === "handcash"
               ? "#08a350"
-              : selectedWallet === "panda"
+              : selectedWallet === "yours"
               ? "rgba(154, 224, 133, 0.1)"
               : "rgb(71, 82, 196)"
           }
         >
           {selectedWallet === "handcash" ? (
             <HandcashIcon style={{ width: "1rem", marginRight: "1rem" }} />
-          ) : selectedWallet === "panda" ? (
+          ) : selectedWallet === "yours" ? (
             <div className="mr-3">
               <YoursIcon size={"1rem"} />
             </div>
@@ -170,8 +170,8 @@ const LoginPage = () => {
           {`Login with ${
             selectedWallet === "handcash"
               ? "Handcash"
-              : selectedWallet === "panda"
-              ? "Panda"
+              : selectedWallet === "yours"
+              ? "Yours Wallet"
               : ""
           }`}
         </SubmitButton>
@@ -179,7 +179,7 @@ const LoginPage = () => {
           Need an account?{" "}
           <a
             href={
-              selectedWallet === "panda"
+              selectedWallet === "yours"
                 ? "https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
                 : "https://app.handcash.io/"
             }

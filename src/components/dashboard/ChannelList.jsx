@@ -1,3 +1,4 @@
+// src/components/dashboard/ChannelList.js
 import React, { useCallback, useEffect, useState } from "react";
 
 import { head } from "lodash";

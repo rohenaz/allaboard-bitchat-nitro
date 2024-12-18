@@ -1,6 +1,6 @@
 import { last } from "lodash";
 import moment from "moment";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { HiPlusCircle } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,7 +9,7 @@ import styled from "styled-components";
 import { useBap } from "../../context/bap";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
-import { usePanda } from "../../context/panda";
+import { useYours } from "../../context/yours";
 import { useActiveUser } from "../../hooks";
 import SubmitButton from "./SubmitButton";
 
@@ -47,7 +47,7 @@ const TypingStatus = styled.span`
 const WriteArea = () => {
   // const user = useSelector((state) => state.session.user);
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
-  const { connected, pandaProfile } = usePanda();
+  const { connected, pandaProfile } = useYours();
   const { sendMessage, postStatus, pendingFiles, setPendingFiles } =
     useBitcoin();
   const params = useParams();
@@ -238,7 +238,7 @@ const WriteArea = () => {
     <Container>
       <Form
         onSubmit={handleSubmit}
-        autocomplete="off"
+        autoComplete="off"
         className="relative flex gap-2"
       >
         {pendingFiles.length > 0 && (
@@ -280,7 +280,7 @@ const WriteArea = () => {
           type="text"
           id="channelTextArea"
           name="msg_content"
-          autocomplete="off"
+          autoComplete="off"
           className={profile ? `pl-12` : `pl-4`}
           placeholder={
             !activeUser?.idKey && activeUser

@@ -1,7 +1,7 @@
-import bsv from "bsv";
+import { PrivateKey, PublicKey, ECIES, Hash } from "@bsv/sdk";
 import { head, last } from "lodash";
 import moment from "moment";
-import React, {
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -347,7 +347,7 @@ const Messages = () => {
       dispatch(loadReactions(messages.allIds));
       dispatch(loadDiscordReactions(messages.allMessageIds));
     }
-  }, [messages, activeUser, activeChannelId]);
+  }, [messages, dispatch,]);
 
   // hasMessages &&
   //   messages.sort((a, b) => {
@@ -371,16 +371,16 @@ const Messages = () => {
   const expiresIn = useMemo(() => {
     const ps = [...(pins.byChannel[activeChannelId] || [])];
     if (!ps) {
-      return ``;
+      return "";
     }
     const channelPin = head(
       ps.sort((a, b) => (a?.timestamp > b?.timestamp ? -1 : 1))
     );
     if (!channelPin || !channelPin?.expiresAt) {
-      return ``;
+      return "";
     }
 
-    let mins = moment.unix(channelPin?.expiresAt).diff(moment(), "minutes");
+    const mins = moment.unix(channelPin?.expiresAt).diff(moment(), "minutes");
     if (mins > 60) {
       return `${Math.floor(mins / 60)} hours and ${mins % 60} minutes`;
     }
@@ -394,7 +394,8 @@ const Messages = () => {
   const heading = useMemo(() => {
     if (activeChannelId) {
       return <>Welcome to #{activeChannelId}!</>;
-    } else if (activeUser) {
+    } 
+     if (activeUser) {
       return <>{activeUser?.user?.alternateName}</>;
     }
     return null;
@@ -403,7 +404,8 @@ const Messages = () => {
   const subheading = useMemo(() => {
     if (activeChannelId) {
       return <>This is the start of #{activeChannelId}.</>;
-    } else if (activeUser) {
+    } 
+    if (activeUser) {
       return self ? (
         <>This is the beginning of your notes.</>
       ) : (
@@ -435,7 +437,8 @@ const Messages = () => {
           bgcolor="var(--background-accent)"
         />
       );
-    } else if (activeUser) {
+    } 
+     if (activeUser) {
       // TODO: Hook up avatar status
       return (
         <>
@@ -559,15 +562,15 @@ const Messages = () => {
             <PrimaryHeading>{heading}</PrimaryHeading>
             <SecondaryHeading>
               {self
-                ? `Encrypted notes that only you can read. Click enable notes to generate a key for this conversation.`
-                : `You are not currently accepting new messages from non-friends.`}
+                ? "Encrypted notes that only you can read. Click enable notes to generate a key for this conversation."
+                : "You are not currently accepting new messages from non-friends."}
             </SecondaryHeading>
 
             <AddFriendButton
               onClick={addFriend}
               disabled={friendRequestStatus === FetchStatus.Loading}
             >
-              {`Add Friend`}
+              {"Add Friend"}
             </AddFriendButton>
           </HeaderContainer>
           <br />

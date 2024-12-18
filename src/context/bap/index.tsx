@@ -10,7 +10,8 @@ import { useDispatch } from "react-redux";
 import { FetchStatus } from "../../utils/common";
 import { useLocalStorage } from "../../utils/storage";
 import { useHandcash } from "../handcash";
-const { BAP } = require("bitcoin-bap");
+import { BAP } from "bsv-bap";
+import { PrivateKey, PublicKey, Hash } from "@bsv/sdk";
 
 const BapContext = React.createContext(undefined);
 
@@ -34,18 +35,15 @@ const BapProvider = (props) => {
         return;
       }
       let bapId = new BAP(id.xprv);
-      // console.log("BAP id", id.xprv);
       if (id.ids) {
         bapId.importIds(id.ids);
       }
       let bid = head(bapId.listIds());
-      // console.log({ bid });
       id.bapId = bid;
       setDecIdentity(id);
     };
 
     if (identity && decryptStatus === FetchStatus.Idle && !decIdentity) {
-      // console.log("FIRE");
       fire();
     }
   }, [
@@ -76,7 +74,6 @@ const BapProvider = (props) => {
     const ids = bapId.listIds();
     const idy = bapId.getId(ids[0]);
 
-    // TODO: Is there more to validate here?
     if (!idy) {
       return false;
     }

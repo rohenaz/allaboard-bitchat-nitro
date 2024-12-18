@@ -9,14 +9,14 @@ import { BapProvider } from "./context/bap";
 import { BitcoinProvider } from "./context/bitcoin";
 import { BmapProvider } from "./context/bmap";
 import { HandcashProvider } from "./context/handcash";
-import { AutoPandaProvider } from "./context/panda";
+import { AutoYoursProvider } from "./context/yours";
 import "./index.css";
 import store from "./store";
 
 ReactDOM.render(
   <Provider store={store}>
     <YoursProvider>
-      <AutoPandaProvider autoconnect={false}>
+      <AutoYoursProvider autoconnect={false}>
         <HandcashProvider>
           <BmapProvider>
             <BapProvider>
@@ -26,7 +26,7 @@ ReactDOM.render(
             </BapProvider>
           </BmapProvider>
         </HandcashProvider>
-      </AutoPandaProvider>
+      </AutoYoursProvider>
     </YoursProvider>
   </Provider>,
   document.getElementById("root")
