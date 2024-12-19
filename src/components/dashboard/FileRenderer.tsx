@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
 import React, { forwardRef, useState } from 'react';
 
-type MediaType = 'image' | 'video' | 'audio';
+export type MediaType = 'image' | 'video' | 'audio';
 
 interface FileRendererProps {
   type: MediaType;

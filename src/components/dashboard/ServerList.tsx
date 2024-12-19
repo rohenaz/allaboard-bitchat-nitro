@@ -6,7 +6,6 @@ import styled from 'styled-components';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { fetchServers } from '../../reducers/serverReducer';
-import { FetchStatus } from '../../utils/common';
 import Avatar from './Avatar';
 
 interface Server {
@@ -52,10 +51,10 @@ const Separator = styled.div`
   margin: 0 0 8px;
 `;
 
-const ServerButton = styled.button<{ active?: boolean }>`
+const ServerButton = styled.button<{ $active?: boolean }>`
   width: 48px;
   height: 48px;
-  border-radius: ${({ active }) => (active ? '16px' : '24px')};
+  border-radius: ${({ $active }) => ($active ? '16px' : '24px')};
   margin-bottom: 8px;
   position: relative;
   cursor: pointer;
@@ -72,11 +71,11 @@ const ServerButton = styled.button<{ active?: boolean }>`
     content: '';
     display: block;
     width: 8px;
-    height: ${({ active }) => (active ? '40px' : '8px')};
+    height: ${({ $active }) => ($active ? '40px' : '8px')};
     position: absolute;
     left: -16px;
     top: 50%;
-    transform: translateY(-50%) scale(${({ active }) => (active ? 1 : 0)});
+    transform: translateY(-50%) scale(${({ $active }) => ($active ? 1 : 0)});
     border-radius: 0 4px 4px 0;
     background-color: var(--header-primary);
     transition: all 0.15s ease-out;
@@ -114,14 +113,14 @@ const ServerList: React.FC = () => {
     [navigate],
   );
 
-  if (servers.loading === FetchStatus.Loading) {
+  if (servers.loading) {
     return null;
   }
 
   return (
     <Container>
       <ServerButton
-        active={!params.channel}
+        $active={!params.channel}
         onClick={() => navigate('/channels/@me')}
       >
         <Avatar
@@ -132,10 +131,10 @@ const ServerList: React.FC = () => {
         />
       </ServerButton>
       <Separator />
-      {servers.data.map((server) => (
+      {servers.data?.map((server) => (
         <ServerButton
           key={server._id}
-          active={server._id === params.channel}
+          $active={server._id === params.channel}
           onClick={() => handleClick(server._id)}
         >
           <Avatar

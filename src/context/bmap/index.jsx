@@ -1,11 +1,12 @@
 import React, { useContext, useMemo, useCallback } from 'react';
+import { API_BASE_URL } from '../../config/env';
 
 const BmapContext = React.createContext(undefined);
 
 const BmapProvider = (props) => {
   const notifyIndexer = useCallback((rawTx) => {
     return new Promise((resolve, reject) => {
-      fetch('https://bmap-api-production.up.railway.app/ingest', {
+      fetch(`${API_BASE_URL}/ingest`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

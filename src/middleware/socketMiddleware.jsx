@@ -1,4 +1,5 @@
 import { head, last } from 'lodash';
+import { API_BASE_URL } from '../config/env';
 import { receiveNewChannel, receiveNewPin } from '../reducers/channelsReducer';
 import { receiveNewMessage, receiveNewReaction } from '../reducers/chatReducer';
 import { receiveNewFriend } from '../reducers/memberListReducer';
@@ -24,7 +25,7 @@ const sockQuery = (_verbose) => {
 
 const socketMiddleware = () => {
   const sock_b64 = btoa(JSON.stringify(sockQuery(false)));
-  const socket_url = `https://bmap-api-production.up.railway.app/s/$all/${sock_b64}`;
+  const socket_url = `${API_BASE_URL}/s/$all/${sock_b64}`;
 
   return (storeAPI) => {
     // socket

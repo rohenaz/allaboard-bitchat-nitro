@@ -1,7 +1,5 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { FetchStatus } from '../utils/common';
-import env from '../utils/env';
-
+import { type PayloadAction, createSlice } from '@reduxjs/toolkit';
+import type { AppDispatch } from '../store';
 interface Server {
   _id: string;
   name: string;
@@ -11,49 +9,82 @@ interface Server {
   paymail?: string;
 }
 
-interface ServersState {
+interface ServerState {
   loading: boolean;
-  data: Server[];
   error: string | null;
+  data: Server[];
 }
 
-const initialState: ServersState = {
+const initialState: ServerState = {
   loading: false,
-  data: [],
   error: null,
+  data: [
+    {
+      _id: 'bitchat',
+      name: 'BitChat',
+      description: 'The main BitChat server',
+      icon: '/logo.png',
+      paymail: 'bitchat@bitchatnitro.com',
+    },
+    // More servers can be added here or fetched from an endpoint
+  ],
 };
 
-export const fetchServers = createAsyncThunk(
-  'servers/fetchServers',
-  async () => {
-    const response = await fetch(`${env.REACT_APP_API_URL}/servers`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch servers');
-    }
-    return response.json();
-  },
-);
-
-const serversSlice = createSlice({
+const serverSlice = createSlice({
   name: 'servers',
   initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchServers.pending, (state) => {
-        state.loading = FetchStatus.Loading;
-        state.error = null;
-      })
-      .addCase(fetchServers.fulfilled, (state, action) => {
-        state.loading = FetchStatus.Success;
-        state.data = action.payload;
-        state.error = null;
-      })
-      .addCase(fetchServers.rejected, (state, action) => {
-        state.loading = FetchStatus.Error;
-        state.error = action.error.message || 'Failed to fetch servers';
-      });
+  reducers: {
+    fetchServersStart(state) {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchServersSuccess(state, action: PayloadAction<Server[]>) {
+      state.loading = false;
+      state.data = action.payload;
+    },
+    fetchServersFailure(state, action: PayloadAction<string>) {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    addServer(state, action: PayloadAction<Server>) {
+      state.data.push(action.payload);
+    },
+    removeServer(state, action: PayloadAction<string>) {
+      state.data = state.data.filter((server) => server._id !== action.payload);
+    },
   },
 });
 
-export default serversSlice.reducer;
+export const {
+  fetchServersStart,
+  fetchServersSuccess,
+  fetchServersFailure,
+  addServer,
+  removeServer,
+} = serverSlice.actions;
+
+export const fetchServers = () => async (dispatch: AppDispatch) => {
+  try {
+    dispatch(fetchServersStart());
+    // Since there's no API endpoint yet, we'll just return success with the initial data
+    dispatch(
+      fetchServersSuccess([
+        {
+          _id: 'bitchat',
+          name: 'BitChat',
+          description: 'The main BitChat server',
+          icon: '/logo.png',
+          paymail: 'bitchat@bitchatnitro.com',
+        },
+      ]),
+    );
+  } catch (error) {
+    dispatch(
+      fetchServersFailure(
+        error instanceof Error ? error.message : 'Failed to fetch servers',
+      ),
+    );
+  }
+};
+
+export default serverSlice.reducer;

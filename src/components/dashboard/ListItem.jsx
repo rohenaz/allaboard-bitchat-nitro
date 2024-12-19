@@ -7,7 +7,7 @@ const Text = styled.span`
   font-weight: 500;
   ${(p) =>
     `font-size: ${p.textStyle?.fontSize ? p.textStyle.fontSize : '15px'}`};
-  ${(p) => `color: ${p.isActive ? 'var(--header-primary)' : 'var(--channels-default)'}`};
+  ${(p) => `color: ${p.$isActive ? 'var(--header-primary)' : 'var(--channels-default)'}`};
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -41,12 +41,12 @@ const Container = styled.div`
     color: var(--interactive-hover);
   }
   ${(p) =>
-    p.isPinned &&
+    p.$isPinned &&
     css`
       border: 1px solid gold;
     `}
   ${(p) =>
-    p.isActive &&
+    p.$isActive &&
     css`
       &,
       &:hover {
@@ -71,12 +71,12 @@ const ListItem = ({
   ...delegated
 }) => {
   return (
-    <Container isActive={isActive} isPinned={isPinned} {...delegated}>
+    <Container $isActive={isActive} $isPinned={isPinned} {...delegated}>
       {icon}
       <Wrapper>
         {text && (
           <Text
-            isActive={isActive || hasActivity}
+            $isActive={isActive || hasActivity}
             style={textStyle}
             className="disable-select"
           >

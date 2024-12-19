@@ -4,9 +4,10 @@ import { FaCheck, FaSearch } from 'react-icons/fa';
 import OutsideClickHandler from 'react-outside-click-handler';
 import { useNavigate } from 'react-router-dom';
 import tw from 'twin.macro';
+import { API_BASE_URL } from '../../../config/env';
 
 const api = axios.create({
-  baseURL: 'https://bmap-api-production.up.railway.app/q/',
+  baseURL: `${API_BASE_URL}/q/`,
 });
 
 const ModalOverlay = tw.div`

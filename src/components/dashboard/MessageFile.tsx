@@ -2,7 +2,7 @@ import type React from 'react';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 import { getBase64Url } from '../../utils/file';
-import FileRenderer from './FileRenderer';
+import FileRenderer, { type MediaType } from './FileRenderer';
 
 interface MessageFileProps {
   file: {
@@ -46,7 +46,7 @@ const MessageFile: React.FC<MessageFileProps> = ({ file, onClick }) => {
 
   return (
     <Container>
-      <FileRenderer type={fileType} data={b64} onClick={onClick} />
+      <FileRenderer type={fileType as MediaType} data={b64} onClick={onClick} />
     </Container>
   );
 };

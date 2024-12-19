@@ -97,7 +97,8 @@ const memberListSlice = createSlice({
       })
       .addCase(loadUsers.fulfilled, (state, action) => {
         state.loading = false;
-        for (const user of action.payload) {
+        const users = action.payload?.data || [];
+        for (const user of users) {
           if (!state.allIds.includes(user.idKey)) {
             state.byId[user.idKey] = user;
             state.allIds.push(user.idKey);
@@ -109,11 +110,12 @@ const memberListSlice = createSlice({
       })
       .addCase(loadFriends.fulfilled, (state, action) => {
         state.friendRequests.loading = false;
-        for (const friend of action.payload.friend) {
+        const friends = action.payload?.data || [];
+        for (const friend of friends) {
           // exclude our original broken friend requests
-          if (friend.MAP.type === 'friend') {
-            const bapId = friend.MAP.bapID;
-            const publicKey = friend.MAP.publicKey;
+          if (friend.MAP?.type === 'friend') {
+            const bapId = friend.MAP?.bapID;
+            const publicKey = friend.MAP?.publicKey;
             const signer = friend.AIP?.signer;
 
             if (bapId && publicKey && signer) {
