@@ -5,7 +5,7 @@ import { HiPlusCircle } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useSearchParams } from "react-router-dom";
-import styled from "styled-components";
+import tw, { styled } from "twin.macro";
 import { useBap } from "../../context/bap";
 import { useBitcoin } from "../../context/bitcoin";
 import { useHandcash } from "../../context/handcash";
@@ -18,49 +18,96 @@ import {
   toggleFileUpload,
 } from "../../reducers/chatReducer";
 import { FetchStatus } from "../../utils/common";
-import ChannelTextArea from "./ChannelTextArea";
 import InvisibleSubmitButton from "./InvisibleSubmitButton";
 import PlusModal from "./modals/PlusModal";
 
-// if (typeof Buffer === "undefined") {
-//   /*global Buffer:writable*/
-//   Buffer = require("buffer").Buffer;
-// }
-
 const Container = styled.div`
-  background-color: var(--background-primary);
-  padding: 8px 16px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: calc(env(safe-area-inset-bottom)+8px);
+  ${tw`bg-background-primary px-4 py-2 flex-none flex items-center justify-center`}
+  padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
+  border-top: 1px solid var(--background-tertiary);
+  width: 100%;
 `;
 
-const Form = styled.form``;
+const Form = styled.form`
+  ${tw`relative flex gap-2`}
+  width: 100%;
+  max-width: 1200px;
+`;
 
 const TypingStatus = styled.span`
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-normal);
+  ${tw`text-xs font-medium text-[color:var(--text-normal)]`}
+`;
+
+const AttachmentBar = styled.div`
+  ${tw`flex items-center absolute -mt-10 bg-background-secondary w-full rounded p-2`}
+  z-index: 1;
+`;
+
+const AttachmentLabel = styled.span`
+  ${tw`font-semibold mr-2`}
+`;
+
+const AttachmentItem = styled.div`
+  ${tw`mr-2 flex items-center truncate`}
+`;
+
+const AttachmentName = styled.div`
+  ${tw`min-w-0 truncate`}
+`;
+
+const StyledPlusIcon = styled(HiPlusCircle)`
+  ${tw`text-2xl text-[color:var(--text-muted)] transition-colors duration-200`}
+`;
+
+const PlusButton = styled.button`
+  ${tw`flex items-center justify-center absolute left-3 h-full cursor-pointer bg-transparent border-0 p-0 focus:outline-none`}
+  z-index: 1;
+
+  &:hover {
+    ${tw`text-[color:var(--text-normal)]`}
+    
+    svg {
+      ${tw`text-[color:var(--text-normal)]`}
+    }
+  }
+
+  &:disabled {
+    ${tw`cursor-not-allowed opacity-50`}
+    
+    &:hover svg {
+      ${tw`text-[color:var(--text-muted)]`}
+    }
+  }
+`;
+
+const MessageInput = styled.textarea`
+  ${tw`w-full min-h-[44px] max-h-[50vh] py-2.5 resize-none bg-[color:var(--channeltextarea-background)] rounded text-[color:var(--text-normal)] placeholder-[color:var(--text-muted)]`}
+  padding-left: 2.75rem;
+  padding-right: 1rem;
+  outline: none;
+  &:focus {
+    outline: none;
+  }
+`;
+
+const CloseButton = styled.button`
+  ${tw`cursor-pointer p-1 hover:text-red-400 focus:outline-none`}
+  transition: color 0.2s ease;
 `;
 
 const WriteArea = () => {
-  // const user = useSelector((state) => state.session.user);
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
   const { connected, pandaProfile } = useYours();
-  const { sendMessage, postStatus, pendingFiles, setPendingFiles } =
-    useBitcoin();
+  const { sendMessage, postStatus, pendingFiles, setPendingFiles } = useBitcoin();
   const params = useParams();
-
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [showPlusPopover, setShowPlusPopover] = useState(false);
-
   const { decIdentity } = useBap();
   const activeUser = useActiveUser();
+  const dispatch = useDispatch();
+  const inputRef = useRef(null);
 
-  const friendRequests = useSelector(
-    (state) => state.memberList.friendRequests
-  );
+  const friendRequests = useSelector((state) => state.memberList.friendRequests);
   const loadingMembers = useSelector((state) => state.memberList.loading);
   const loadingPins = useSelector((state) => state.channels.pins.loading);
   const loadingChannels = useSelector((state) => state.channels.loading);
@@ -68,59 +115,45 @@ const WriteArea = () => {
   const loadingFriendRequests = useSelector(
     (state) => state.memberList.friendRequests.loading
   );
-  const dispatch = useDispatch();
   const session = useSelector((state) => state.session);
-  const inputRef = useRef(null);
+  const typingUser = useSelector((state) => state.chat.typingUser);
 
-  const activeChannelId = useMemo(() => {
-    return params.channel;
-  }, [params]);
+  const activeChannelId = useMemo(() => params.channel, [params.channel]);
+  const activeUserId = useMemo(() => params.user, [params.user]);
+  const pendingMessage = useMemo(() => searchParams.get("m"), [searchParams]);
+  const [messageContent, setMessageContent] = useState(pendingMessage || "");
 
-  const activeUserId = useMemo(() => {
-    return params.user;
-  }, [params]);
+  const channelName = activeChannelId || activeUserId || last(window?.location?.pathname?.split("/"));
 
-  const pendingMessage = useMemo(() => {
-    return searchParams.get("m");
-  }, [params]);
+  const changeContent = useCallback((e) => {
+    setMessageContent(e.target.value);
+  }, []);
 
-  const [messageContent, setMessageContent] = useState(
-    pendingMessage || undefined
-  );
-
-  const channelName =
-    activeChannelId ||
-    activeUserId ||
-    last(window?.location?.pathname?.split("/"));
-
-  const changeContent = useCallback(
-    (e) => {
-      setMessageContent(e.target.value);
-    },
-    [messageContent]
-  );
+  const togglePlusPopover = useCallback(() => {
+    setShowPlusPopover((prev) => !prev);
+  }, []);
 
   const guest = useMemo(() => {
     return !authToken && !pandaProfile;
   }, [authToken, pandaProfile]);
 
-  const togglePlusPopover = useCallback(() => {
-    setShowPlusPopover(!showPlusPopover);
-  }, [showPlusPopover]);
+  const self = useMemo(() => {
+    return activeUser && session.user?.bapId === activeUser?._id;
+  }, [session.user?.bapId, activeUser]);
 
   const handleSubmit = useCallback(
     async (event) => {
+      event.preventDefault();
       if (!authToken && !connected) {
-        // TODO: Create
         console.log("Cannot post. No Handcash auth and no panda connection");
         return;
       }
 
-      event.preventDefault();
       const content = event.target.msg_content.value;
       const hasContent = content !== "" || pendingFiles.length > 0;
-      setMessageContent("");
+      
       if (hasContent && (profile?.paymail || pandaProfile)) {
+        setMessageContent("");
         event.target.reset();
         try {
           await sendMessage(
@@ -150,162 +183,123 @@ const WriteArea = () => {
       }
     },
     [
-      decIdentity,
-      activeUserId,
-      activeChannelId,
-      profile,
       authToken,
-
-      messageContent,
-      sendMessage,
       connected,
+      profile?.paymail,
+      pandaProfile,
+      pendingFiles.length,
+      activeChannelId,
+      activeUserId,
+      decIdentity,
+      dispatch,
+      sendMessage,
     ]
   );
 
-  // const enablePublicComms = useCallback(async () => {
-  //   try {
-  //     const decIdentity = await hcDecrypt(identity);
-
-  //     const hdPK = bsv.HDPrivateKey.fromString(decIdentity.xprv);
-
-  //     const privateKey = hdPK.privateKey.toString();
-
-  //     // only add the attribute if its needed
-  //     if (!decIdentity.commsPublicKey) {
-  //       const hexString = `<TODO: hash of user's id key>`;
-  //       const signingPath = getSigningPathFromHex(hexString, true);
-
-  //       // TODO: Add the commsPublicKey attribute to ALIAS doc
-
-  //       // newId.addAttribute(
-  //       //   "commsPublicKey",
-  //       //   privateKey.deriveChild(signingPath).publicKey.toString()
-  //       // );
-  //       // newId.addAttribute("email", "john@doe.com");
-  //     }
-  //   } catch (e) {
-  //     throw e;
-  //   }
-  // }, [identity, hcDecrypt]);
-
-  const typingUser = useSelector((state) => state.chat.typingUser);
-
-  // TODO: Detect whether the user is typing
-  const handleKeyDown = (event) => {
+  const handleKeyDown = useCallback((event) => {
+    const CTRL_KEY = 17;
+    const CMD_KEY = 91;
+    const V_KEY = 86;
+    const C_KEY = 67;
     let ctrlDown = false;
-    let ctrlKey = 17;
-    let cmdKey = 91;
-    let vKey = 86;
-    let cKey = 67;
 
-    if (event.keyCode == ctrlKey || event.keyCode == cmdKey) ctrlDown = true;
+    if (event.keyCode === CTRL_KEY || event.keyCode === CMD_KEY) ctrlDown = true;
 
-    if (ctrlDown && event.keyCode == cKey) console.log("Document catch Ctrl+C");
-    if (ctrlDown && event.keyCode == vKey) console.log("Document catch Ctrl+V");
-  };
+    if (ctrlDown && event.keyCode === C_KEY) console.log("Document catch Ctrl+C");
+    if (ctrlDown && event.keyCode === V_KEY) console.log("Document catch Ctrl+V");
+  }, []);
 
-  const handleKeyUp = (event) => {
-    const enterKey = 13;
+  const handleKeyUp = useCallback((event) => {
+    const ENTER_KEY = 13;
+    const CTRL_KEY = 17;
+    const CMD_KEY = 91;
+    const V_KEY = 86;
+    const C_KEY = 67;
     let ctrlDown = false;
-    let ctrlKey = 17;
-    let cmdKey = 91;
-    let vKey = 86;
-    let cKey = 67;
 
-    if (event.keyCode == ctrlKey || event.keyCode == cmdKey) ctrlDown = false;
+    if (event.keyCode === CTRL_KEY || event.keyCode === CMD_KEY) ctrlDown = false;
 
-    if (event.keyCode === enterKey) {
+    if (event.keyCode === ENTER_KEY) {
       console.log("enter");
-      // dispatch(stopTyping(paymail));
-    } else if (event.keyCode === vKey && event.keycode === ctrlKey) {
-      console.log("hey hey heeeyyyyy");
-    } else {
-      // console.log("other");
-      // dispatch(typing(paymail));
-      // clearTimeout(timeout);
-      // timeout = setTimeout(() => dispatch(stopTyping(paymail)), 2000);
+    } else if (event.keyCode === V_KEY && event.keyCode === CTRL_KEY) {
+      console.log("paste detected");
     }
-  };
+  }, []);
 
-  // TODO: When loading the page show what is loading in the placeholder
+  const handleCloseAttachment = useCallback(() => {
+    setPendingFiles([]);
+  }, [setPendingFiles]);
 
-  const self = useMemo(() => {
-    return activeUser && session.user?.bapId === activeUser?._id;
-  }, [session, activeUser]);
+  const handlePlusClick = useCallback(() => {
+    if (signStatus === FetchStatus.Loading || postStatus === FetchStatus.Loading) {
+      return;
+    }
+    dispatch(toggleFileUpload());
+  }, [dispatch, signStatus, postStatus]);
 
-  console.log({ activeUser });
   return (
     <Container>
-      <Form
-        onSubmit={handleSubmit}
-        autoComplete="off"
-        className="relative flex gap-2"
-      >
+      <Form onSubmit={handleSubmit} autoComplete="off">
         {pendingFiles.length > 0 && (
-          <div className="flex items-center absolute -mt-10 bg-[#222] w-full rounded p-2">
-            <span className="font-semibold mr-2">Attachments:</span>
+          <AttachmentBar>
+            <AttachmentLabel>Attachments:</AttachmentLabel>
             {pendingFiles.map((f, idx) => (
-              <div className="mr-2 flex items-center truncate" key={f.name}>
-                <div className="min-w-0 truncate">{f.name}</div>
+              <AttachmentItem key={f.name}>
+                <AttachmentName>{f.name}</AttachmentName>
                 {idx < pendingFiles.length - 1 ? "," : ""}
-              </div>
+              </AttachmentItem>
             ))}
             {pendingFiles.length > 0 && (
-              <div
-                className="cursor-pointer p-1 hover:text-red-400"
-                onClick={() => setPendingFiles([])}
+              <CloseButton
+                onClick={handleCloseAttachment}
+                onKeyDown={(e) => e.key === 'Enter' && handleCloseAttachment()}
+                tabIndex={0}
+                aria-label="Close attachments"
               >
-                <IoMdClose className="" size={16} />
-              </div>
+                <IoMdClose size={16} />
+              </CloseButton>
             )}
-          </div>
+          </AttachmentBar>
         )}
 
-        <div
-          className="flex items-center justify-center absolute left-0 h-full w-12 cursor-pointer"
-          onClick={(e) => {
-            if (
-              signStatus === FetchStatus.Loading ||
-              postStatus === FetchStatus.Loading
-            ) {
-              return;
-            }
-            dispatch(toggleFileUpload());
-          }}
+        <PlusButton
+          onClick={handlePlusClick}
+          type="button"
+          aria-label="Add attachment"
+          disabled={signStatus === FetchStatus.Loading || postStatus === FetchStatus.Loading}
         >
-          <HiPlusCircle className="text-2xl ml-2 text-[#aaa]" />
-        </div>
+          <StyledPlusIcon />
+        </PlusButton>
 
-        <ChannelTextArea
+        <MessageInput
           type="text"
           id="channelTextArea"
           name="msg_content"
           autoComplete="off"
-          className={profile ? `pl-12` : `pl-4`}
           placeholder={
             !activeUser?.idKey && activeUser
-              ? `DMs Disabled`
+              ? "DMs Disabled"
               : activeUser && loadingMembers
-              ? `Loading members...`
+              ? "Loading members..."
               : !activeUser && loadingPins
-              ? `Loading pinned channels...`
+              ? "Loading pinned channels..."
               : !activeUser && loadingChannels
-              ? `Loading channels...`
+              ? "Loading channels..."
               : activeUser && loadingFriendRequests
-              ? `Loading friends`
+              ? "Loading friends"
               : loadingMessages
-              ? `Loading messages...`
+              ? "Loading messages..."
               : decryptStatus === FetchStatus.Loading
-              ? `Decrypting...`
+              ? "Decrypting..."
               : signStatus === FetchStatus.Loading
-              ? `Signing...`
+              ? "Signing..."
               : postStatus === FetchStatus.Loading
               ? "Posting..."
               : `Message ${
                   activeChannelId
-                    ? "#" + activeChannelId
+                    ? `#${activeChannelId}`
                     : activeUserId
-                    ? "to @" + activeUserId
+                    ? `@${activeUserId}`
                     : "in global chat"
                 }`
           }
@@ -341,102 +335,3 @@ const WriteArea = () => {
 };
 
 export default WriteArea;
-
-// /**
-//  * Sign an op_return hex array with AIP
-//  * @param opReturn {array}
-//  * @param signingPath {string}
-//  * @param outputType {string}
-//  * @return {[]}
-//  */
-// const signOpReturnWithAIP = (
-//   opReturn,
-//   currentPath,
-//   pk,
-//   signingPath = "",
-//   outputType = "hex"
-// ) => {
-//   const aipMessageBuffer = getAIPMessageBuffer(opReturn);
-
-//   const { address, signature } = signMessage(
-//     aipMessageBuffer,
-//     currentPath,
-//     pk,
-//     signingPath
-//   );
-
-//   return opReturn.concat([
-//     bops.to(bops.from("|", "utf8"), outputType),
-//     bops.to(bops.from(AIP_PREFIX, "utf8"), outputType),
-//     bops.to(bops.from("BITCOIN_ECDSA", "utf8"), outputType),
-//     bops.to(bops.from(address, "utf8"), outputType),
-//     bops.to(bops.from(signature, "base64"), outputType),
-//   ]);
-// };
-
-// /**
-//  * Construct an AIP buffer from the op return data
-//  * @param opReturn
-//  * @returns {Buffer}
-//  */
-// const getAIPMessageBuffer = (opReturn) => {
-//   const buffers = [];
-//   if (opReturn[0].replace("0x", "") !== "6a") {
-//     // include OP_RETURN in constructing the signature buffer
-//     buffers.push(bops.from("6a", "hex"));
-//   }
-//   opReturn.forEach((op) => {
-//     buffers.push(bops.from(op.replace("0x", ""), "hex"));
-//   });
-//   // add a trailing "|" - this is the AIP way
-//   buffers.push(bops.from("|"));
-
-//   return bops.join([...buffers]);
-// };
-
-// /**
-//  * Sign a message with the current signing address of this identity
-//  *
-//  * @param message
-//  * @param signingPath
-//  * @returns {{address, signature}}
-//  */
-// const signMessage = (message, currentPath, pk, signingPath = "") => {
-//   // if (!(message instanceof Buffer)) {
-//   //   message = bops.from(message, "");
-//   // }
-
-//   signingPath = signingPath || currentPath;
-//   const derivedChild = pk.deriveChild(signingPath);
-//   const address = derivedChild.privateKey.publicKey.toAddress().toString();
-
-//   console.log({ address, derivedChild });
-//   const bsvMsg = new bsv.Message(message);
-//   console.log({ bsvMsg });
-//   var hash = bsvMsg.magicHash();
-//   // return ECDSA.signWithCalcI(hash, privateKey);
-//   const signature = bsv.ECDSA.signWithCalcI(hash, derivedChild.privateKey);
-
-//   // const signature = bsv.Message(message).sign(derivedChild.privateKey);
-
-//   return { address, signature };
-// };
-
-// var sha256sha256 = bsv.crypto.Hash.sha256sha256;
-
-// const magicHash = () => {
-//   var prefix1 = bsv.util.BufferWriter.varintBufNum(
-//     bsv.Message.MAGIC_BYTES.length
-//   );
-//   var prefix2 = bsv.util.BufferWriter.varintBufNum(
-//     bsv.Message.messageBuffer.length
-//   );
-//   var buf = bops.join([
-//     prefix1,
-//     bsv.Message.MAGIC_BYTES,
-//     prefix2,
-//     bsv.Message.messageBuffer,
-//   ]);
-//   var hash = sha256sha256(buf);
-//   return hash;
-// };

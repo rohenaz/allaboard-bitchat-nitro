@@ -1,6 +1,5 @@
 // src/components/dashboard/ChannelList.js
-import React, { useCallback, useEffect, useState } from "react";
-
+import { useCallback, useEffect, useState } from "react";
 import { head } from "lodash";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,6 +29,8 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   text-overflow: ellipsis;
+  background-color: var(--background-secondary);
+  flex-shrink: 0;
 `;
 
 const Header = styled.div`
@@ -56,6 +57,26 @@ const Content = styled.div`
   flex: 1;
   height: calc(100dvh - 48px - 52px);
   padding: 10px 2px 10px 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--background-tertiary);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--background-floating);
+  }
 `;
 
 const Footer = styled.div`
@@ -78,29 +99,30 @@ const Username = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: start;
+
+  div:last-child {
+    font-size: .75rem;
+    color: var(--text-muted);
+  }
 `;
 
 const ChannelList = ({ activeChannelId }) => {
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(loadChannels());
-  }, [dispatch]);
-
   const { profile } = useHandcash();
-
-  // const user = useSelector((state) => state.session.user);
   const channels = useSelector((state) => state.channels);
   const isInDesktop = useWindowWidth() > 768;
   const [unpinsSet, setUnpinsSet] = useState(false);
   const messages = useSelector((state) => state.chat.messages);
   const user = useSelector((state) => state.session.user);
-  const { sendPin, pinStatus } = useBitcoin();
+  const { pinStatus } = useBitcoin();
   const [pendingPin, setPendingPin] = useState(false);
   const [hoveringChannel, setHoveringChannel] = useState();
   const { decIdentity } = useBap();
+  const [lastMessageSeen] = useState(moment().unix());
 
-  // TODO: This should be per channel, and using localStorage
-  const lastMessageSeen = useState(moment().unix());
+  useEffect(() => {
+    dispatch(loadChannels());
+  }, [dispatch]);
 
   const mouseOver = useCallback(
     (id) => {
@@ -108,7 +130,7 @@ const ChannelList = ({ activeChannelId }) => {
         setHoveringChannel(id);
       }
     },
-    [hoveringChannel]
+    []
   );
 
   const mouseOut = useCallback(
@@ -128,70 +150,46 @@ const ChannelList = ({ activeChannelId }) => {
       !channels.pins.loading
     ) {
       setUnpinsSet(true);
-      channels.pins.allChannels.forEach((c) => {
-        // console.log(
-        //   "unpins at",
-        //   new Date(head(channels.pins.byChannel[c]).expiresAt * 1000)
-        // );
+      for (const c of channels.pins.allChannels) {
         setTimeout(() => {
-          dispatch(unpinChannel, c);
+          dispatch(unpinChannel(c));
         }, head(channels.pins.byChannel[c]).expiresAt * 1000);
-      });
+      }
     }
-  }, [unpinsSet, channels.pins?.allChannels]);
-
-  // const pinChannel = useCallback(
-  //   async (id) => {
-  //     if (id) {
-  //       try {
-  //         await sendPin(paymail || profile?.paymail, id, units);
-  //         setShowPinChannelModal(false);
-  //       } catch (e) {
-  //         console.error(e);
-  //       }
-  //     }
-  //   },
-  //   [units, paymail, profile, sendPin]
-  // );
-
-  useEffect(() => console.log({ activeChannelId }), [activeChannelId]);
+  }, [unpinsSet, channels.pins, dispatch]);
 
   const renderChannel = useCallback(
     (id) => {
+      const channel = channels.byId[id];
+      if (!channel) {
+        console.log('Channel not found in byId:', id);
+        return null;
+      }
+
       return (
         <Link
           key={id}
-          to={`/channels${id ? "/" + id : ""}`}
+          to={`/channels${id ? `/${id}` : ""}`}
           onClick={() => !isInDesktop && dispatch(toggleSidebar())}
         >
           <ListItem
             icon={<Hashtag size="20px" />}
-            text={id || "global"}
+            text={channel.channel || "global"}
             style={{
               gap: "8px",
               padding: "8px 4px",
             }}
-            id={id}
-            isPinned={channels.pins.byChannel[id]}
+            id={channel.channel}
+            isPinned={channels.pins?.byChannel[channel.channel]}
             onMouseEnter={(e) => mouseOver(e.target.id)}
             onMouseLeave={(e) => mouseOut(e.target.id)}
-            hasActivity={
-              channels.byId[id].last_message_time > lastMessageSeen
-              // (!id &&
-              //   messages?.allIds?.some(
-              //     (cid) =>
-              //       messages.byId[cid]?.MAP && !messages.byId[cid]?.MAP.channel
-              //   )) ||
-              // messages?.allIds?.some(
-              //   (cid) => messages.byId[cid]?.MAP.channel === id
-              // )
-            }
-            isActive={id === activeChannelId || (!id && !activeChannelId)}
+            hasActivity={channel.last_message_time > lastMessageSeen}
+            isActive={channel.channel === activeChannelId || (!channel.channel && !activeChannelId)}
             showPin={
-              pinStatus !== FetchStatus.Loading && id && hoveringChannel === id
+              pinStatus !== FetchStatus.Loading && channel.channel && hoveringChannel === channel.channel
             }
             onClickPin={() => {
-              setPendingPin(id);
+              setPendingPin(channel.channel);
             }}
           />
         </Link>
@@ -200,10 +198,13 @@ const ChannelList = ({ activeChannelId }) => {
     [
       lastMessageSeen,
       hoveringChannel,
-      messages,
       isInDesktop,
       activeChannelId,
       channels,
+      pinStatus,
+      dispatch,
+      mouseOver,
+      mouseOut,
     ]
   );
 
@@ -214,34 +215,37 @@ const ChannelList = ({ activeChannelId }) => {
       </Header>
       <Content className="scrollable">
         <List gap="2px">
-          {!channels.pins.loading &&
-            channels.pins.allChannels
-              // .sort((a, b) => {
-              //   //   const timeA = a && channels.byId[a]?.last_message_time;
-              //   //   const timeB = b && channels.byId[b]?.last_message_time;
-              //   //   console.log({ timeA, timeB });
-              //   //   return timeA > timeB ? -1 : 1;
-              // })
-              .map(renderChannel)}
-          {!channels.loading &&
+          {!channels.loading && channels.pins?.allChannels?.length > 0 && (
+            <>
+              {console.log('Rendering pinned channels:', channels.pins.allChannels)}
+              {channels.pins.allChannels
+                .filter(id => {
+                  const exists = !!channels.byId[id];
+                  console.log('Pinned channel filter:', { id, exists });
+                  return exists;
+                })
+                .map(renderChannel)}
+            </>
+          )}
+          {!channels.loading && channels.allIds?.length > 0 && (
             channels.allIds
-              .filter((id) => !channels.pins.byChannel[id])
-              .sort((a, b) =>
-                a.last_message_time > b.last_message_time ? -1 : 1
-              )
-              .map(renderChannel)}
+                .filter(id => {
+                  const notPinned = !channels.pins?.byChannel[id];
+                  const exists = !!channels.byId[id];
+                  return notPinned && exists;
+                })
+                .map(renderChannel)
+          )}
         </List>
       </Content>
       <Footer>
         <Avatar
           size="21px"
           w="32px"
-          // bgColor={user.avatarColor}
           bgcolor={"#000"}
           status="online"
           paymail={profile?.paymail}
         />
-        {/* <Username>{user.username}</Username> */}
         <Username>
           <div>{user?.alternativeName || profile?.paymail}</div>
           <div style={{ fontSize: ".75rem", color: "#777" }}>

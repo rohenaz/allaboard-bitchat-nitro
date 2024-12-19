@@ -26,7 +26,7 @@ const Container = styled.div`
 
 const GreenDot = () => {
   return (
-    <GreenDotWrapper color="#3aa55d" bgColor="var(--background-secondary-alt)">
+    <GreenDotWrapper color="#3aa55d" bgcolor="var(--background-secondary-alt)">
       <MdFiberManualRecord />
     </GreenDotWrapper>
   );
@@ -48,6 +48,7 @@ const IdentityIcon = ({ ...delegated }) => {
     delegated.icon && (
       <Wrapper color="white" {...delegated}>
         <img
+          alt={delegated.icon}
           src={
             delegated.icon.startsWith("bitfs://")
               ? `${bicoinFilesUrl}${head(
@@ -97,14 +98,12 @@ const Avatar = ({ status, onClick, ...delegated }) => {
         <Container onClick={onClick}>
           {delegated.icon ? (
             <IdentityIcon
-              width={delegated.w}
-              height={delegated.h}
+              style={{ width: delegated.w, height: delegated.h }}
               {...delegated}
             />
           ) : delegated.paymail ? (
             <BitPicIcon
-              width={delegated.w}
-              height={delegated.h}
+              style={{ width: delegated.w, height: delegated.h }}
               {...delegated}
             />
           ) : (
@@ -113,9 +112,9 @@ const Avatar = ({ status, onClick, ...delegated }) => {
           <GreenDot />
         </Container>
       ) : delegated.icon ? (
-        <IdentityIcon width={delegated.w} height={delegated.h} {...delegated} />
+        <IdentityIcon style={{ width: delegated.w, height: delegated.h }} {...delegated} />
       ) : delegated.paymail ? (
-        <BitPicIcon width={delegated.w} height={delegated.h} {...delegated} />
+        <BitPicIcon style={{ width: delegated.w, height: delegated.h }} {...delegated} />
       ) : (
         <CodeIcon onClick={onClick} {...delegated} />
       )}

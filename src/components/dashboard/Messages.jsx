@@ -1,13 +1,13 @@
-import { PrivateKey, PublicKey, ECIES, Hash } from "@bsv/sdk";
-import { head, last } from "lodash";
-import moment from "moment";
-import {
+import React, {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
+import { PrivateKey, PublicKey, ECIES, Hash } from "@bsv/sdk";
+import { head, last } from "lodash";
+import moment from "moment";
 import { AiFillPushpin } from "react-icons/ai";
 import { FaTerminal } from "react-icons/fa";
 import { GiUnicorn } from "react-icons/gi";
@@ -15,7 +15,7 @@ import { MdChat } from "react-icons/md";
 import { useParams } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
+import tw, { styled } from "twin.macro";
 import { useBap } from "../../context/bap";
 import {
   decrypt,
@@ -27,7 +27,7 @@ import { usePopover } from "../../hooks";
 import {
   loadDiscordReactions,
   loadMessages,
-  loadReactions,
+  loadLikes,
 } from "../../reducers/chatReducer";
 import { FetchStatus } from "../../utils/common";
 import "../common/slider.less";
@@ -51,12 +51,13 @@ const Wrapper = styled.div`
 `;
 
 const AddFriendButton = styled.button`
-  border-radius: 0.25rem;
-  background-color: var(--brand);
+  border-radius: 4px;
+  background-color: rgb(88, 101, 242);
   color: white;
   padding: 1rem;
+
   &:disabled {
-    background: var(--background-secondary);
+    background-color: var(--background-secondary);
   }
 `;
 
@@ -66,19 +67,19 @@ const Container = styled.div`
 `;
 
 const HeaderContainer = styled.div`
-  margin: 16px 16px 4px 16px;
+  margin: 1rem 1rem 0.25rem 1rem;
 `;
 
 const PrimaryHeading = styled.h1`
   color: var(--header-primary);
-  margin-top: 12px;
-  margin-bottom: 4px;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
 `;
 
 const SecondaryHeading = styled.h2`
   color: var(--header-secondary);
-  margin-bottom: 16px;
-  font-size: 14px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
   font-weight: 400;
 `;
 
@@ -116,7 +117,7 @@ const Messages = () => {
   const pathName = window?.location?.pathname?.endsWith("/")
     ? window?.location?.pathname?.slice(0, -1)
     : window?.location?.pathname;
-  let pathId = last(pathName.split("/")) || null;
+  const pathId = last(pathName.split("/")) || null;
   // const activeChannelId = params.channel;
   // const activeUserId = params.user;
 
@@ -134,9 +135,9 @@ const Messages = () => {
 
   useEffect(() => {
     if (messages.loading === false && containerBottomRef.current) {
-      setTimeout(containerBottomRef.current.scrollIntoView(false), 0);
+      setTimeout(() => containerBottomRef.current.scrollIntoView({ behavior: 'smooth' }), 0);
     }
-  }, [containerBottomRef.current, messages.loading, messages.allIds]);
+  }, [messages.loading]);
 
   useEffect(() => {
     console.log({ activeUserId, activeChannelId, pathId });
@@ -147,6 +148,7 @@ const Messages = () => {
       dispatch(
         loadMessages({
           activeChannelId,
+          page: 1 // Reset to first page when channel changes
         })
       );
     }
@@ -155,7 +157,7 @@ const Messages = () => {
       console.log("load messages global");
       dispatch(loadMessages({}));
     }
-  }, [pathId, activeUserId, activeChannelId]);
+  }, [pathId, activeUserId, activeChannelId, dispatch]);
 
   useEffect(() => {
     if (activeUserId && decIdentity?.bapId && !activeChannelId) {
@@ -172,7 +174,7 @@ const Messages = () => {
     }
 
     //}
-  }, [activeChannelId, activeUserId, decIdentity]);
+  }, [activeChannelId, activeUserId, decIdentity, dispatch]);
 
   const [
     user,
@@ -190,164 +192,54 @@ const Messages = () => {
   }, [session, activeUserId]);
 
   const messagesSorted = useMemo(() => {
-    // console.log({ loading: friendRequests.loading, decIdentity });
-    if (hasMessages) {
-      let m = [];
+    if (!hasMessages || !messages.byId) return [];
 
-      for (let txid of Object.keys(messages.byId)) {
-        const message = messages.byId[txid];
+    // Use the order from messages.allIds and filter out invalid messages
+    return messages.allIds
+      .map(id => {
+        const message = messages.byId[id];
+        if (!message) return null;
 
-        if (
-          hideUnverifiedMessages &&
-          !isValidEmail(head(message.MAP).paymail)
-        ) {
-          continue;
+        if (hideUnverifiedMessages && !isValidEmail(head(message.MAP).paymail)) {
+          return null;
         }
 
-        if (
+        const isValidMessage = (
           (!activeChannelId && !head(message.MAP).channel) ||
           head(message.AIP)?.bapId === activeUser?._id ||
           head(message.MAP).channel === activeChannelId
-        ) {
-          m.push(message);
+        );
+
+        if (!isValidMessage) return null;
+
+        if (head(message.MAP).encrypted === "true") {
+          return processEncryptedMessage(message, session, friendRequests, decIdentity);
         }
-      }
-      console.log({ m });
-      return m
-        .map((message) => {
-          if (head(message.MAP).encrypted === "true") {
-            console.log("encrypted message", activeUser, message);
-            // private key is my key from
-
-            // If this is self, get the nodes public key
-
-            const messageFromMe =
-              head(message.AIP)?.bapId === session.user?.bapId;
-            const messageToMe =
-              head(message.MAP)?.bapID === session.user?.bapId;
-            const messageSelf = messageToMe && messageFromMe;
-
-            const friendPrivateKey = friendPrivateKeyFromSeedString(
-              messageSelf
-                ? "notes"
-                : messageToMe
-                ? head(message.AIP)?.bapId
-                : head(message.MAP)?.bapID,
-              decIdentity.xprv
-            );
-
-            // let hdPrivateFriendKey;
-            // try {
-            //   const hdPk = bsv.HDPrivateKey(decIdentity.xprv);
-
-            //   console.log({ self, messageSelf });
-            //   const seedHex = bsv.crypto.Hash.sha256(
-            //     Buffer.from(self ? "notes" : message.MAP.bapID)
-            //   ).toString("hex");
-            //   const signingPath = getSigningPathFromHex(seedHex);
-
-            //   hdPrivateFriendKey = hdPk.deriveChild(signingPath);
-            //   // console.log("using notes seed?", hdPrivateFriendKey);
-            // } catch (e) {
-            //   console.error(e);
-            //   return message;
-            // }
-
-            // get the friend's public key
-            // TODO: Handle self case
-            const friendPubKey = messageToMe
-              ? head(friendRequests.incoming.byId[head(message.AIP).bapId]?.MAP)
-                  .publicKey
-              : head(friendRequests.incoming.byId[head(message.MAP).bapID]?.MAP)
-                  .publicKey;
-
-            if (!messageSelf && (!friendPrivateKey || !friendPubKey)) {
-              console.error(
-                "failed to make key",
-                friendPrivateKey,
-                friendPubKey
-              );
-              return message;
-            }
-
-            console.log({
-              friendPubKey,
-              messageSelf,
-              messageToMe,
-              message,
-              session,
-            });
-            try {
-              const decryptedContent = decrypt(
-                head(message.B)?.Data?.utf8,
-                friendPrivateKey,
-                messageSelf
-                  ? undefined
-                  : messageToMe
-                  ? new bsv.PublicKey(
-                      head(
-                        friendRequests.incoming.byId[head(message.AIP).bapId]
-                          ?.MAP
-                      ).publicKey
-                    )
-                  : new bsv.PublicKey(
-                      head(
-                        friendRequests.incoming.byId[head(message.MAP).bapID]
-                          ?.MAP
-                      ).publicKey
-                    )
-              );
-              // console.log("decrypted", decryptedContent);
-              return {
-                ...message,
-                ...{
-                  B: [
-                    {
-                      content: Buffer.from(decryptedContent).toString("utf8"),
-                    },
-                  ],
-                },
-              };
-            } catch (e) {
-              console.error(
-                "failed to decrypt",
-                head(message.MAP),
-                head(message.AIP),
-                friendPubKey,
-                e
-              );
-
-              return message;
-            }
-          }
-          return message;
-        })
-        .sort((a, b) => {
-          return !a.timestamp || a.timestamp < b.timestamp ? -1 : 1;
-        });
-    }
-    return [];
+        return message;
+      })
+      .filter(Boolean);
   }, [
-    self,
-    decIdentity,
-    friendRequests,
-    activeUserId,
-    activeUser,
     hasMessages,
-    hideUnverifiedMessages,
+    messages.byId,
     messages.allIds,
+    hideUnverifiedMessages,
     activeChannelId,
-    users,
+    activeUser?._id,
     session,
+    friendRequests,
+    decIdentity
   ]);
 
   useEffect(() => {
     if (messages) {
-      // console.log("load reactions for", messages.allIds, { messages });
-      dispatch(loadReactions(messages.allIds));
-      dispatch(loadDiscordReactions(messages.allMessageIds));
+      // Load likes for all messages in a single batch
+      const messageIds = messages.allIds;
+      if (messageIds.length > 0) {
+        dispatch(loadLikes(messageIds));
+        dispatch(loadDiscordReactions(messages.allMessageIds));
+      }
     }
-  }, [messages, dispatch,]);
+  }, [messages, dispatch]);
 
   // hasMessages &&
   //   messages.sort((a, b) => {
@@ -628,18 +520,14 @@ const Messages = () => {
             activeChannelId &&
             !activeUser &&
             !pins.byChannel[activeChannelId] && (
-              <div
-                style={{
-                  cursor: "pointer",
-                  alignItems: "center",
-                  display: "flex",
-                  color: "gold",
-                }}
+              <button
+                type="button"
+                className="flex items-center cursor-pointer text-[color:gold]"
                 onClick={togglePinChannelModal}
+                onKeyDown={(e) => e.key === 'Enter' && togglePinChannelModal()}
               >
-                <AiFillPushpin style={{ marginRight: ".5rem" }} /> Pin this
-                Channel
-              </div>
+                <AiFillPushpin className="mr-2" /> Pin this Channel
+              </button>
             )}
           {pins.allChannels.includes(activeChannelId) && (
             <div style={{ color: "#777" }}>
@@ -648,6 +536,7 @@ const Messages = () => {
           )}
           {hasMessages && <Divider />}
         </HeaderContainer>
+
         {hasMessages &&
           messagesSorted.map((m) => (
             <Message
@@ -655,67 +544,12 @@ const Messages = () => {
               message={m}
               reactions={hasReactions ? reactions : null}
               handleClick={(event) => handleClick(event, m)}
-              appIcon={
-                head(m.MAP).app === "bitchat" ? (
-                  <div
-                    style={{
-                      color: "lime",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <FaTerminal style={{ width: ".75rem", height: ".75rem" }} />
-                  </div>
-                ) : head(m.MAP).app === "blockpost.network" ? (
-                  <div
-                    style={{
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <BlockpostIcon style={{ width: "1rem" }} />
-                  </div>
-                ) : head(m.MAP).app === "bitchatnitro.com" ? (
-                  <NitroIcon style={{ width: ".75rem", height: ".75rem" }} />
-                ) : head(m.MAP).app === "retrofeed.me" ? (
-                  <div style={{ color: "#F42B2C" }}>
-                    <RetrofeedIcon
-                      style={{
-                        width: ".75rem",
-                        height: ".75rem",
-                        opacity: "0.5",
-                      }}
-                    />
-                  </div>
-                ) : head(m.MAP).app === "pewnicornsocial.club" ? (
-                  <div style={{ color: "pink" }}>
-                    <GiUnicorn
-                      style={{
-                        width: ".75rem",
-                        height: ".75rem",
-                        opacity: "0.5",
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      opacity: ".25",
-                    }}
-                  >
-                    <MdChat style={{ width: ".75rem", height: ".75rem" }} />
-                  </div>
-                )
-              }
+              appIcon={getAppIcon(m)}
             />
           ))}
-        {hasMessages && (
-          <ContainerBottom ref={containerBottomRef}></ContainerBottom>
-        )}
+
+        {hasMessages && <ContainerBottom ref={containerBottomRef} />}
+
         <UserPopover
           open={showPopover}
           anchorEl={anchorEl}
@@ -736,6 +570,91 @@ const Messages = () => {
       </Container>
     </Wrapper>
   );
+};
+
+// Helper function to get the appropriate app icon
+const getAppIcon = (message) => {
+  const app = head(message.MAP).app;
+  
+  switch (app) {
+    case "bitchat":
+      return (
+        <div style={{ color: "lime", display: "flex", alignItems: "center" }}>
+          <FaTerminal style={{ width: ".75rem", height: ".75rem" }} />
+        </div>
+      );
+    case "blockpost.network":
+      return (
+        <div style={{ color: "white", display: "flex", alignItems: "center" }}>
+          <BlockpostIcon style={{ width: "1rem" }} />
+        </div>
+      );
+    case "bitchatnitro.com":
+      return <NitroIcon style={{ width: ".75rem", height: ".75rem" }} />;
+    case "retrofeed.me":
+      return (
+        <div style={{ color: "#F42B2C" }}>
+          <RetrofeedIcon style={{ width: ".75rem", height: ".75rem", opacity: "0.5" }} />
+        </div>
+      );
+    case "pewnicornsocial.club":
+      return (
+        <div style={{ color: "pink" }}>
+          <GiUnicorn style={{ width: ".75rem", height: ".75rem", opacity: "0.5" }} />
+        </div>
+      );
+    default:
+      return (
+        <div style={{ color: "white", display: "flex", alignItems: "center", opacity: ".25" }}>
+          <MdChat style={{ width: ".75rem", height: ".75rem" }} />
+        </div>
+      );
+  }
+};
+
+// Helper function to process encrypted messages
+const processEncryptedMessage = (message, session, friendRequests, decIdentity) => {
+  const messageFromMe = head(message.AIP)?.bapId === session.user?.bapId;
+  const messageToMe = head(message.MAP)?.bapID === session.user?.bapId;
+  const messageSelf = messageToMe && messageFromMe;
+
+  const friendPrivateKey = friendPrivateKeyFromSeedString(
+    messageSelf
+      ? "notes"
+      : messageToMe
+      ? head(message.AIP)?.bapId
+      : head(message.MAP)?.bapID,
+    decIdentity.xprv
+  );
+
+  const friendPubKey = messageToMe
+    ? head(friendRequests.incoming.byId[head(message.AIP).bapId]?.MAP)?.publicKey
+    : head(friendRequests.incoming.byId[head(message.MAP).bapID]?.MAP)?.publicKey;
+
+  if (!messageSelf && (!friendPrivateKey || !friendPubKey)) {
+    console.error("failed to make key", friendPrivateKey, friendPubKey);
+    return message;
+  }
+
+  try {
+    const decryptedContent = decrypt(
+      head(message.B)?.Data?.utf8,
+      friendPrivateKey,
+      messageSelf
+        ? undefined
+        : messageToMe
+        ? new PublicKey(head(friendRequests.incoming.byId[head(message.AIP).bapId]?.MAP).publicKey)
+        : new PublicKey(head(friendRequests.incoming.byId[head(message.MAP).bapID]?.MAP).publicKey)
+    );
+
+    return {
+      ...message,
+      B: [{ content: Buffer.from(decryptedContent).toString("utf8") }],
+    };
+  } catch (e) {
+    console.error("failed to decrypt", head(message.MAP), head(message.AIP), friendPubKey, e);
+    return message;
+  }
 };
 
 export default Messages;

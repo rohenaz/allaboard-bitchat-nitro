@@ -109,13 +109,14 @@ const ListItem = styled.div`
   width: 100%;
 `;
 
-const Pill = ({ isActive }) => {
-  return (
-    <PillWrapper>
-      <PillContainer isActive></PillContainer>
-    </PillWrapper>
-  );
-};
+const Pill = styled.div`
+  width: 8px;
+  height: ${(props) => (props.$isActive ? "40px" : "8px")};
+  background-color: var(--background-primary);
+  border-radius: 0 4px 4px 0;
+  margin-left: -4px;
+  transition: all 0.15s ease-out;
+`;
 
 const Container = styled.div`
   background-color: var(--background-tertiary);
@@ -147,7 +148,7 @@ const ServerList = () => {
             <NitroIcon style={{ padding: ".5rem" }} />
           </ServerIcon>
 
-          <Pill isActive />
+          <Pill $isActive />
         </ArrowTooltip>
       </ListItem>
       <ListItem>

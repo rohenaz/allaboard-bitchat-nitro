@@ -1,8 +1,8 @@
+import React, { useCallback, useMemo, useState } from "react";
 import { IconButton } from "@mui/material";
 import EmojiPicker from "emoji-picker-react";
 import { head, tail, uniqBy } from "lodash";
 import moment from "moment";
-import React, { useCallback, useMemo, useState } from "react";
 import { FaCheckCircle, FaLock } from "react-icons/fa";
 import { MdAddReaction } from "react-icons/md";
 import OutsideClickHandler from "react-outside-click-handler";
@@ -15,6 +15,7 @@ import { isValidEmail } from "../../utils/strings";
 import ArrowTooltip from "./ArrowTooltip";
 import Avatar from "./Avatar";
 import MessageFiles from "./MessageFiles";
+import { useSelector } from "react-redux";
 
 const md = new Remarkable({
   html: true,
@@ -28,16 +29,16 @@ const MessageButtons = styled.div`
   background-color: var(--background-primary);
   border-radius: 4px;
   border: 1px solid var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: none;
   transition: 0.1s ease-in-out;
   height: 32px;
   width: 64px;
   position: absolute;
   top: -16px;
   right: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  display: none;
 
   &:hover {
     box-shadow: 0 0 0 1px rgba(4, 4, 5, 0.15);
@@ -46,13 +47,13 @@ const MessageButtons = styled.div`
 
 const Container = styled.div`
   display: flex;
-  margin: 8px 0;
-  padding: 8px 16px 12px 0;
+  margin: 0.5rem 0;
+  padding: 0.5rem 1rem 0.5rem 0;
   position: relative;
   overflow-wrap: anywhere;
 
   &:hover {
-    background-color: #32353a;
+    background-color: var(--background-secondary);
 
     ${MessageButtons} {
       display: flex;
@@ -61,143 +62,53 @@ const Container = styled.div`
 `;
 
 const AvatarWrapper = styled.div`
-  margin: 0 16px;
-
-  &:hover {
-    cursor: pointer;
-  }
+  margin: 0 1rem;
+  cursor: pointer;
 `;
 
 const Header = styled.div`
   display: flex;
   align-items: center;
-  padding-bottom: 4px;
+  padding-bottom: 0.25rem;
 `;
 
 const Username = styled.a`
   color: var(--header-primary);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
-  margin-right: 8px;
+  margin-right: 0.5rem;
+  cursor: pointer;
 
   &:hover {
     text-decoration: underline;
-    cursor: pointer;
   }
 `;
 
 const InfoContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 `;
 
 const Timestamp = styled.div`
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: default;
 `;
 
 const Content = styled.div`
   color: var(--text-normal);
-  font-size: 14px;
+  font-size: 0.875rem;
 
   a {
     color: var(--text-link);
-    font-size: 13px;
+    font-size: 0.75rem;
 
     &:hover {
       text-decoration: underline;
     }
   }
 `;
-
-// const autolinker = new Autolinker();
-
-// const IconWrapper = styled.button`
-//   ${baseIcon};
-//   ${interactiveColor};
-//   background-color: transparent;
-
-//   &:hover {
-//     background-color: var(--background-modifier-hover);
-//   }
-// `;
-
-// const Operation = styled.span`
-//   font-size: 12px;
-//   color: var(--text-normal);
-
-//   button {
-//     background: transparent;
-//     color: var(--text-link);
-//     border: none;
-//     font-size: 12px;
-
-//     &:hover {
-//       text-decoration: underline;
-//     }
-//   }
-// `;
-
-// const PopupContainer = styled.div`
-//   background-color: var(--background-primary);
-//   color: var(--text-normal);
-//   top: 50%;
-//   left: 50%;
-//   position: absolute;
-//   transform: translateX(-50%) translateY(-50%);
-//   width: 440px;
-//   border-radius: 4px;
-//   font-size: 15px;
-// `;
-
-// const PopupMessageContainer = styled.div`
-//   padding: 16px;
-
-//   h2 {
-//     padding-bottom: 16px;
-//   }
-// `;
-
-// const PopupButtonContainer = styled.div`
-//   background-color: var(--background-secondary);
-//   border-radius: 4px;
-//   text-align: right;
-//   padding: 12px 16px;
-// `;
-
-// const CancelButton = styled.button`
-//   color: white;
-//   padding: 10px 24px;
-//   margin: 0 8px;
-//   background: transparent;
-//   border: none;
-
-//   &:hover {
-//     text-decoration: underline;
-//   }
-// `;
-
-// const DeleteButton = styled.button`
-//   color: white;
-//   padding: 10px 24px;
-//   border-radius: 4px;
-//   border: none;
-//   background-color: #f04444;
-
-//   &:hover {
-//     background-color: #c83434;
-//   }
-// `;
-
-// const IconButton = ({ children, ...delegated }) => {
-//   return (
-//     <IconWrapper as="button" type="button" size="20px" w="32px" {...delegated}>
-//       {children}
-//     </IconWrapper>
-//   );
-// };
 
 const Message = ({ message, reactions, appIcon, handleClick }) => {
   //const user = useSelector((state) => state.session.user);
@@ -207,6 +118,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   // const [openDeleteMessage, setOpenPopup] = useState(false);
   const { profile } = useHandcash();
   const { likeMessage, likeStatus } = useBitcoin();
+  const likes = useSelector(state => state.chat.likes.byTxId[message.tx.h]);
   const isVerified = isValidEmail(head(message.MAP).paymail || "");
   // const handleSubmit = (event) => {
   //   event.preventDefault();
@@ -329,21 +241,36 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   );
 
   const emojis = useMemo(() => {
-    let allReactions = [
+    // Combine legacy reactions with new likes
+    const allReactions = [
       ...(reactions?.byMessageTarget[head(message.MAP).messageID] || []),
       ...(reactions?.byTxTarget[message.tx.h] || []),
     ];
-    return uniqBy(allReactions, (r) => r.tx.h);
-  }, [reactions, message]);
-
-  const hasReacted = useCallback(
-    (emoji, pm) => {
-      return emojis.some(
-        (e) => head(e.MAP).emoji === emoji && head(e.MAP).paymail === pm
+    
+    // Add new likes format if available
+    if (likes) {
+      const likesAsReactions = likes.likes.map(like => ({
+        MAP: [{
+          emoji: "❤️", // Default emoji for likes
+          paymail: like, // Like contains the paymail
+          type: "like" // Mark as a new-style like
+        }]
+      }));
+      return uniqBy([...allReactions, ...likesAsReactions], 
+        (r) => `${head(r.MAP).paymail}-${head(r.MAP).emoji}`
       );
-    },
-    [reactions]
-  );
+    }
+    
+    return uniqBy(allReactions, 
+      (r) => `${head(r.MAP).paymail}-${head(r.MAP).emoji}`
+    );
+  }, [reactions, message, likes]);
+
+  const hasReacted = useCallback((emoji, paymail) => {
+    return emojis.some(
+      (e) => head(e.MAP).emoji === emoji && head(e.MAP).paymail === paymail
+    );
+  }, [emojis]);
 
   const parsedContent = useMemo(() => {
     if (!messageContent) {
@@ -466,36 +393,23 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
           {uniqBy(emojis, (reaction) => head(reaction.MAP).emoji)?.map(
             (reaction) => (
               <div
-                key={reaction.tx.h}
-                style={{
-                  borderRadius: ".3rem",
-                  color: "white",
-                  fontSize: "14px",
-                  border: "1px solid #333",
-                  padding: ".25rem",
-                  width: "fit-content",
-                  marginRight: ".25rem",
-                  cursor: hasReacted(head(reaction.MAP).emoji, profile?.paymail)
-                    ? "default"
-                    : "pointer",
-                }}
+                key={`${head(reaction.MAP).paymail}-${head(reaction.MAP).emoji}`}
+                className="rounded-md text-white text-sm border border-[#333] p-1 mr-1 cursor-pointer"
                 onClick={() => {
                   if (!hasReacted(head(reaction.MAP).emoji, profile?.paymail)) {
                     likeMessage(
                       profile?.paymail,
-                      head(reaction.MAP).context,
-                      head(reaction.MAP)[head(reaction.MAP).context],
+                      head(reaction.MAP).context || "tx",
+                      head(reaction.MAP).context ? head(reaction.MAP)[head(reaction.MAP).context] : message.tx.h,
                       head(reaction.MAP).emoji
                     );
                   }
                 }}
               >
                 {head(reaction.MAP).emoji}{" "}
-                {
-                  emojis.filter(
-                    (e) => head(e.MAP).emoji === head(reaction.MAP).emoji
-                  )?.length
-                }{" "}
+                {emojis.filter(
+                  (e) => head(e.MAP).emoji === head(reaction.MAP).emoji
+                )?.length}{" "}
               </div>
             )
           )}

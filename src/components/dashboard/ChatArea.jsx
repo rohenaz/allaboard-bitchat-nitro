@@ -1,17 +1,11 @@
 import React from "react";
-
-import styled from "styled-components";
-
+import tw, { styled } from "twin.macro";
 import Messages from "./Messages";
 import WriteArea from "./WriteArea";
 
 const Container = styled.div`
-  background-color: white;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+  ${tw`bg-background-primary flex flex-col w-full overflow-hidden`}
   height: calc(100dvh - 48px);
-  overflow: hidden;
 `;
 
 const ChatArea = () => {

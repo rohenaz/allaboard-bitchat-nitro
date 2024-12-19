@@ -1,23 +1,44 @@
 import React, { useCallback, useState } from "react";
 import { FaCheck, FaSearch } from "react-icons/fa";
 import OutsideClickHandler from "react-outside-click-handler";
-
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import tw from "twin.macro";
 
 const api = axios.create({
-  baseURL: "https://bmap-api-production.up.railway.app/q/", // "https://b.map.sv/q/",
+  baseURL: "https://bmap-api-production.up.railway.app/q/",
 });
 
+const ModalOverlay = tw.div`
+  absolute w-screen h-screen bg-black/50 flex items-center justify-center z-[9999]
+`;
+
+const ModalContent = tw.div`
+  bg-[#111] p-8 rounded-2xl text-[#777] z-[999]
+`;
+
+const SearchInput = tw.input`
+  bg-[#333] text-[#EEE] w-full p-2 border-0 rounded-lg
+`;
+
+const SearchButton = tw.button`
+  p-2 absolute right-0 top-0 mr-2
+`;
+
+const UserButton = tw.button`
+  p-2 cursor-pointer hover:text-[#EEE] transition-colors
+`;
+
+const OkayButton = tw.button`
+  bg-black p-4 text-white flex items-center mx-auto hover:bg-[#222] transition-colors
+`;
+
 const DirectMessageModal = ({ open, onClose }) => {
-  const [inputValue, setInputValue] = useState();
-  const [results, setResults] = useState();
-  const changeInput = useCallback((e) => {
-    setInputValue(e.target.value);
-  }, []);
+  const [inputValue, setInputValue] = useState("");
+  const [results, setResults] = useState([]);
   const navigate = useNavigate();
 
-  var queryUsers = (term) => {
+  const queryUsers = useCallback((term) => {
     return {
       v: 3,
       q: {
@@ -67,143 +88,85 @@ const DirectMessageModal = ({ open, onClose }) => {
         limit: 100,
       },
     };
-  };
+  }, []);
 
-  // var queryUsers = (term) => {
-  //   return {
-  //     v: 3,
-  //     q: {
-  //       aggregate: [
-  //         {"$match": {
-  //           "MAP.type": "message",
-  //           $or: [
-  //             { "AIP.bapId": term },
-  //             { "AIP.identity.alternateName": term },
-  //             { "AIP.identity.paymail": term },
-  //           ],
-  //         }, {"$group", ""}
-  //       ]
-  //       // find: {
-  //       //   "MAP.type": "message",
-  //       //   $or: [
-  //       //     { "AIP.bapId": term },
-  //       //     { "AIP.identity.alternateName": term },
-  //       //     { "AIP.identity.paymail": term },
-  //       //   ],
-  //       // },
-  //       limit: 100,
-  //     },
-  //   };
-  // };
+  const queryUsersB64 = useCallback(
+    (term) => btoa(JSON.stringify(queryUsers(term))),
+    [queryUsers]
+  );
 
-  const queryUsersB64 = (term) => btoa(JSON.stringify(queryUsers(term)));
+  const searchUsers = useCallback(
+    async (term) => {
+      return await api.get(`q/${queryUsersB64(term)}?d=search`);
+    },
+    [queryUsersB64]
+  );
 
-  const searchUsers = async (term) => {
-    return await api.get(`q/${queryUsersB64(term)}?d=search`);
-  };
+  const handleInputChange = useCallback((e) => {
+    setInputValue(e.target.value);
+  }, []);
 
-  const onSubmit = useCallback(async () => {
-    // look for inputValue in B.Data.utf8
-    // search for the term
-    const resp = await searchUsers(inputValue);
+  const handleSubmit = useCallback(async () => {
+    if (!inputValue.trim()) return;
+    
+    try {
+      const resp = await searchUsers(inputValue);
+      setResults(resp.data.message || []);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      setResults([]);
+    }
+  }, [inputValue, searchUsers]);
 
-    setResults(resp.data.message);
-    console.log({ inputValue, resp: resp.data.message });
-  }, [results, inputValue, searchUsers]);
+  const handleUserSelect = useCallback((userId) => {
+    onClose();
+    navigate(`/@/${userId}`);
+  }, [navigate, onClose]);
+
+  if (!open) return null;
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        width: "100vw",
-        height: "100dvh",
-        background: `rgba(0,0,0,.5)`,
-        alignItems: "center",
-        justifyContent: "center",
-        display: `${open ? "flex" : "none"}`,
-        pointerEvents: `${open ? "unset" : "none"}`,
-        zIndex: "9999",
-      }}
-    >
+    <ModalOverlay>
       <OutsideClickHandler onOutsideClick={onClose}>
-        <div
-          style={{
-            background: "#111",
-            padding: "2rem",
-            margin: "auto",
-            borderRadius: "1rem",
-            color: "#777",
-            zIndex: "999",
-          }}
-        >
+        <ModalContent>
           <div>
-            <div style={{ marginBottom: "1rem" }}>
+            <div className="mb-4">
               <b>Create Direct Message</b>
               <p>Enter the BAP ID, name or paymail address of the user.</p>
 
-              <div style={{ position: "relative" }}>
-                <input
+              <div className="relative">
+                <SearchInput
                   type="text"
-                  style={{
-                    background: `#333`,
-                    color: `#EEE`,
-                    width: "100%",
-                    padding: ".5rem",
-                    border: "0",
-                    borderRadius: ".5rem",
-                  }}
-                  onChange={changeInput}
-                  onSubmit
+                  value={inputValue}
+                  onChange={handleInputChange}
+                  placeholder="Search users..."
                 />
 
-                <div
-                  onClick={onSubmit}
-                  style={{
-                    padding: ".5rem",
-                    position: "absolute",
-                    right: 0,
-                    top: 0,
-                    marginRight: ".5rem",
-                  }}
-                >
+                <SearchButton type="button" onClick={handleSubmit}>
                   <FaSearch />
-                </div>
+                </SearchButton>
               </div>
             </div>
 
-            <div style={{ overflow: "hidden" }}>
-              {results?.map((r) => {
-                return (
-                  <div
-                    onClick={() => {
-                      onClose();
-                      navigate(`/@/${r._id}`);
-                    }}
-                    style={{ padding: ".5rem", cursor: "pointer" }}
-                  >
-                    {r.user?.alternateName}
-                  </div>
-                );
-              })}
+            <div className="overflow-hidden">
+              {results.map((r) => (
+                <UserButton
+                  key={r._id}
+                  type="button"
+                  onClick={() => handleUserSelect(r._id)}
+                >
+                  {r.user?.alternateName}
+                </UserButton>
+              ))}
             </div>
             <br />
-            <button
-              onClick={onClose}
-              style={{
-                background: "#000",
-                padding: "1rem",
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                margin: "auto",
-              }}
-            >
-              <FaCheck style={{ marginRight: ".5rem" }} /> Okay
-            </button>
+            <OkayButton type="button" onClick={onClose}>
+              <FaCheck className="mr-2" /> Okay
+            </OkayButton>
           </div>
-        </div>
+        </ModalContent>
       </OutsideClickHandler>
-    </div>
+    </ModalOverlay>
   );
 };
 

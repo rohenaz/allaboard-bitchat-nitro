@@ -7,16 +7,16 @@ const Text = styled.span`
   font-weight: 500;
   ${(p) =>
     `font-size: ${p.textStyle?.fontSize ? p.textStyle.fontSize : "15px"}`};
-  ${(p) => `color: ${p.isActive ? "white" : "var(--channels-default)"}`};
+  ${(p) => `color: ${p.isActive ? "var(--header-primary)" : "var(--channels-default)"}`};
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 `;
 
 const Icon = styled.div`
-  color: #777;
+  color: var(--text-muted);
   &:hover {
-    color: gold;
+    color: var(--text-link);
   }
 `;
 

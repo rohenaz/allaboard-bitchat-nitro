@@ -1,6 +1,7 @@
 import { useYoursWallet } from "yours-wallet-provider";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "../../utils/storage";
+import { P2PKH } from "@bsv/sdk";
 
 const wocApiUrl = "https://api.whatsonchain.com/v1/bsv/main";
 
@@ -8,11 +9,6 @@ const YoursContext = React.createContext(undefined);
 
 const getUtxos = async (fromAddress, pullFresh) => {
   try {
-    // replace with fetch
-    // const { data } = await axios.get(
-    //   `${getBaseUrl()}/address/${fromAddress}/unspent`,
-    //   config
-    // );
     console.log("Getting utxos", { fromAddress, pullFresh });
     const resp = await fetch(`${wocApiUrl}/address/${fromAddress}/unspent`, {
       method: "GET",
@@ -29,7 +25,7 @@ const getUtxos = async (fromAddress, pullFresh) => {
           satoshis: utxo.value,
           vout: utxo.tx_pos,
           txid: utxo.tx_hash,
-          script: bsv.Script.fromAddress(fromAddress).toASM(),
+          script: new P2PKH().lock(fromAddress).toASM(),
         };
       })
       .sort((a, b) => (a.satoshis > b.satoshis ? -1 : 1));

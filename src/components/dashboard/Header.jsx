@@ -35,6 +35,7 @@ const Container = styled.div`
   align-items: center;
   display: flex;
   justify-content: space-between;
+  width: 100%;
 `;
 
 const Heading = tw.div`
@@ -50,20 +51,40 @@ const IconWrapper = styled.button`
   ${tw`flex items-center content-center mr-2 md:mr-3`}
   ${interactiveColor};
   background-color: transparent;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 20px;
+  
+  &:hover {
+    background-color: var(--background-modifier-hover);
+  }
 
-  ${(p) => p.$isHamburger && hideInDesktop}
+  ${(p) => p.$isHamburger && hideInDesktop};
+  ${(p) => p.$isActive && tw`text-white bg-background-modifier-selected`};
 `;
 
-const IconButton = ({ children, href, ...delegated }) => {
+const IconButton = ({ children, href, isActive, isHamburger, ...delegated }) => {
   const tag = href ? "a" : "button";
   const type = tag === "button" ? "button" : undefined;
 
   return (
-    <IconWrapper as={tag} type={type} href={href} {...delegated}>
+    <IconWrapper 
+      as={tag} 
+      type={type} 
+      href={href} 
+      $isActive={isActive}
+      $isHamburger={isHamburger}
+      {...delegated}
+    >
       {children}
     </IconWrapper>
   );
 };
+
+const ActionButtons = styled.div`
+  ${tw`flex items-center`}
+  gap: 4px;
+`;
 
 const Header = ({ isFriendsPage }) => {
   const dispatch = useDispatch();
@@ -109,7 +130,7 @@ const Header = ({ isFriendsPage }) => {
           </div>
         </div>
       </div>
-      <div className="flex flex-1 justify-end">
+      <ActionButtons>
         <ArrowTooltip title="Settings">
           <IconButton onClick={() => dispatch(toggleSettings())}>
             <FaCog />
@@ -155,7 +176,7 @@ const Header = ({ isFriendsPage }) => {
             </IconButton>
           </ArrowTooltip>
         )}
-      </div>
+      </ActionButtons>
       <SettingsModal />
     </Container>
   );

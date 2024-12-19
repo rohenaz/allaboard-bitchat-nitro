@@ -3,24 +3,26 @@ import { head, last } from "lodash";
 import * as channelAPI from "../api/channel";
 import { validateEmail } from "../utils/strings.jsx";
 
-var audio = new Audio("https://bitchatnitro.com/audio/notify.mp3");
+const audio = new Audio("https://bitchatnitro.com/audio/notify.mp3");
 audio.volume = 0.25;
 
 export const loadMessages = createAsyncThunk(
   "chat/loadMessages",
-  async ({ activeChannelId, activeUserId, myBapId }, { rejectWithValue }) => {
+  async ({ activeChannelId, activeUserId, myBapId, page = 1 }, { rejectWithValue }) => {
     try {
-      // console.log("loading messages", {
-      //   activeChannelId,
-      //   activeUserId,
-      //   user: session.user,
-      // });
       const response = await channelAPI.getMessages(
         activeChannelId,
         activeUserId,
         myBapId
       );
-      return response?.data;
+      return {
+        messages: response?.data?.message || [],
+        pagination: {
+          page: response?.data?.page || 1,
+          limit: response?.data?.limit || 100,
+          count: response?.data?.count || 0
+        }
+      };
     } catch (err) {
       return rejectWithValue(err.response);
     }
@@ -51,9 +53,37 @@ export const loadDiscordReactions = createAsyncThunk(
   }
 );
 
+export const loadLikes = createAsyncThunk(
+  "chat/loadLikes",
+  async (txIds, { rejectWithValue }) => {
+    try {
+      const response = await channelAPI.getLikes(txIds);
+      if (!response || !Array.isArray(response)) {
+        console.error('Invalid response from getLikes:', response);
+        return rejectWithValue('Invalid response format from getLikes');
+      }
+      return response;
+    } catch (err) {
+      console.error('Error loading likes:', err);
+      return rejectWithValue(err.response || err.message);
+    }
+  }
+);
+
 const initialState = {
   isFileUploadOpen: false,
-  messages: { byId: {}, allIds: [], allMessageIds: [], loading: true },
+  messages: {
+    byId: {},
+    allIds: [],
+    allMessageIds: [],
+    loading: false,
+    error: null,
+    pagination: {
+      page: 1,
+      limit: 100,
+      count: 0
+    }
+  },
   reactions: {
     byTxTarget: {},
     byMessageTarget: {},
@@ -62,6 +92,11 @@ const initialState = {
     allTxTargets: [],
     allMessageTargets: [],
     loading: true,
+  },
+  likes: {
+    byTxId: {},
+    loading: false,
+    error: null
   },
   typingUser: null,
 };
@@ -112,7 +147,7 @@ const chatSlice = createSlice({
       }
 
       // play audio if channel matches or user matches
-      let pathId = last(window?.location?.pathname?.split("/")) || null;
+      const pathId = last(window?.location?.pathname?.split("/")) || null;
 
       if (message.AIP) {
         // If DM
@@ -159,50 +194,23 @@ const chatSlice = createSlice({
       .addCase(loadReactions.pending, (state, action) => {
         state.reactions.loading = true;
       })
-      .addCase(loadMessages.pending, (state, action) => {
+      .addCase(loadMessages.pending, (state) => {
         state.messages.loading = true;
-      })
-      .addCase(loadReactions.fulfilled, (state, action) => {
-        state.reactions.byTxTarget = {};
-        state.reactions.byMessageTarget = {};
-        state.reactions.allTxTargets = [];
-        state.reactions.allMessageTargets = [];
-        state.reactions.loading = false;
-        (action.payload?.like || []).forEach((reaction) => {
-          if (!state.reactions.byTxTarget[head(reaction.MAP).tx]) {
-            state.reactions.byTxTarget[head(reaction.MAP).tx] = [];
-          }
-          state.reactions.byTxTarget[head(reaction.MAP).tx].push(reaction);
-          state.reactions.allTxTargets.push(head(reaction.MAP).tx);
-          state.reactions.allTxIds.push(reaction.tx.h);
-        });
-      })
-      .addCase(loadDiscordReactions.fulfilled, (state, action) => {
-        state.reactions.byMessageTarget = {};
-        state.reactions.allMessageTargets = [];
-        state.reactions.loading = false;
-        (action.payload?.like || []).forEach((reaction) => {
-          if (!state.reactions.byMessageTarget[head(reaction.MAP).messageID]) {
-            state.reactions.byMessageTarget[head(reaction.MAP).messageID] = [];
-          }
-          state.reactions.byMessageTarget[head(reaction.MAP).messageID].push(
-            reaction
-          );
-          state.reactions.allMessageTargets.push(head(reaction.MAP).messageID);
-          state.reactions.allMessageIds.push(reaction.tx.h);
-        });
+        state.messages.error = null;
       })
       .addCase(loadMessages.fulfilled, (state, action) => {
         state.messages.byId = {};
         state.messages.allIds = [];
         state.messages.loading = false;
-        (action.payload?.message || []).forEach((message) => {
+        state.messages.pagination = action.payload.pagination;
+
+        for (const message of (action.payload.messages || [])) {
           // Filter out txs with wrong encoding (oops)
           if (
             head(message.B).encoding === "utf-8" &&
             head(message.MAP).encrypted === "true"
           ) {
-            return;
+            continue;
           }
 
           state.messages.byId[message.tx.h] = message;
@@ -211,7 +219,54 @@ const chatSlice = createSlice({
           if (head(message.MAP).messageID) {
             state.messages.allMessageIds.push(head(message.MAP).messageID);
           }
-        });
+        }
+      })
+      .addCase(loadMessages.rejected, (state, action) => {
+        state.messages.loading = false;
+        state.messages.error = action.payload;
+      })
+      .addCase(loadDiscordReactions.fulfilled, (state, action) => {
+        state.reactions.byMessageTarget = {};
+        state.reactions.allMessageTargets = [];
+        state.reactions.loading = false;
+        for (const reaction of (action.payload?.like || [])) {
+          if (!state.reactions.byMessageTarget[head(reaction.MAP).messageID]) {
+            state.reactions.byMessageTarget[head(reaction.MAP).messageID] = [];
+          }
+          state.reactions.byMessageTarget[head(reaction.MAP).messageID].push(
+            reaction
+          );
+          state.reactions.allMessageTargets.push(head(reaction.MAP).messageID);
+          state.reactions.allMessageIds.push(reaction.tx.h);
+        }
+      })
+      .addCase(loadLikes.pending, (state) => {
+        state.likes.loading = true;
+        state.likes.error = null;
+      })
+      .addCase(loadLikes.fulfilled, (state, action) => {
+        state.likes.loading = false;
+        state.likes.error = null;
+        
+        // Reset the state for new likes
+        state.likes.byTxId = {};
+        
+        if (Array.isArray(action.payload)) {
+          action.payload.forEach(like => {
+            if (like?.txid) {
+              state.likes.byTxId[like.txid] = {
+                likes: Array.isArray(like.likes) ? like.likes : [],
+                total: typeof like.total === 'number' ? like.total : 0,
+                signers: Array.isArray(like.signers) ? like.signers : []
+              };
+            }
+          });
+        }
+      })
+      .addCase(loadLikes.rejected, (state, action) => {
+        state.likes.loading = false;
+        state.likes.error = action.payload;
+        console.error('Failed to load likes:', action.payload);
       });
   },
 });

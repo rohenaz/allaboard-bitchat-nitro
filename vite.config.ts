@@ -1,55 +1,38 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import macrosPlugin from 'vite-plugin-babel-macros';
-import path from 'path';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
   plugins: [
-    macrosPlugin(),
     react({
-      include: '**/*.{jsx,tsx}',
-      jsxImportSource: '@emotion/react',
       babel: {
         plugins: [
+          'babel-plugin-macros',
           [
             'babel-plugin-styled-components',
             {
               displayName: true,
-              fileName: false
+              ssr: false
             }
-          ],
-          'babel-plugin-macros',
-          '@emotion/babel-plugin'
-        ],
-        parserOpts: {
-          sourceType: 'module'
-        }
+          ]
+        ]
       }
     }),
+    macrosPlugin(),
     nodePolyfills({
-      include: ['buffer', 'crypto', 'stream', 'process', 'util'],
       globals: {
         Buffer: true,
+        global: true,
         process: true,
       },
       protocolImports: true,
-      overrides: {
-        fs: 'memfs',
-        stream: 'stream-browserify'
-      }
-    })
+    }),
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      'stream': 'stream-browserify',
-      'crypto': 'crypto-browserify',
-      'util': 'util',
-      'process': 'process/browser',
-      'buffer': 'buffer'
+      stream: 'vite-compatible-readable-stream',
     },
-    extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json']
   },
   define: {
     'process.env': {
@@ -71,9 +54,7 @@ export default defineConfig({
       'styled-components',
       '@bsv/sdk',
       'bsv-bap',
-      'buffer',
-      '@emotion/react',
-      '@emotion/styled'
+      'buffer'
     ],
     esbuildOptions: {
       target: 'esnext',
@@ -97,9 +78,7 @@ export default defineConfig({
             '@mui/material',
             'styled-components',
             '@bsv/sdk',
-            'bsv-bap',
-            '@emotion/react',
-            '@emotion/styled'
+            'bsv-bap'
           ]
         }
       }
