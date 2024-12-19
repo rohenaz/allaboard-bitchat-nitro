@@ -1,42 +1,17 @@
-import type React from 'react';
-import { useCallback, useEffect, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { type FC } from 'react';
 import styled from 'styled-components';
-import { useHandcash } from '../../context/handcash';
-import { useYours } from '../../context/yours';
-import { useActiveUser } from '../../hooks';
-import { loadFriends } from '../../reducers/memberListReducer';
-import { FetchStatus } from '../../utils/common';
 import Avatar from './Avatar';
-import ListItem from './ListItem';
 
-interface RootState {
-  memberList: {
-    friendRequests: {
-      loading: boolean;
-      data: Array<{
-        _id: string;
-        paymail: string;
-        logo?: string;
-        alternateName?: string;
-      }>;
-    };
-  };
-  session: {
-    user?: {
-      idKey?: string;
-    };
-  };
+interface User {
+  _id: string;
+  paymail: string;
+  logo?: string;
+  alternateName?: string;
 }
 
 interface UserListProps {
-  users: Array<{
-    _id: string;
-    paymail: string;
-    logo?: string;
-    alternateName?: string;
-  }>;
+  activeUserId?: string;
+  users?: User[];
   loading?: boolean;
   title?: string;
   showFriendRequests?: boolean;
@@ -45,104 +20,88 @@ interface UserListProps {
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  width: 100%;
-  height: 100%;
+  flex: 1;
+  background: var(--background-secondary);
+  padding: 24px 8px 8px;
   overflow-y: auto;
-  overflow-x: hidden;
-  padding-bottom: 1rem;
 `;
 
 const Title = styled.h2`
-  padding: 0 10px;
-  margin: 0;
+  padding: 0 8px;
+  margin-bottom: 8px;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 12px;
-  height: 24px;
-  line-height: 24px;
+  line-height: 16px;
   color: var(--channels-default);
+  user-select: none;
 `;
 
-const UserList: React.FC<UserListProps> = ({
-  users,
-  loading,
-  title,
-  showFriendRequests,
-}) => {
-  const { authToken } = useHandcash();
-  const { connected } = useYours();
-  const params = useParams();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  const session = useSelector((state: RootState) => state.session);
-
-  const activeUserId = useMemo(() => params.user, [params.user]);
-
-  useEffect(() => {
-    if (showFriendRequests && (authToken || connected)) {
-      dispatch(loadFriends());
-    }
-  }, [showFriendRequests, authToken, connected, dispatch]);
-
-  const handleClick = useCallback(
-    (id: string) => {
-      if (id === session.user?.idKey) {
-        return;
-      }
-      navigate(`/channels/@me/${id}`);
-    },
-    [navigate, session.user?.idKey],
-  );
-
-  const renderUser = useCallback(
-    (user: {
-      _id: string;
-      paymail: string;
-      logo?: string;
-      alternateName?: string;
-    }) => {
-      const isActive = user._id === activeUserId;
-      const isSelf = user._id === session.user?.idKey;
-
-      return (
-        <ListItem
-          key={user._id}
-          active={isActive}
-          disabled={isSelf}
-          onClick={() => handleClick(user._id)}
-        >
-          <Avatar
-            size="32px"
-            w="48px"
-            bgcolor={'#000'}
-            paymail={user.paymail}
-            icon={user.logo}
-          />
-          {user.alternateName || user.paymail}
-        </ListItem>
-      );
-    },
-    [activeUserId, handleClick, session.user?.idKey],
-  );
-
-  if (loading) {
-    return <div>Loading...</div>;
+const UserItem = styled.div<{ $isActive?: boolean }>`
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  margin: 2px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  
+  &:hover {
+    background: var(--background-modifier-hover);
   }
 
-  if (
-    !showFriendRequests &&
-    (authToken === FetchStatus.LOADING || connected === FetchStatus.LOADING)
-  ) {
-    return <div>Loading wallet...</div>;
+  ${({ $isActive }) =>
+    $isActive &&
+    `
+    background: var(--background-modifier-selected);
+    &:hover {
+      background: var(--background-modifier-selected);
+    }
+  `}
+`;
+
+const UserInfo = styled.div`
+  margin-left: 12px;
+`;
+
+const Username = styled.div`
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-normal);
+`;
+
+const LoadingText = styled.div`
+  padding: 0 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+`;
+
+export const UserList: FC<UserListProps> = ({
+  activeUserId,
+  users = [],
+  loading = false,
+  title,
+  showFriendRequests = false,
+}) => {
+  if (loading) {
+    return (
+      <Container>
+        {title && <Title>{title}</Title>}
+        <LoadingText>Loading members...</LoadingText>
+      </Container>
+    );
   }
 
   return (
     <Container>
       {title && <Title>{title}</Title>}
-      {users?.map(renderUser)}
+      {users.map((user) => (
+        <UserItem key={user._id} $isActive={user._id === activeUserId}>
+          <Avatar size="32px" paymail={user.paymail} icon={user.logo || ''} />
+          <UserInfo>
+            <Username>{user.alternateName || user.paymail}</Username>
+          </UserInfo>
+        </UserItem>
+      ))}
     </Container>
   );
 };
-
-export default UserList;

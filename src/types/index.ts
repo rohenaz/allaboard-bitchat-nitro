@@ -1,10 +1,13 @@
 // Common interfaces used across components
 
 export interface User {
-  idKey: string;
-  paymail: string;
-  displayName?: string;
+  paymail?: string;
+  wallet?: string;
+  authToken?: string;
+  bapId?: string;
+  idKey?: string;
   icon?: string;
+  address?: string;
 }
 
 export interface Channel {
@@ -60,11 +63,19 @@ export interface EmojiClickData {
 
 // Redux state interfaces
 export interface RootState {
-  session: SessionState;
+  session: {
+    user: User | null;
+    loading: boolean;
+    error: string | null;
+    isAuthenticated: boolean;
+  };
   channels: ChannelsState;
   chat: ChatState;
   memberList: MemberListState;
   servers: ServersState;
+  profile: {
+    isOpen: boolean;
+  };
 }
 
 export interface SessionState {

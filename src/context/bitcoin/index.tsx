@@ -44,6 +44,8 @@ interface Session {
   user: {
     bapId: string;
     idKey: string;
+    walletType: string;
+    paymail: string;
   };
   memberList?: {
     signers: {
@@ -153,6 +155,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
   const params = useParams();
   const session = useSelector((state: RootState) => state.session);
   const storeAPI = useStore();
+  const isYoursWallet = session.user?.walletType === 'yours';
 
   const activeUserId = useMemo(() => params.user, [params]);
   const activeChannelId = useMemo(() => params.channel, [params]);
@@ -215,7 +218,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           // decrypt and import identity
           const signedOps = await signOpReturnWithAIP(hexArray);
 
-          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
+          const resp = await fetch(`${env.API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -251,7 +254,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
+          const resp = await fetch(`${env.API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ hexArray, authToken, channel }),
@@ -346,8 +349,8 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
     [],
   );
 
-  const sendMessage = useCallback(
-    async (pm, content, channel, userId, decIdentity) => {
+  const handleMessage = useCallback(
+    async (pm: string, content: string, channel: string, userId?: string) => {
       setPostStatus(FetchStatus.Loading);
 
       try {
@@ -367,9 +370,6 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
         const contentFilesSeparator =
           contentPayload.length > 0 && filesPayload.length > 0 ? ['|'] : [];
 
-        /**
-         * Allow messages with optional text and files
-         */
         const bPayload = [
           ...contentPayload,
           ...contentFilesSeparator,
@@ -398,16 +398,14 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
         } else if (userId) {
           dataPayload.push(
             'encrypted',
-            'true', // TODO: Set to true when encryption is working
+            'true',
             'context',
-            'bapID',
-            'bapID',
+            isYoursWallet ? 'paymail' : 'bapID',
+            isYoursWallet ? 'paymail' : 'bapID',
             userId,
           );
 
-          // const decIdentity = await hcDecrypt(identity);
-
-          if (!decIdentity) {
+          if (!decIdentity && !isYoursWallet) {
             return;
           }
 
@@ -418,59 +416,56 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
               friendRequests.incoming.byId[userId] ||
               friendRequests.outgoing.byId[userId]
             ) &&
-            decIdentity?.bapId !== userId
+            (isYoursWallet
+              ? session.user?.paymail !== userId
+              : decIdentity?.bapId !== userId)
           ) {
             return;
           }
-          // const friendPublicKey =
-          //   decIdentity?.bapId === userId
-          //     ? friendPublicKeyFromSeedString("notes", decIdentity.xprv)
-          //     : new bsv.PublicKey(
-          //         friendRequests.incoming.byId[userId].MAP.publicKey
-          //       );
 
-          const friendPrivateKey = friendPrivateKeyFromSeedString(
-            decIdentity?.bapId === userId ? 'notes' : userId,
-            decIdentity?.xprv,
-          );
+          if (!isYoursWallet) {
+            const friendPrivateKey = friendPrivateKeyFromSeedString(
+              decIdentity?.bapId === userId ? 'notes' : userId,
+              decIdentity?.xprv,
+            );
 
-          // get the friend's public key
-          const friendPubKey = head(
-            friendRequests.incoming.byId[userId]?.MAP,
-          ).publicKey;
-          // encrypt the content with shared ecies between the two identities
-          dataPayload[1] = encrypt(
-            dataPayload[1],
-            friendPrivateKey,
-            friendPubKey ? new PublicKey(friendPubKey) : undefined,
-          );
-          dataPayload[2] = 'application/bitcoin-ecies; content-type=text/plain';
-          dataPayload[3] = 'binary';
-
-          // lets make sure we can decrypt it too
+            // get the friend's public key
+            const friendPubKey = head(
+              friendRequests.incoming.byId[userId]?.MAP,
+            ).publicKey;
+            // encrypt the content with shared ecies between the two identities
+            dataPayload[1] = encrypt(
+              dataPayload[1],
+              friendPrivateKey,
+              friendPubKey ? new PublicKey(friendPubKey) : undefined,
+            );
+            dataPayload[2] =
+              'application/bitcoin-ecies; content-type=text/plain';
+            dataPayload[3] = 'binary';
+          }
         }
 
         const hexArray = dataPayload.map((d) =>
           Buffer.from(d, 'utf8').toString('hex'),
         );
 
-        if (userId && !decIdentity) {
+        if (userId && !decIdentity && !isYoursWallet) {
           return;
         }
 
         // Send with Handcash
         if (authToken) {
           let signedOps: string[] | undefined;
-          if (decIdentity) {
+          if (decIdentity && !isYoursWallet) {
             // decrypt and import identity
             signedOps = await signOpReturnWithAIP(hexArray);
           }
 
-          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
+          const resp = await fetch(`${env.API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
-              hexArray: signedOps || hexArray, // remove op_false op_return
+              hexArray: signedOps || hexArray,
               authToken,
               channel,
               userId,
@@ -492,7 +487,6 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
               setPostStatus(FetchStatus.Success);
             } catch (_e) {
               setPostStatus(FetchStatus.Error);
-
               return;
             }
           }
@@ -501,10 +495,10 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
         // Send with yours
         if (pandaProfile && utxos) {
-          let scriptP: Script | undefined;
+          let scriptP;
 
           try {
-            if (decIdentity) {
+            if (decIdentity && !isYoursWallet) {
               const signedOps = await signOpReturnWithAIP(hexArray);
               scriptP = Script.fromASM(`OP_0 OP_RETURN ${signedOps.join(' ')}`);
             } else {
@@ -525,7 +519,9 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
               },
             ]);
 
-            const _tx = await notifyIndexer(rawtx);
+            const tx = await notifyIndexer(rawtx);
+            tx.timestamp = moment().unix();
+            dispatch(receiveNewMessage(tx));
             setPostStatus(FetchStatus.Success);
             return;
           } catch (_e) {
@@ -533,55 +529,9 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
             return;
           }
         }
-
-        // Send with relay
-        // let script;
-        // if (decIdentity) {
-        //   const signedOps = await signOpReturnWithAIP(hexArray);
-        //   script = nimble.Script.fromASM(
-        //     "OP_0 OP_RETURN " + signedOps.join(" ")
-        //   );
-        // } else {
-        //   script = nimble.Script.fromASM(
-        //     "OP_0 OP_RETURN " +
-        //       dataPayload
-        //         .map((str) => bops.to(bops.from(str, "utf8"), "hex"))
-        //         .join(" ")
-        //   );
-        // }
-        // let outputs = [{ script: script.toASM(), amount: 0, currency: "BSV" }];
-
-        // console.log({ ready });
-        // let resp = await relayOne.send({ outputs });
-        // // reset pending files
-        // if (pendingFiles) {
-        //   setPendingFiles([]);
-        // }
-        // console.log("Sent message", resp);
-        // // interface SendResult {
-        // //   txid: string;
-        // //   rawTx: string;
-        // //   amount: number; // amount spent in button currency
-        // //   currency: string; // button currency
-        // //   satoshis: number; // amount spent in sats
-        // //   paymail: string; // user paymail deprecated
-        // //   identity: string; // user pki deprecated
-        // // }
-        // try {
-        //   const tx = await notifyIndexer(resp.rawTx);
-        //   console.log(`dang dispatched new message`, tx);
-        //   tx.timestamp = moment().unix();
-        //   setPostStatus(FetchStatus.Success);
-
-        //   dispatch(receiveNewMessage(tx));
-        // } catch (e) {
-        //   console.log("failed to notify indexer", e);
-        //   setPostStatus(FetchStatus.Error);
-
-        //   return;
-        // }
-      } catch (e) {
-        console.error(e);
+      } catch (error) {
+        console.error('Failed to send message:', error);
+        setPostStatus(FetchStatus.Error);
       }
     },
     [
@@ -595,6 +545,8 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
       pendingFiles,
       pendingFilesOutputs,
       signOpReturnWithAIP,
+      isYoursWallet,
+      session.user?.paymail,
     ],
   );
 
@@ -635,7 +587,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
           setLikeStatus(FetchStatus.Loading);
 
-          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
+          const resp = await fetch(`${env.API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -727,7 +679,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           const signedOps = await signOpReturnWithAIP(hexArray);
 
           // console.log({ signedOps });
-          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
+          const resp = await fetch(`${env.API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -760,7 +712,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`${env.REACT_APP_API_URL}/hcSend/`, {
+          const resp = await fetch(`${env.API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ hexArray, authToken, userId: friendIdKey }),
@@ -815,7 +767,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
       pinStatus,
       sendFriendRequest,
       friendRequestStatus,
-      sendMessage,
+      sendMessage: handleMessage,
       postStatus,
       likeMessage,
       likeStatus,
@@ -830,7 +782,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
       pinStatus,
       sendFriendRequest,
       friendRequestStatus,
-      sendMessage,
+      handleMessage,
       postStatus,
       likeMessage,
       likeStatus,

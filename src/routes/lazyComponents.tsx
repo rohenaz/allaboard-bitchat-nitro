@@ -1,47 +1,66 @@
-import { lazy } from 'react';
+import React from 'react';
 
 // Auth components
-export const LoginPage = lazy(() => import('../components/authForm/LoginPage'));
-export const SignupPage = lazy(
+export const LoginPage = React.lazy(() =>
+  import('../components/authForm/LoginPage').then((module) => ({
+    default: module.LoginPage,
+  })),
+);
+
+export const SignupPage = React.lazy(
   () => import('../components/authForm/SignupPage'),
 );
 
 // Dashboard components
-export const Dashboard = lazy(
-  () => import('../components/dashboard/Dashboard'),
+export const Dashboard = React.lazy(() =>
+  import('../components/dashboard/Dashboard').then((module) => ({
+    default: module.Dashboard,
+  })),
 );
 
-// Modal components
-export const SettingsModal = lazy(
-  () => import('../components/dashboard/modals/SettingsModal'),
-);
-export const ImportIDModal = lazy(
+// Modals
+export const ImportIDModal = React.lazy(
   () => import('../components/dashboard/modals/ImportIDModal'),
 );
-export const DirectMessageModal = lazy(
+
+export const DirectMessageModal = React.lazy(
   () => import('../components/dashboard/modals/DirectMessageModal'),
 );
-export const PinChannelModal = lazy(
+
+export const PinChannelModal = React.lazy(
   () => import('../components/dashboard/modals/PinChannelModal'),
 );
 
-// List components
-export const ChannelList = lazy(
+// Lists
+export const ChannelList = React.lazy(
   () => import('../components/dashboard/ChannelList'),
 );
-export const ServerList = lazy(
+
+export const ServerList = React.lazy(
   () => import('../components/dashboard/ServerList'),
 );
-export const UserList = lazy(() => import('../components/dashboard/UserList'));
-export const MemberList = lazy(
-  () => import('../components/dashboard/MemberList'),
+
+export const UserList = React.lazy(() =>
+  import('../components/dashboard/UserList').then((module) => ({
+    default: module.UserList,
+  })),
 );
 
-// Message components
-export const Message = lazy(() => import('../components/dashboard/Message'));
-export const MessageFiles = lazy(
+export const MemberList = React.lazy(() =>
+  import('../components/dashboard/MemberList').then((module) => ({
+    default: module.MemberList,
+  })),
+);
+
+// Messages
+export const Message = React.lazy(
+  () => import('../components/dashboard/Message'),
+);
+
+export const MessageFiles = React.lazy(
   () => import('../components/dashboard/MessageFiles'),
 );
-export const FileRenderer = lazy(
+
+export const FileRenderer = React.lazy(
   () => import('../components/dashboard/FileRenderer'),
 );

@@ -1,5 +1,4 @@
 import { last } from 'lodash';
-import moment from 'moment';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,84 +7,16 @@ import styled from 'styled-components';
 import { useBitcoin } from '../../context/bitcoin';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
-import { useActiveUser } from '../../hooks';
-import {
-  fetchMessages,
-  fetchMoreMessages,
-  receiveNewMessage,
-} from '../../reducers/chatReducer';
-import { FetchStatus } from '../../utils/common';
+import { fetchMessages, fetchMoreMessages } from '../../reducers/chatReducer';
+import type { AppDispatch, RootState } from '../../store';
 import Message from './Message';
-import WriteArea from './WriteArea';
-
-interface MessageData {
-  tx: {
-    h: string;
-  };
-  MAP: Array<{
-    paymail?: string;
-    messageID?: string;
-    type?: string;
-  }>;
-  AIP?: Array<{
-    identity?: {
-      paymail?: string;
-      logo?: string;
-      alternateName?: string;
-    };
-    verified?: boolean;
-    bapId?: string;
-  }>;
-  B: Array<{
-    Data?: {
-      utf8?: string;
-    };
-    'content-type'?: string;
-    media_type?: string;
-  }>;
-  timestamp?: number;
-  blk: {
-    t: number;
-  };
-  _id?: string;
-}
-
-interface Reaction {
-  MAP: Array<{
-    emoji: string;
-    paymail: string;
-    type: string;
-    context?: string;
-    messageID?: string;
-    [key: string]: string | undefined;
-  }>;
-}
-
-interface RootState {
-  chat: {
-    messages: {
-      loading: boolean;
-      data: MessageData[];
-      hasMore: boolean;
-    };
-    reactions: {
-      byMessageTarget: Record<string, Reaction[]>;
-      byTxTarget: Record<string, Reaction[]>;
-    };
-  };
-  session: {
-    user?: {
-      bapId?: string;
-    };
-  };
-}
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
   background-color: var(--background-primary);
 `;
 
@@ -96,6 +27,27 @@ const MessagesContainer = styled.div`
   overflow-y: auto;
   overflow-x: hidden;
   padding: 1rem 0;
+  height: 100%;
+  
+  /* Custom scrollbar styles */
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thin-thumb);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thin-thumb-hover);
+  }
 `;
 
 const LoadingContainer = styled.div`
@@ -111,31 +63,36 @@ const Messages: React.FC = () => {
   const { connected } = useYours();
   const { postStatus } = useBitcoin();
   const params = useParams();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const _activeUser = useActiveUser();
 
   const messages = useSelector((state: RootState) => state.chat.messages);
   const reactions = useSelector((state: RootState) => state.chat.reactions);
-  const _session = useSelector((state: RootState) => state.session);
 
   const activeChannelId = useMemo(() => params.channel, [params.channel]);
   const activeUserId = useMemo(() => params.user, [params.user]);
 
-  const _channelName =
+  const channelName =
     activeChannelId ||
     activeUserId ||
     last(window?.location?.pathname?.split('/'));
 
   const fetchMessageList = useCallback(() => {
-    if (authToken || connected) {
-      dispatch(fetchMessages(_channelName));
-    }
-  }, [authToken, connected, dispatch, _channelName]);
+    console.log('🔄 Initializing message fetch for:', channelName, {
+      isAuthenticated: !!authToken,
+      isConnected: connected,
+    });
+    dispatch(fetchMessages(channelName));
+  }, [authToken, connected, dispatch, channelName]);
 
   useEffect(() => {
+    console.log('📱 Messages component mounted', {
+      messageCount: messages.data.length,
+      loading: messages.loading,
+      error: messages.error,
+    });
     fetchMessageList();
   }, [fetchMessageList]);
 
@@ -143,13 +100,7 @@ const Messages: React.FC = () => {
     if (shouldScrollToBottom) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [shouldScrollToBottom]);
-
-  useEffect(() => {
-    if (postStatus === FetchStatus.Success) {
-      setShouldScrollToBottom(true);
-    }
-  }, [postStatus]);
+  }, [shouldScrollToBottom, messages.data]);
 
   const handleScroll = useCallback(
     async (e: React.UIEvent<HTMLDivElement>) => {
@@ -157,24 +108,34 @@ const Messages: React.FC = () => {
       setShouldScrollToBottom(false);
 
       if (scrollTop === 0 && !isLoadingMore && messages.hasMore) {
+        console.log('📜 Loading more messages...');
         setIsLoadingMore(true);
         try {
-          await dispatch(fetchMoreMessages(_channelName));
+          await dispatch(fetchMoreMessages(channelName));
+          console.log('✅ Additional messages loaded');
         } finally {
           setIsLoadingMore(false);
         }
       }
     },
-    [dispatch, isLoadingMore, messages.hasMore, _channelName],
+    [dispatch, isLoadingMore, messages.hasMore, channelName],
   );
 
-  if (messages.loading === FetchStatus.Loading) {
+  if (messages.loading) {
+    console.log('⌛ Messages loading state active');
     return (
       <Container>
-        <LoadingContainer>Loading...</LoadingContainer>
+        <LoadingContainer>Loading messages...</LoadingContainer>
       </Container>
     );
   }
+
+  console.log('🎯 Rendering messages:', {
+    count: messages.data.length,
+    hasMore: messages.hasMore,
+    firstMessage: messages.data[0],
+    lastMessage: messages.data[messages.data.length - 1],
+  });
 
   return (
     <Container>
@@ -184,7 +145,6 @@ const Messages: React.FC = () => {
           <Message key={message.tx.h} message={message} reactions={reactions} />
         ))}
       </MessagesContainer>
-      <WriteArea />
     </Container>
   );
 };

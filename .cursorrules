@@ -6,5 +6,24 @@ use bun always instead of npm or yarn
 # Linting
 bun lint
 
-# BSV Library
+# BSV Libraries
 npm: use @bsv/sdk instead of bsv
+npm: use bsv-bap for BAP functionality
+
+# Code rules
+- use bun instead of npm or yarn
+- use regular fetch for outside of components, tanstack query when inside components and never axios
+- use for loops instead of forEach
+
+# Last Known Good State
+Last known good commit: c04fc0d4e140a9324dc4477f24239b3dfef2389b
+
+You can query files from the last known good state using `git show c04fc0d4e140a9324dc4477f24239b3dfef2389b:path/to/file | cat`
+
+# Reviewing Target Commit
+When reviewing code from target commit c04fc0d4e140a9324dc4477f24239b3dfef2389b:
+1. Use `git show c04fc0d4e140a9324dc4477f24239b3dfef2389b:path/to/file` to view old file versions
+2. Check both .js and .tsx/.ts extensions as files may have been renamed
+3. Compare implementations to restore critical functionality
+4. Focus on core features: authentication, channels, messaging
+5. Note key differences in state management and API handling

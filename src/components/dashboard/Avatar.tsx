@@ -1,86 +1,81 @@
-import styled from '@emotion/styled';
-import type React from 'react';
+import React from 'react';
+import styled from 'styled-components';
 import { API_BASE_URL } from '../../config/env';
 
 interface AvatarProps {
-  icon: string;
-  paymail: string;
   size?: string;
-  color?: string;
-  bgcolor?: string;
-  w?: string;
-  h?: string;
-  border?: string;
-  onClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
+  paymail?: string;
+  icon?: string;
 }
 
-interface WrapperProps {
-  color?: string;
-  bgcolor?: string;
-  border?: string;
-}
-
-const Wrapper = styled.div<WrapperProps>`
+const AvatarContainer = styled.div<{ size: string }>`
+  width: ${({ size }) => size};
+  height: ${({ size }) => size};
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--background-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  overflow: hidden;
-  background-color: ${(props) => props.bgcolor || '#e2e8f0'};
-  color: ${(props) => props.color || '#4a5568'};
-  border: ${(props) => props.border || 'none'};
-  cursor: pointer;
-  transition: all 0.2s;
+`;
 
-  &:hover {
-    opacity: 0.8;
-  }
+const AvatarImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const AvatarFallback = styled.div<{ size: string }>`
+  width: ${({ size }) => size};
+  height: ${({ size }) => size};
+  background: var(--background-accent);
+  color: var(--text-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: ${({ size }) => `${Number.parseInt(size) / 2.5}px`};
+  text-transform: uppercase;
 `;
 
 const Avatar: React.FC<AvatarProps> = ({
-  icon,
-  paymail,
   size = '40px',
-  color,
-  bgcolor,
-  w,
-  h,
-  border,
-  onClick,
-}) => {
-  const width = w || size;
-  const height = h || size;
+  paymail = '',
+  icon = '',
+}): React.ReactElement => {
+  const [imgError, setImgError] = React.useState(false);
 
-  if (!icon) {
+  const getInitials = (paymail: string) => {
+    const parts = paymail.split('@')[0].split('.');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`;
+    }
+    return parts[0].slice(0, 2);
+  };
+
+  const handleError = () => {
+    setImgError(true);
+  };
+
+  if (!icon || imgError) {
     return (
-      <Wrapper
-        onClick={onClick}
-        color={color}
-        bgcolor={bgcolor}
-        border={border}
-        style={{ width, height }}
-      >
-        {paymail?.charAt(0).toUpperCase()}
-      </Wrapper>
+      <AvatarContainer size={size}>
+        <AvatarFallback size={size}>
+          {paymail ? getInitials(paymail) : '??'}
+        </AvatarFallback>
+      </AvatarContainer>
     );
   }
 
   return (
-    <Wrapper
-      onClick={onClick}
-      color={color}
-      bgcolor={bgcolor}
-      border={border}
-      style={{ width, height }}
-    >
-      <img
+    <AvatarContainer size={size}>
+      <AvatarImage
         src={icon.startsWith('http') ? icon : `${API_BASE_URL}/files/${icon}`}
-        alt={`Avatar for ${paymail}`}
-        width={width}
-        height={height}
-        style={{ objectFit: 'cover' }}
+        alt={paymail || 'avatar'}
+        onError={handleError}
       />
-    </Wrapper>
+    </AvatarContainer>
   );
 };
 

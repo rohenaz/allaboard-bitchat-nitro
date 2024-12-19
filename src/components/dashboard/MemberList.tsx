@@ -1,4 +1,4 @@
-import type React from 'react';
+import React, { type FC } from 'react';
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -6,19 +6,8 @@ import styled from 'styled-components';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { loadUsers } from '../../reducers/memberListReducer';
-import UserList from './UserList';
-
-interface RootState {
-  memberList: {
-    loading: boolean;
-    data: Array<{
-      _id: string;
-      paymail: string;
-      logo?: string;
-      alternateName?: string;
-    }>;
-  };
-}
+import type { AppDispatch, RootState } from '../../store';
+import { UserList } from './UserList';
 
 const Container = styled.div`
   width: 240px;
@@ -31,17 +20,45 @@ const Container = styled.div`
   flex-shrink: 0;
 `;
 
-const MemberList: React.FC = () => {
+export const MemberList: FC = () => {
   const { authToken } = useHandcash();
   const { connected } = useYours();
+  const dispatch = useDispatch<AppDispatch>();
   const params = useParams();
-  const dispatch = useDispatch();
 
-  const members = useSelector((state: RootState) => state.memberList);
+  const memberList = useSelector((state: RootState) => state.memberList);
+  const chat = useSelector((state: RootState) => state.chat);
+  const isOpen = memberList.isOpen;
+  const activeChannel = params.channel;
+
+  // Filter users based on active channel
+  const filteredUsers = memberList.allIds
+    .map((id) => {
+      const user = memberList.byId[id];
+      if (!user) return null;
+
+      // If no active channel, show all users
+      if (!activeChannel) return user;
+
+      // Check if user has sent messages in this channel
+      const hasMessagesInChannel = chat.messages.data.some((msg) => {
+        const msgPaymail = msg.MAP?.[0]?.paymail;
+        return msgPaymail === user.paymail;
+      });
+
+      return hasMessagesInChannel ? user : null;
+    })
+    .filter((user): user is NonNullable<typeof user> => user !== null)
+    .map((user) => ({
+      _id: user.idKey,
+      paymail: user.paymail,
+      logo: user.logo,
+      alternateName: user.paymail,
+    }));
 
   const fetchMemberList = useCallback(() => {
     if (authToken || connected) {
-      dispatch(loadUsers());
+      void dispatch(loadUsers());
     }
   }, [authToken, connected, dispatch]);
 
@@ -49,20 +66,18 @@ const MemberList: React.FC = () => {
     fetchMemberList();
   }, [fetchMemberList]);
 
-  if (!params.user) {
+  if (!isOpen) {
     return null;
   }
 
   return (
     <Container>
       <UserList
-        users={members.data}
-        loading={members.loading}
-        title="Members"
-        showFriendRequests
+        users={filteredUsers}
+        loading={memberList.loading}
+        title={activeChannel ? `#${activeChannel} Members` : 'All Members'}
+        showFriendRequests={!activeChannel}
       />
     </Container>
   );
 };
-
-export default MemberList;

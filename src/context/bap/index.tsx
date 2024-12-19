@@ -1,4 +1,3 @@
-import { Hash, PrivateKey, PublicKey } from '@bsv/sdk';
 import { BAP } from 'bsv-bap';
 import { head } from 'lodash';
 import React, {
@@ -9,171 +8,235 @@ import React, {
   useState,
 } from 'react';
 import { useDispatch } from 'react-redux';
+import { useYoursWallet } from 'yours-wallet-provider';
+import { login } from '../../reducers/sessionReducer';
 import { FetchStatus } from '../../utils/common';
 import { useLocalStorage } from '../../utils/storage';
 import { useHandcash } from '../handcash';
 
-const BapContext = React.createContext(undefined);
+interface BapContextValue {
+  identity: string | null;
+  decIdentity: DecryptedIdentity | null;
+  bapProfile: BapProfile | null;
+  bapProfileStatus: FetchStatus;
+  loadIdentityStatus: FetchStatus;
+  decryptStatus: FetchStatus;
+  pandaAuth: boolean;
+  setPandaAuth: React.Dispatch<React.SetStateAction<boolean>>;
+  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
 
-const BapProvider = (props) => {
-  const [identity, setIdentity] = useState(
+interface DecryptedIdentity {
+  xprv: string;
+  ids?: { idKey: string }[];
+  bapId?: string;
+}
+
+interface BapProfile {
+  id: string;
+  name?: string;
+  avatar?: string;
+}
+
+interface Identities {
+  [key: string]: string;
+}
+
+const BapContext = React.createContext<BapContextValue | undefined>(undefined);
+const profileStorageKey = 'nitro__BapProvider_profile';
+
+export const BapProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [identity, setIdentity] = useState<string | null>(
     localStorage.getItem('bitchat-nitro._bapid'),
   );
-  const [decIdentity, setDecIdentity] = useState();
-  const [bapProfile, setBapProfile] = useLocalStorage(profileStorageKey);
-  const [bapProfileStatus, setBapProfileStatus] = useState(FetchStatus.Loading);
-  const [loadIdentityStatus, setLoadIdentityStatus] = useState(
+  const [decIdentity, setDecIdentity] = useState<DecryptedIdentity | null>(
+    null,
+  );
+  const [bapProfile, setBapProfile] = useState<BapProfile | null>(null);
+  const [bapProfileStatus, setBapProfileStatus] = useState<FetchStatus>(
+    FetchStatus.Loading,
+  );
+  const [loadIdentityStatus, setLoadIdentityStatus] = useState<FetchStatus>(
     FetchStatus.Idle,
   );
-  const { authToken, hcEncrypt, hcDecrypt, decryptStatus } = useHandcash();
+  const [pandaAuth, setPandaAuth] = useState<boolean>(false);
+  const { authToken, hcDecrypt, decryptStatus } = useHandcash();
+  const { isConnected } = useYoursWallet();
+  const dispatch = useDispatch();
 
+  // Handle identity decryption using the appropriate wallet
   useEffect(() => {
-    const fire = async () => {
-      let id: { xprv: string; ids?: { idKey: string }[] } | undefined;
-      if (authToken) {
-        id = await hcDecrypt(identity);
-      } else {
-        id = identity;
-      }
-      if (!id) return;
+    const decryptIdentity = async () => {
+      let id: DecryptedIdentity | undefined;
+      try {
+        // Check if we're using Handcash for decryption
+        if (authToken && identity && typeof hcDecrypt === 'function') {
+          console.log('Decrypting identity with Handcash');
+          id = await hcDecrypt(identity);
+        } else if (await isConnected()) {
+          console.log('Using Yours wallet for identity');
+          // For Yours wallet, the identity is stored unencrypted
+          id = identity ? JSON.parse(identity) : undefined;
+        } else {
+          console.log('Using raw identity (no wallet)');
+          id = identity ? JSON.parse(identity) : undefined;
+        }
 
-      const bapId = new BAP(id.xprv);
-      if (id.ids) {
-        bapId.importIds(id.ids);
+        if (!id) {
+          console.log('No identity found');
+          return;
+        }
+
+        console.log('Creating BAP instance from identity');
+        const bapId = new BAP(id.xprv);
+        if (id.ids) {
+          console.log('Importing IDs:', id.ids);
+          const identities: Identities = {};
+          id.ids.forEach((i) => {
+            identities[i.idKey] = i.idKey;
+          });
+          bapId.importIds(identities);
+        }
+        const bid = head(bapId.listIds());
+        if (bid) {
+          console.log('Found BAP ID:', bid);
+          const updatedId = { ...id, bapId: bid };
+          setDecIdentity(updatedId);
+          // Instead of setting BAP ID directly, update the session with the current wallet and BAP ID
+          if (authToken) {
+            dispatch(login({ wallet: 'handcash', authToken, bapId: bid }));
+          } else {
+            dispatch(login({ wallet: 'yours', bapId: bid }));
+          }
+        } else {
+          console.log('No BAP ID found in identity');
+        }
+      } catch (error) {
+        console.error('Failed to process identity:', error);
       }
-      const bid = head(bapId.listIds());
-      id.bapId = bid;
-      setDecIdentity(id);
     };
 
     if (identity && decryptStatus === FetchStatus.Idle && !decIdentity) {
-      fire();
+      decryptIdentity();
     }
-  }, [identity, hcDecrypt, decryptStatus, decIdentity, authToken]);
+  }, [
+    identity,
+    hcDecrypt,
+    decryptStatus,
+    decIdentity,
+    authToken,
+    dispatch,
+    isConnected,
+  ]);
 
   const isValidIdentity = useCallback((decryptedIdString: string) => {
-    const decIdentity = JSON.parse(decryptedIdString);
-
-    let bapId: BAP | undefined;
     try {
-      bapId = new BAP(decIdentity.xprv);
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-    if (bapId && decIdentity.ids) {
-      bapId.importIds(decIdentity.ids);
-    } else {
-      return false;
-    }
+      const decIdentity = JSON.parse(decryptedIdString) as DecryptedIdentity;
+      let bapId: BAP;
+      try {
+        bapId = new BAP(decIdentity.xprv);
+      } catch (e) {
+        console.error('Failed to create BAP instance:', e);
+        return false;
+      }
 
-    const ids = bapId.listIds();
-    const idy = bapId.getId(ids[0]);
+      if (bapId && decIdentity.ids) {
+        const identities: Identities = {};
+        decIdentity.ids.forEach((i) => {
+          identities[i.idKey] = i.idKey;
+        });
+        bapId.importIds(identities);
+      } else {
+        console.log('No IDs to import');
+        return false;
+      }
 
-    if (!idy) {
+      const ids = bapId.listIds();
+      const idy = bapId.getId(ids[0]);
+
+      if (!idy) {
+        console.log('No valid ID found');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Failed to validate identity:', error);
       return false;
     }
-    return true;
   }, []);
 
   const onFileChange = useCallback(
-    async (e) => {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
       setLoadIdentityStatus(FetchStatus.Loading);
-      const file = head(e.target.files);
-      const text = await toText(file);
-
-      if (!isValidIdentity(text)) {
-        setLoadIdentityStatus(FetchStatus.Error);
-        return;
-      }
-
       try {
-        if (authToken) {
-          const encryptedData = await hcEncrypt(JSON.parse(text));
-          setIdentity(encryptedData);
-        } else {
-          alert('ToDo: Handle encrypt / decrypt with panda');
-          return;
+        const file = event.target.files?.[0];
+        if (!file) {
+          throw new Error('No file selected');
         }
-        setLoadIdentityStatus(FetchStatus.Success);
-      } catch (_e) {
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const text = e.target?.result;
+            if (typeof text !== 'string') {
+              throw new Error('Invalid file content');
+            }
+
+            if (!isValidIdentity(text)) {
+              throw new Error('Invalid identity file');
+            }
+
+            // Store the identity file in localStorage
+            localStorage.setItem('bitchat-nitro._bapid', text);
+            setIdentity(text);
+            setLoadIdentityStatus(FetchStatus.Success);
+          } catch (error) {
+            console.error('Failed to process identity file:', error);
+            setLoadIdentityStatus(FetchStatus.Error);
+          }
+        };
+        reader.readAsText(file);
+      } catch (error) {
+        console.error('Failed to read identity file:', error);
         setLoadIdentityStatus(FetchStatus.Error);
       }
     },
-    [isValidIdentity, authToken, hcEncrypt],
+    [isValidIdentity],
   );
-
-  const getIdentity = useCallback(async () => {
-    if (bapProfile) {
-      return bapProfile;
-    }
-    setBapProfileStatus(FetchStatus.Loading);
-
-    const payload = {
-      idKey: '',
-    };
-    const _res = await fetch('https://bap-api.com/v1/getIdentity', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-    const resp = { idKey: 'something' };
-    setBapProfileStatus(FetchStatus.Success);
-    setBapProfile(resp);
-    return resp;
-  }, [bapProfile, setBapProfile]);
 
   const value = useMemo(
     () => ({
       identity,
-      setIdentity,
       decIdentity,
-      getIdentity,
-      bapProfileStatus,
       bapProfile,
-      onFileChange,
+      bapProfileStatus,
       loadIdentityStatus,
+      decryptStatus,
+      pandaAuth,
+      setPandaAuth,
+      onFileChange,
     }),
     [
       identity,
-      getIdentity,
       decIdentity,
-      bapProfileStatus,
       bapProfile,
-      onFileChange,
+      bapProfileStatus,
       loadIdentityStatus,
+      decryptStatus,
+      pandaAuth,
+      onFileChange,
     ],
   );
 
-  return (
-    <>
-      <BapContext.Provider value={value} {...props} />
-    </>
-  );
+  return <BapContext.Provider value={value}>{children}</BapContext.Provider>;
 };
 
-const useBap = () => {
+export const useBap = () => {
   const context = useContext(BapContext);
   if (context === undefined) {
-    throw new Error('useBap must be used within an BapProvider');
+    throw new Error('useBap must be used within a BapProvider');
   }
   return context;
 };
-
-export { BapProvider, useBap };
-
-//
-// Utils
-//
-
-const profileStorageKey = 'nitro__BapProvider_profile';
-
-const toText = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsText(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });

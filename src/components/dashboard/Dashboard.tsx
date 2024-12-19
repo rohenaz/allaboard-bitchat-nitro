@@ -1,59 +1,68 @@
-import type React from 'react';
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { type FC } from 'react';
+import styled from 'styled-components';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
-import { loadChannels } from '../../reducers/channelsReducer';
-import { loadFriends } from '../../reducers/memberListReducer';
-import type { AppDispatch } from '../../store';
-import { FetchStatus } from '../../utils/common';
+import ChannelList from './ChannelList';
+import ChatArea from './ChatArea';
 import Header from './Header';
-import Sidebar from './Sidebar';
+import { MemberList } from './MemberList';
+import ServerList from './ServerList';
+import { UserList } from './UserList';
 
 interface DashboardProps {
   isFriendsPage: boolean;
 }
 
-interface RootState {
-  session: {
-    user?: {
-      idKey?: string;
-    };
-  };
-}
+const Container = styled.div`
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--background-tertiary);
+`;
 
-const Dashboard: React.FC<DashboardProps> = ({ isFriendsPage }) => {
-  const dispatch = useDispatch<AppDispatch>();
+const ServerColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 72px;
+  min-width: 72px;
+  background-color: var(--background-tertiary);
+`;
+
+const ChannelColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  min-width: 240px;
+  background-color: var(--background-secondary);
+  overflow-y: auto;
+`;
+
+const MainContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  background-color: var(--background-primary);
+`;
+
+export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
   const { authToken } = useHandcash();
   const { connected } = useYours();
-  const user = useSelector((state: RootState) => state.session.user);
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (user?.idKey) {
-        await dispatch(loadFriends());
-        await dispatch(loadChannels());
-      }
-    };
-    loadData();
-  }, [dispatch, user]);
-
-  if (!user?.idKey) {
-    return <div>Please log in to continue.</div>;
-  }
-
-  if (authToken === FetchStatus.LOADING || connected === FetchStatus.LOADING) {
-    return <div>Loading wallet...</div>;
-  }
 
   return (
-    <div className="flex h-screen">
-      <Sidebar>
+    <Container>
+      <ServerColumn>
+        <ServerList />
+      </ServerColumn>
+      <ChannelColumn>
+        <ChannelList />
+      </ChannelColumn>
+      <MainContent>
         <Header isFriendsPage={isFriendsPage} />
-      </Sidebar>
-      <div className="flex-1 flex flex-col">{/* Main content */}</div>
-    </div>
+        <ChatArea />
+      </MainContent>
+      <MemberList />
+    </Container>
   );
 };
-
-export default Dashboard;

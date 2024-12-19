@@ -3,68 +3,107 @@ import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { useHandcash } from '../../context/handcash';
-import { useYours } from '../../context/yours';
 import { loadChannels } from '../../reducers/channelsReducer';
-import type { AppDispatch } from '../../store';
-import { FetchStatus } from '../../utils/common';
-import Hashtag from './Hashtag';
-import List from './List';
-import ListItem from './ListItem';
+import type { AppDispatch, RootState } from '../../store';
+import ErrorBoundary from '../ErrorBoundary';
+import UserPanel from './UserPanel';
 
-interface Channel {
+export interface Channel {
+  id?: string;
   channel: string;
-  last_message_time: number;
-  last_message: string;
-  messages: number;
+  last_message_time?: number;
+  last_message?: string;
+  messages?: number;
   creator?: string;
 }
 
-interface RootState {
-  channels: {
-    loading: boolean;
-    byId: { [key: string]: Channel };
-    allIds: string[];
-  };
-  session: {
-    user?: {
-      idKey?: string;
-    };
-  };
-}
-
 const Container = styled.div`
-  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px 0;
+  overflow-y: auto;
+  position: relative;
+  padding-bottom: 52px;
 `;
 
 const Title = styled.h2`
-  padding: 0 10px;
-  margin: 0;
+  padding: 0 16px;
+  margin: 0 0 8px 0;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 12px;
   height: 24px;
   line-height: 24px;
   color: var(--channels-default);
 `;
 
-const ChannelList: React.FC = () => {
+const ChannelList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+`;
+
+const ChannelItem = styled.div<{ isActive: boolean }>`
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  color: var(--channels-default);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+  user-select: none;
+
+  &:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
+  }
+
+  ${({ isActive }) =>
+    isActive &&
+    `
+    background-color: var(--background-modifier-selected);
+    color: var(--text-normal);
+  `}
+`;
+
+const HashtagIcon = styled.span`
+  margin-right: 6px;
+  color: var(--channels-default);
+  font-size: 20px;
+  
+  &::before {
+    content: '#';
+  }
+`;
+
+const LoadingText = styled.div`
+  padding: 0 16px;
+  color: var(--text-muted);
+  font-size: 14px;
+`;
+
+const NoChannelsText = styled(LoadingText)`
+  color: var(--text-muted);
+`;
+
+const ChannelListContent: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const params = useParams();
-  const { status: handcashStatus } = useHandcash();
-  const { status: yoursStatus } = useYours();
 
-  const { loading, byId, allIds } = useSelector(
-    (state: RootState) => state.channels,
-  );
-  const user = useSelector((state: RootState) => state.session.user);
+  const { loading, channels } = useSelector((state: RootState) => {
+    const { byId, allIds, loading } = state.channels;
+    return {
+      loading,
+      channels: allIds.map((id) => byId[id]).filter(Boolean),
+    };
+  });
 
   useEffect(() => {
-    if (user?.idKey) {
-      dispatch(loadChannels());
-    }
-  }, [dispatch, user]);
+    dispatch(loadChannels());
+  }, [dispatch]);
 
   const handleClick = useCallback(
     (channelId: string) => {
@@ -74,36 +113,49 @@ const ChannelList: React.FC = () => {
   );
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <Container>
+        <LoadingText>Loading channels...</LoadingText>
+        <UserPanel />
+      </Container>
+    );
   }
 
-  if (
-    handcashStatus === FetchStatus.LOADING ||
-    yoursStatus === FetchStatus.LOADING
-  ) {
-    return <div>Loading wallet...</div>;
+  if (!channels.length) {
+    return (
+      <Container>
+        <NoChannelsText>No channels found</NoChannelsText>
+        <UserPanel />
+      </Container>
+    );
   }
 
   return (
     <Container>
-      <Title>Text Channels</Title>
-      <List>
-        {allIds.map((channelId) => {
-          const channel = byId[channelId];
-          return (
-            <ListItem
-              key={channelId}
-              active={channelId === params.channel}
-              onClick={() => handleClick(channelId)}
-            >
-              <Hashtag />
-              {channel.channel}
-            </ListItem>
-          );
-        })}
-      </List>
+      <Title>Text Channels ({channels.length})</Title>
+      <ChannelList>
+        {channels.map((channel) => (
+          <ChannelItem
+            key={channel.channel}
+            isActive={channel.channel === params.channel}
+            onClick={() => handleClick(channel.channel)}
+          >
+            <HashtagIcon />
+            {channel.channel}
+          </ChannelItem>
+        ))}
+      </ChannelList>
+      <UserPanel />
     </Container>
   );
 };
 
-export default ChannelList;
+const ChannelListWrapper: React.FC = () => {
+  return (
+    <ErrorBoundary>
+      <ChannelListContent />
+    </ErrorBoundary>
+  );
+};
+
+export default ChannelListWrapper;

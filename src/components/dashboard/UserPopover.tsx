@@ -13,6 +13,7 @@ interface RootState {
   session: {
     user?: {
       idKey?: string;
+      walletType?: string;
     };
   };
 }
@@ -110,20 +111,20 @@ const UserPopover: React.FC<UserPopoverProps> = ({
   const session = useSelector((state: RootState) => state.session);
 
   const guest = useMemo(() => {
-    return !authToken && !connected;
-  }, [authToken, connected]);
+    return session.user?.walletType === 'guest';
+  }, [session.user?.walletType]);
 
   const self = useMemo(() => {
     return bapId === session.user?.idKey;
   }, [bapId, session.user?.idKey]);
 
   const handleClick = useCallback(() => {
-    if (self) {
+    if (self || guest) {
       return;
     }
     navigate(`/channels/@me/${bapId}`);
     onClose();
-  }, [navigate, onClose, self, bapId]);
+  }, [navigate, onClose, self, guest, bapId]);
 
   return (
     <Popover

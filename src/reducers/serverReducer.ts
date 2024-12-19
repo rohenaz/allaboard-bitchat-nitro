@@ -23,7 +23,7 @@ const initialState: ServerState = {
       _id: 'bitchat',
       name: 'BitChat',
       description: 'The main BitChat server',
-      icon: '/logo.png',
+      icon: '/images/blockpost-logo.svg',
       paymail: 'bitchat@bitchatnitro.com',
     },
     // More servers can be added here or fetched from an endpoint
@@ -73,7 +73,7 @@ export const fetchServers = () => async (dispatch: AppDispatch) => {
           _id: 'bitchat',
           name: 'BitChat',
           description: 'The main BitChat server',
-          icon: '/logo.png',
+          icon: '/images/blockpost-logo.svg',
           paymail: 'bitchat@bitchatnitro.com',
         },
       ]),

@@ -1,3 +1,4 @@
+import path from 'path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import macrosPlugin from 'vite-plugin-babel-macros';
@@ -32,7 +33,9 @@ export default defineConfig({
   resolve: {
     alias: {
       stream: 'vite-compatible-readable-stream',
+      '@': path.resolve(__dirname, './src'),
     },
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
   define: {
     'process.env': {

@@ -127,7 +127,7 @@ const ServerList: React.FC = () => {
           size="48px"
           bgcolor={'#000'}
           paymail="bitchat@bitchatnitro.com"
-          icon="/logo.png"
+          icon="/images/blockpost-logo.svg"
         />
       </ServerButton>
       <Separator />

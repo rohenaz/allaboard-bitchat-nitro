@@ -1,9 +1,9 @@
-export const FetchStatus = {
-  Idle: 0,
-  Loading: 1,
-  Error: 2,
-  Success: 3,
-};
+export enum FetchStatus {
+  Idle = 'idle',
+  Loading = 'loading',
+  Success = 'success',
+  Error = 'error',
+}
 
 export const defaultAlias = {
   '@context': 'https://schema.org',
