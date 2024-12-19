@@ -1,4 +1,5 @@
-import { forwardRef, useState } from 'react';
+import type { JSX } from 'react';
+import React, { forwardRef, useState } from 'react';
 
 type MediaType = 'image' | 'video' | 'audio';
 
@@ -8,14 +9,25 @@ interface FileRendererProps {
   onClick?: () => void;
 }
 
+type MediaElementType = HTMLImageElement | HTMLVideoElement | HTMLAudioElement;
+
+interface MediaElementProps {
+  alt?: string;
+  className?: string;
+  controls?: boolean;
+  style?: React.CSSProperties;
+}
+
 const mediaElement: Record<MediaType, keyof JSX.IntrinsicElements> = {
   image: 'img',
   video: 'video',
   audio: 'audio',
 };
 
-const mediaElementProps: Record<MediaType, Record<string, any>> = {
-  image: {},
+const mediaElementProps: Record<MediaType, MediaElementProps> = {
+  image: {
+    alt: 'Media content',
+  },
   video: {
     className: 'object-contain w-full h-full',
     controls: true,
@@ -26,13 +38,7 @@ const mediaElementProps: Record<MediaType, Record<string, any>> = {
   },
 };
 
-/**
- * Renders a file based on its type.
- *
- * @param {FileRendererProps} props - The component props.
- * @returns {JSX.Element|null} The rendered file component or null if the file type is not supported.
- */
-const FileRenderer = forwardRef<HTMLElement, FileRendererProps>(
+const FileRenderer = forwardRef<MediaElementType, FileRendererProps>(
   ({ type, data, onClick }, ref) => {
     const [hasError, setHasError] = useState(false);
     const MediaElement = mediaElement[type];
@@ -41,15 +47,13 @@ const FileRenderer = forwardRef<HTMLElement, FileRendererProps>(
       return null;
     }
 
-    return (
-      <MediaElement
-        ref={ref}
-        src={data}
-        onClick={onClick}
-        onError={() => setHasError(true)}
-        {...mediaElementProps[type]}
-      />
-    );
+    return React.createElement(MediaElement, {
+      ref,
+      src: data,
+      onClick,
+      onError: () => setHasError(true),
+      ...mediaElementProps[type],
+    });
   },
 );
 

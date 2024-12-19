@@ -18,44 +18,67 @@ import ArrowTooltip from './ArrowTooltip';
 import Avatar from './Avatar';
 import MessageFiles from './MessageFiles';
 
-interface MessageProps {
-  message: {
-    tx: {
-      h: string;
-    };
-    MAP: Array<{
-      paymail?: string;
-      messageID?: string;
-      type?: string;
-    }>;
-    AIP?: Array<{
-      identity?: {
-        paymail?: string;
-        logo?: string;
-        alternateName?: string;
-      };
-      verified?: boolean;
-      bapId?: string;
-    }>;
-    B: Array<{
-      Data?: {
-        utf8?: string;
-      };
-      'content-type'?: string;
-      media_type?: string;
-    }>;
-    timestamp?: number;
-    blk: {
-      t: number;
-    };
-    _id?: string;
+interface MessageData {
+  tx: {
+    h: string;
   };
+  MAP: Array<{
+    paymail?: string;
+    messageID?: string;
+    type?: string;
+  }>;
+  AIP?: Array<{
+    identity?: {
+      paymail?: string;
+      logo?: string;
+      alternateName?: string;
+    };
+    verified?: boolean;
+    bapId?: string;
+  }>;
+  B: Array<{
+    Data?: {
+      utf8?: string;
+    };
+    'content-type'?: string;
+    media_type?: string;
+  }>;
+  timestamp?: number;
+  blk: {
+    t: number;
+  };
+  _id?: string;
+}
+
+interface MapProperties {
+  emoji?: string;
+  paymail?: string;
+  type?: string;
+  context?: string;
+  messageID?: string;
+  [key: string]: string | undefined;
+}
+
+interface Reaction {
+  MAP: MapProperties[];
+}
+
+interface MessageProps {
+  message: MessageData;
   reactions?: {
-    byMessageTarget: Record<string, any[]>;
-    byTxTarget: Record<string, any[]>;
+    byMessageTarget: Record<string, Reaction[]>;
+    byTxTarget: Record<string, Reaction[]>;
   };
   appIcon?: React.ReactNode;
   handleClick?: (event: React.MouseEvent) => void;
+}
+
+interface RootState {
+  chat: {
+    likes: {
+      byTxId: Record<string, { likes: string[] }>;
+    };
+  };
 }
 
 const md = new Remarkable({
@@ -151,6 +174,14 @@ const Content = styled.div`
   }
 `;
 
+interface EmojiClickData {
+  emoji: string;
+  names: string[];
+  unified: string;
+  originalUnified: string;
+  activeSkinTone: string;
+}
+
 const Message: React.FC<MessageProps> = ({
   message,
   reactions,
@@ -160,7 +191,7 @@ const Message: React.FC<MessageProps> = ({
   const { profile } = useHandcash();
   const { likeMessage } = useBitcoin();
   const likes = useSelector(
-    (state: any) => state.chat.likes.byTxId[message.tx.h],
+    (state: RootState) => state.chat.likes.byTxId[message.tx.h],
   );
   const [showReactions, setShowReactions] = useState(false);
   const isVerified = isValidEmail(head(message.MAP)?.paymail || '');
@@ -185,9 +216,9 @@ const Message: React.FC<MessageProps> = ({
   );
 
   const emojiClick = useCallback(
-    async (e: { emoji: string }, txId: string) => {
+    async (emojiData: EmojiClickData, txId: string) => {
       setShowReactions(false);
-      await likeMessage(profile?.paymail, 'tx', txId, e.emoji);
+      await likeMessage(profile?.paymail, 'tx', txId, emojiData.emoji);
     },
     [profile, likeMessage],
   );
@@ -199,7 +230,7 @@ const Message: React.FC<MessageProps> = ({
     ];
 
     if (likes) {
-      const likesAsReactions = likes.likes.map((like: string) => ({
+      const likesAsReactions = likes.likes.map((like) => ({
         MAP: [
           {
             emoji: '❤️',
@@ -210,13 +241,13 @@ const Message: React.FC<MessageProps> = ({
       }));
       return uniqBy(
         [...allReactions, ...likesAsReactions],
-        (r) => `${head(r.MAP).paymail}-${head(r.MAP).emoji}`,
+        (r) => `${head(r.MAP)?.paymail}-${head(r.MAP)?.emoji}`,
       );
     }
 
     return uniqBy(
       allReactions,
-      (r) => `${head(r.MAP).paymail}-${head(r.MAP).emoji}`,
+      (r) => `${head(r.MAP)?.paymail}-${head(r.MAP)?.emoji}`,
     );
   }, [reactions, message, likes]);
 
@@ -290,7 +321,7 @@ const Message: React.FC<MessageProps> = ({
                     }}
                   >
                     {head(message.AIP)?.bapId
-                      ? head(message.AIP)?.bapId.slice(0, 8)
+                      ? head(message.AIP)?.bapId?.slice(0, 8)
                       : ''}
                   </div>
                 </button>
@@ -324,18 +355,20 @@ const Message: React.FC<MessageProps> = ({
             display: 'flex',
           }}
         >
-          {uniqBy(emojis, (reaction) => head(reaction.MAP).emoji)?.map(
+          {uniqBy(emojis, (reaction) => head(reaction.MAP)?.emoji)?.map(
             (reaction) => (
               <button
-                key={`${head(reaction.MAP).paymail}-${head(reaction.MAP).emoji}`}
+                key={`${head(reaction.MAP)?.paymail}-${head(reaction.MAP)?.emoji}`}
                 type="button"
                 className="rounded-md text-white text-sm border border-[#333] p-1 mr-1 cursor-pointer bg-transparent"
                 onClick={() => {
-                  if (!hasReacted(head(reaction.MAP).emoji, profile?.paymail)) {
+                  if (
+                    !hasReacted(head(reaction.MAP)?.emoji, profile?.paymail)
+                  ) {
                     likeMessage(
                       profile?.paymail,
-                      head(reaction.MAP).context || 'tx',
-                      head(reaction.MAP).context
+                      head(reaction.MAP)?.context || 'tx',
+                      head(reaction.MAP)?.context
                         ? head(reaction.MAP)[head(reaction.MAP).context]
                         : message.tx.h,
                       head(reaction.MAP).emoji,
@@ -343,10 +376,10 @@ const Message: React.FC<MessageProps> = ({
                   }
                 }}
               >
-                {head(reaction.MAP).emoji}{' '}
+                {head(reaction.MAP)?.emoji}{' '}
                 {
                   emojis.filter(
-                    (e) => head(e.MAP).emoji === head(reaction.MAP).emoji,
+                    (e) => head(e.MAP)?.emoji === head(reaction.MAP)?.emoji,
                   )?.length
                 }{' '}
               </button>

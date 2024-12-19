@@ -82,11 +82,14 @@ interface RootState {
   memberList: MemberListState;
 }
 
+// Add type for FetchStatus
+type FetchStatusType = (typeof FetchStatus)[keyof typeof FetchStatus];
+
 interface BitcoinContextValue {
   sendPin: (pm: string, channel: string, units: number) => Promise<void>;
-  pinStatus: FetchStatus;
+  pinStatus: FetchStatusType;
   sendFriendRequest: (friendIdKey: string, xprv: string) => Promise<void>;
-  friendRequestStatus: FetchStatus;
+  friendRequestStatus: FetchStatusType;
   sendMessage: (
     pm: string,
     content: string,
@@ -94,17 +97,17 @@ interface BitcoinContextValue {
     userId: string,
     decIdentity: DecIdentity,
   ) => Promise<void>;
-  postStatus: FetchStatus;
+  postStatus: FetchStatusType;
   likeMessage: (
     pm: string,
     contextName: string,
     contextValue: string,
     emoji?: string,
   ) => Promise<void>;
-  likeStatus: FetchStatus;
-  decryptStatus: FetchStatus;
+  likeStatus: FetchStatusType;
+  decryptStatus: FetchStatusType;
   signOpReturnWithAIP: (hexArray: string[]) => Promise<string[]>;
-  signStatus: FetchStatus;
+  signStatus: FetchStatusType;
   pendingFiles: File[];
   setPendingFiles: React.Dispatch<React.SetStateAction<File[]>>;
 }
@@ -129,17 +132,22 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
   const { authToken } = useHandcash();
   const { pandaProfile, utxos, sendBsv } = useYours();
   const { decIdentity, decryptStatus } = useBap();
-  const [pinStatus, setPinStatus] = useState<FetchStatus>(FetchStatus.Idle);
-  const [postStatus, setPostStatus] = useState<FetchStatus>(FetchStatus.Idle);
+  const [pinStatus, setPinStatus] = useState<FetchStatusType>(FetchStatus.Idle);
+  const [postStatus, setPostStatus] = useState<FetchStatusType>(
+    FetchStatus.Idle,
+  );
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [pendingFilesOutputs, setPendingFilesOutputs] = useState<string[][]>(
     [],
   );
-  const [signStatus, setSignStatus] = useState<FetchStatus>(FetchStatus.Idle);
-  const [likeStatus, setLikeStatus] = useState<FetchStatus>(FetchStatus.Idle);
-  const [friendRequestStatus, setFriendRequestStatus] = useState<FetchStatus>(
+  const [signStatus, setSignStatus] = useState<FetchStatusType>(
     FetchStatus.Idle,
   );
+  const [likeStatus, setLikeStatus] = useState<FetchStatusType>(
+    FetchStatus.Idle,
+  );
+  const [friendRequestStatus, setFriendRequestStatus] =
+    useState<FetchStatusType>(FetchStatus.Idle);
 
   const dispatch = useDispatch();
   const params = useParams();

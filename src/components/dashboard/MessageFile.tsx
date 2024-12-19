@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 import { getBase64Url } from '../../utils/file';
@@ -41,7 +42,7 @@ const MessageFile: React.FC<MessageFileProps> = ({ file, onClick }) => {
   }
 
   const contentType = file['content-type'] ?? file.media_type;
-  const fileType = contentType.split('/')[0];
+  const fileType = contentType?.split('/')[0];
 
   return (
     <Container>

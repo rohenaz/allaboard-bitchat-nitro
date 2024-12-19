@@ -1,5 +1,6 @@
 import { last } from 'lodash';
 import moment from 'moment';
+import type React from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { HiPlusCircle } from 'react-icons/hi';
 import { IoMdClose } from 'react-icons/io';
@@ -11,15 +12,60 @@ import { useBitcoin } from '../../context/bitcoin';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { useActiveUser } from '../../hooks';
-import SubmitButton from './SubmitButton';
-
 import {
   receiveNewMessage,
   toggleFileUpload,
 } from '../../reducers/chatReducer';
 import { FetchStatus } from '../../utils/common';
 import InvisibleSubmitButton from './InvisibleSubmitButton';
+import SubmitButton from './SubmitButton';
 import PlusModal from './modals/PlusModal';
+
+interface FriendRequest {
+  loading: boolean;
+  data: Array<{
+    _id: string;
+    paymail: string;
+    logo?: string;
+    alternateName?: string;
+  }>;
+}
+
+interface RootState {
+  memberList: {
+    friendRequests: FriendRequest;
+    loading: boolean;
+  };
+  channels: {
+    pins: {
+      loading: boolean;
+    };
+    loading: boolean;
+  };
+  chat: {
+    messages: {
+      loading: boolean;
+    };
+    typingUser: string | null;
+  };
+  session: {
+    user?: {
+      bapId?: string;
+    };
+  };
+}
+
+interface PendingFile {
+  name: string;
+  type: string;
+  size: number;
+  data: ArrayBuffer;
+}
+
+interface KeyboardState {
+  ctrlDown: boolean;
+  cmdDown: boolean;
+}
 
 const Container = styled.div`
   ${tw`bg-background-primary px-4 py-2 flex-none flex items-center justify-center`}
@@ -32,10 +78,6 @@ const Form = styled.form`
   ${tw`relative flex gap-2`}
   width: 100%;
   max-width: 1200px;
-`;
-
-const TypingStatus = styled.span`
-  ${tw`text-xs font-medium text-[color:var(--text-normal)]`}
 `;
 
 const AttachmentBar = styled.div`
@@ -95,7 +137,7 @@ const CloseButton = styled.button`
   transition: color 0.2s ease;
 `;
 
-const WriteArea = () => {
+const WriteArea: React.FC = () => {
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
   const { connected, pandaProfile } = useYours();
   const { sendMessage, postStatus, pendingFiles, setPendingFiles } =
@@ -106,20 +148,28 @@ const WriteArea = () => {
   const { decIdentity } = useBap();
   const activeUser = useActiveUser();
   const dispatch = useDispatch();
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const friendRequests = useSelector(
-    (state) => state.memberList.friendRequests,
+  const _friendRequests = useSelector(
+    (state: RootState) => state.memberList.friendRequests,
   );
-  const loadingMembers = useSelector((state) => state.memberList.loading);
-  const loadingPins = useSelector((state) => state.channels.pins.loading);
-  const loadingChannels = useSelector((state) => state.channels.loading);
-  const loadingMessages = useSelector((state) => state.chat.messages.loading);
+  const loadingMembers = useSelector(
+    (state: RootState) => state.memberList.loading,
+  );
+  const loadingPins = useSelector(
+    (state: RootState) => state.channels.pins.loading,
+  );
+  const loadingChannels = useSelector(
+    (state: RootState) => state.channels.loading,
+  );
+  const loadingMessages = useSelector(
+    (state: RootState) => state.chat.messages.loading,
+  );
   const loadingFriendRequests = useSelector(
-    (state) => state.memberList.friendRequests.loading,
+    (state: RootState) => state.memberList.friendRequests.loading,
   );
-  const session = useSelector((state) => state.session);
-  const typingUser = useSelector((state) => state.chat.typingUser);
+  const session = useSelector((state: RootState) => state.session);
+  const _typingUser = useSelector((state: RootState) => state.chat.typingUser);
 
   const activeChannelId = useMemo(() => params.channel, [params.channel]);
   const activeUserId = useMemo(() => params.user, [params.user]);
@@ -131,9 +181,17 @@ const WriteArea = () => {
     activeUserId ||
     last(window?.location?.pathname?.split('/'));
 
-  const changeContent = useCallback((e) => {
-    setMessageContent(e.target.value);
-  }, []);
+  const [keyboardState, setKeyboardState] = useState<KeyboardState>({
+    ctrlDown: false,
+    cmdDown: false,
+  });
+
+  const changeContent = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setMessageContent(e.target.value);
+    },
+    [],
+  );
 
   const _togglePlusPopover = useCallback(() => {
     setShowPlusPopover((prev) => !prev);
@@ -148,18 +206,19 @@ const WriteArea = () => {
   }, [session.user?.bapId, activeUser]);
 
   const handleSubmit = useCallback(
-    async (event) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (!authToken && !connected) {
         return;
       }
 
-      const content = event.target.msg_content.value;
+      const form = event.target as HTMLFormElement;
+      const content = (form.msg_content as HTMLTextAreaElement).value;
       const hasContent = content !== '' || pendingFiles.length > 0;
 
       if (hasContent && (profile?.paymail || pandaProfile)) {
         setMessageContent('');
-        event.target.reset();
+        form.reset();
         try {
           await sendMessage(
             profile?.paymail || pandaProfile?.displayName,
@@ -200,46 +259,63 @@ const WriteArea = () => {
     ],
   );
 
-  const handleKeyDown = useCallback((event) => {
-    const CTRL_KEY = 17;
-    const CMD_KEY = 91;
-    const V_KEY = 86;
-    const C_KEY = 67;
-    let ctrlDown = false;
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      const CTRL_KEY = 17;
+      const CMD_KEY = 91;
+      const V_KEY = 86;
+      const C_KEY = 67;
 
-    if (event.keyCode === CTRL_KEY || event.keyCode === CMD_KEY) {
-      ctrlDown = true;
-    }
+      if (event.keyCode === CTRL_KEY) {
+        setKeyboardState((prev) => ({ ...prev, ctrlDown: true }));
+      } else if (event.keyCode === CMD_KEY) {
+        setKeyboardState((prev) => ({ ...prev, cmdDown: true }));
+      }
 
-    if (ctrlDown && event.keyCode === C_KEY) {
-      // Handle Ctrl+C if needed
-    }
-    if (ctrlDown && event.keyCode === V_KEY) {
-      // Handle Ctrl+V if needed
-    }
-  }, []);
+      if (
+        (keyboardState.ctrlDown || keyboardState.cmdDown) &&
+        event.keyCode === C_KEY
+      ) {
+        // Handle Ctrl+C if needed
+      }
+      if (
+        (keyboardState.ctrlDown || keyboardState.cmdDown) &&
+        event.keyCode === V_KEY
+      ) {
+        // Handle Ctrl+V if needed
+      }
+    },
+    [keyboardState],
+  );
 
-  const handleKeyUp = useCallback((event) => {
-    const ENTER_KEY = 13;
-    const CTRL_KEY = 17;
-    const CMD_KEY = 91;
-    const V_KEY = 86;
+  const handleKeyUp = useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      const ENTER_KEY = 13;
+      const CTRL_KEY = 17;
+      const CMD_KEY = 91;
+      const V_KEY = 86;
 
-    if (event.keyCode === CTRL_KEY || event.keyCode === CMD_KEY) {
-      // Reset ctrl key state
-      return;
-    }
+      if (event.keyCode === CTRL_KEY) {
+        setKeyboardState((prev) => ({ ...prev, ctrlDown: false }));
+      } else if (event.keyCode === CMD_KEY) {
+        setKeyboardState((prev) => ({ ...prev, cmdDown: false }));
+      }
 
-    if (event.keyCode === ENTER_KEY && !event.shiftKey) {
-      // Handle Enter key press (without shift)
-      event.preventDefault();
-      event.target.form.dispatchEvent(
-        new Event('submit', { cancelable: true }),
-      );
-    } else if (event.keyCode === V_KEY && event.ctrlKey) {
-      // Handle Ctrl+V if needed
-    }
-  }, []);
+      if (event.keyCode === ENTER_KEY && !event.shiftKey) {
+        event.preventDefault();
+        const form = event.currentTarget.form;
+        if (form) {
+          form.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+      } else if (
+        event.keyCode === V_KEY &&
+        (keyboardState.ctrlDown || keyboardState.cmdDown)
+      ) {
+        // Handle Ctrl+V if needed
+      }
+    },
+    [keyboardState],
+  );
 
   const handleCloseAttachment = useCallback(() => {
     setPendingFiles([]);
@@ -248,108 +324,89 @@ const WriteArea = () => {
   const handlePlusClick = useCallback(() => {
     if (
       signStatus === FetchStatus.Loading ||
-      postStatus === FetchStatus.Loading
+      decryptStatus === FetchStatus.Loading ||
+      loadingMembers ||
+      loadingPins ||
+      loadingChannels ||
+      loadingMessages ||
+      loadingFriendRequests
     ) {
       return;
     }
-    dispatch(toggleFileUpload());
-  }, [dispatch, signStatus, postStatus]);
+    _togglePlusPopover();
+  }, [
+    signStatus,
+    decryptStatus,
+    loadingMembers,
+    loadingPins,
+    loadingChannels,
+    loadingMessages,
+    loadingFriendRequests,
+    _togglePlusPopover,
+  ]);
 
   return (
     <Container>
-      <Form onSubmit={handleSubmit} autoComplete="off">
-        {pendingFiles.length > 0 && (
-          <AttachmentBar>
-            <AttachmentLabel>Attachments:</AttachmentLabel>
-            {pendingFiles.map((f, idx) => (
-              <AttachmentItem key={f.name}>
-                <AttachmentName>{f.name}</AttachmentName>
-                {idx < pendingFiles.length - 1 ? ',' : ''}
-              </AttachmentItem>
-            ))}
-            {pendingFiles.length > 0 && (
-              <CloseButton
-                onClick={handleCloseAttachment}
-                onKeyDown={(e) => e.key === 'Enter' && handleCloseAttachment()}
-                tabIndex={0}
-                aria-label="Close attachments"
-              >
-                <IoMdClose size={16} />
+      {pendingFiles.length > 0 && (
+        <AttachmentBar>
+          <AttachmentLabel>Attachments</AttachmentLabel>
+          {pendingFiles.map((file: PendingFile, index: number) => (
+            <AttachmentItem key={`${file.name}-${index}`}>
+              <AttachmentName>{file.name}</AttachmentName>
+              <CloseButton onClick={handleCloseAttachment}>
+                <IoMdClose />
               </CloseButton>
-            )}
-          </AttachmentBar>
-        )}
-
+            </AttachmentItem>
+          ))}
+        </AttachmentBar>
+      )}
+      <Form onSubmit={handleSubmit}>
         <PlusButton
-          onClick={handlePlusClick}
           type="button"
-          aria-label="Add attachment"
+          onClick={handlePlusClick}
           disabled={
             signStatus === FetchStatus.Loading ||
-            postStatus === FetchStatus.Loading
+            decryptStatus === FetchStatus.Loading ||
+            loadingMembers ||
+            loadingPins ||
+            loadingChannels ||
+            loadingMessages ||
+            loadingFriendRequests
           }
         >
           <StyledPlusIcon />
         </PlusButton>
-
         <MessageInput
-          type="text"
-          id="channelTextArea"
+          ref={inputRef}
           name="msg_content"
-          autoComplete="off"
-          placeholder={
-            !activeUser?.idKey && activeUser
-              ? 'DMs Disabled'
-              : activeUser && loadingMembers
-                ? 'Loading members...'
-                : !activeUser && loadingPins
-                  ? 'Loading pinned channels...'
-                  : !activeUser && loadingChannels
-                    ? 'Loading channels...'
-                    : activeUser && loadingFriendRequests
-                      ? 'Loading friends'
-                      : loadingMessages
-                        ? 'Loading messages...'
-                        : decryptStatus === FetchStatus.Loading
-                          ? 'Decrypting...'
-                          : signStatus === FetchStatus.Loading
-                            ? 'Signing...'
-                            : postStatus === FetchStatus.Loading
-                              ? 'Posting...'
-                              : `Message ${
-                                  activeChannelId
-                                    ? `#${activeChannelId}`
-                                    : activeUserId
-                                      ? `@${activeUserId}`
-                                      : 'in global chat'
-                                }`
-          }
-          onKeyUp={handleKeyUp}
-          onKeyDown={handleKeyDown}
-          onFocus={() => {}}
           value={messageContent}
           onChange={changeContent}
-          ref={inputRef}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
+          placeholder={
+            guest
+              ? 'Please connect your wallet to chat'
+              : self
+                ? "You can't message yourself"
+                : 'Message'
+          }
+          disabled={guest || self}
+        />
+        <SubmitButton
+          type="submit"
           disabled={
             guest ||
-            (!self &&
-              activeUser &&
-              !(
-                friendRequests.incoming.allIds.includes(activeUser?._id) &&
-                friendRequests.outgoing.allIds.includes(activeUser?._id)
-              ) &&
-              !decIdentity?.result?.commsPublicKey)
+            self ||
+            postStatus === FetchStatus.Loading ||
+            (!messageContent && !pendingFiles.length)
           }
         />
-        <SubmitButton />
-        <InvisibleSubmitButton />
+        <InvisibleSubmitButton type="submit" />
       </Form>
-      <TypingStatus>
-        {typingUser && `${typingUser.paymail} is typing...`}
-      </TypingStatus>
       <PlusModal
         open={showPlusPopover}
-        onClose={() => inputRef.current?.focus()}
+        onClose={_togglePlusPopover}
+        anchorEl={inputRef.current}
       />
     </Container>
   );

@@ -1,11 +1,11 @@
+import { head } from 'lodash';
 import type React from 'react';
 import { useState } from 'react';
-
-import { head } from 'lodash';
 import { FaTerminal } from 'react-icons/fa';
 import { MdFiberManualRecord } from 'react-icons/md';
 import styled from 'styled-components';
 import { baseIcon, roundedBackground } from '../../design/mixins';
+import env from '../../utils/env';
 
 interface WrapperProps {
   color?: string;
@@ -67,16 +67,15 @@ const IdentityIcon: React.FC<WrapperProps & { icon: string }> = ({
     delegated.icon && (
       <Wrapper color="white" {...delegated}>
         <img
-          alt={`User avatar - ${delegated.icon}`}
           src={
-            delegated.icon.startsWith('bitfs://')
-              ? `${bicoinFilesUrl}${head(
-                  delegated.icon.replace('bitfs://', '').split('.'),
-                )}`
-              : delegated.icon
+            delegated.icon.startsWith('http')
+              ? delegated.icon
+              : `${env.REACT_APP_API_URL}/files/${delegated.icon}`
           }
-          {...delegated}
+          width={delegated.size}
+          height={delegated.size}
           style={{ borderRadius: '50%' }}
+          alt={`User avatar for ${delegated.paymail}`}
         />
       </Wrapper>
     )
@@ -101,13 +100,18 @@ const BitPicIcon: React.FC<BitPicIconProps> = ({ paymail, ...delegated }) => {
   return (
     <Wrapper color="white" {...delegated}>
       {imageError ? (
-        <FaTerminal {...delegated} style={{ borderRadius: '50%' }} />
+        <FaTerminal
+          {...delegated}
+          style={{ borderRadius: '50%' }}
+          aria-label="Default user icon"
+        />
       ) : (
         <img
           src={imageUrl}
+          width={delegated.size}
+          height={delegated.size}
+          style={{ borderRadius: '50%' }}
           alt={`User avatar for ${paymail}`}
-          {...delegated}
-          className="rounded-full transition"
           onError={() => setImageError(true)}
         />
       )}
