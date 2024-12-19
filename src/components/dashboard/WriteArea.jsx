@@ -1,25 +1,25 @@
-import { last } from "lodash";
-import moment from "moment";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { HiPlusCircle } from "react-icons/hi";
-import { IoMdClose } from "react-icons/io";
-import { useDispatch, useSelector } from "react-redux";
-import { useParams, useSearchParams } from "react-router-dom";
-import tw, { styled } from "twin.macro";
-import { useBap } from "../../context/bap";
-import { useBitcoin } from "../../context/bitcoin";
-import { useHandcash } from "../../context/handcash";
-import { useYours } from "../../context/yours";
-import { useActiveUser } from "../../hooks";
-import SubmitButton from "./SubmitButton";
+import { last } from 'lodash';
+import moment from 'moment';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { HiPlusCircle } from 'react-icons/hi';
+import { IoMdClose } from 'react-icons/io';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams, useSearchParams } from 'react-router-dom';
+import tw, { styled } from 'twin.macro';
+import { useBap } from '../../context/bap';
+import { useBitcoin } from '../../context/bitcoin';
+import { useHandcash } from '../../context/handcash';
+import { useYours } from '../../context/yours';
+import { useActiveUser } from '../../hooks';
+import SubmitButton from './SubmitButton';
 
 import {
   receiveNewMessage,
   toggleFileUpload,
-} from "../../reducers/chatReducer";
-import { FetchStatus } from "../../utils/common";
-import InvisibleSubmitButton from "./InvisibleSubmitButton";
-import PlusModal from "./modals/PlusModal";
+} from '../../reducers/chatReducer';
+import { FetchStatus } from '../../utils/common';
+import InvisibleSubmitButton from './InvisibleSubmitButton';
+import PlusModal from './modals/PlusModal';
 
 const Container = styled.div`
   ${tw`bg-background-primary px-4 py-2 flex-none flex items-center justify-center`}
@@ -98,7 +98,8 @@ const CloseButton = styled.button`
 const WriteArea = () => {
   const { authToken, decryptStatus, profile, signStatus } = useHandcash();
   const { connected, pandaProfile } = useYours();
-  const { sendMessage, postStatus, pendingFiles, setPendingFiles } = useBitcoin();
+  const { sendMessage, postStatus, pendingFiles, setPendingFiles } =
+    useBitcoin();
   const params = useParams();
   const [searchParams] = useSearchParams();
   const [showPlusPopover, setShowPlusPopover] = useState(false);
@@ -107,23 +108,28 @@ const WriteArea = () => {
   const dispatch = useDispatch();
   const inputRef = useRef(null);
 
-  const friendRequests = useSelector((state) => state.memberList.friendRequests);
+  const friendRequests = useSelector(
+    (state) => state.memberList.friendRequests,
+  );
   const loadingMembers = useSelector((state) => state.memberList.loading);
   const loadingPins = useSelector((state) => state.channels.pins.loading);
   const loadingChannels = useSelector((state) => state.channels.loading);
   const loadingMessages = useSelector((state) => state.chat.messages.loading);
   const loadingFriendRequests = useSelector(
-    (state) => state.memberList.friendRequests.loading
+    (state) => state.memberList.friendRequests.loading,
   );
   const session = useSelector((state) => state.session);
   const typingUser = useSelector((state) => state.chat.typingUser);
 
   const activeChannelId = useMemo(() => params.channel, [params.channel]);
   const activeUserId = useMemo(() => params.user, [params.user]);
-  const pendingMessage = useMemo(() => searchParams.get("m"), [searchParams]);
-  const [messageContent, setMessageContent] = useState(pendingMessage || "");
+  const pendingMessage = useMemo(() => searchParams.get('m'), [searchParams]);
+  const [messageContent, setMessageContent] = useState(pendingMessage || '');
 
-  const _channelName = activeChannelId || activeUserId || last(window?.location?.pathname?.split("/"));
+  const _channelName =
+    activeChannelId ||
+    activeUserId ||
+    last(window?.location?.pathname?.split('/'));
 
   const changeContent = useCallback((e) => {
     setMessageContent(e.target.value);
@@ -149,10 +155,10 @@ const WriteArea = () => {
       }
 
       const content = event.target.msg_content.value;
-      const hasContent = content !== "" || pendingFiles.length > 0;
-      
+      const hasContent = content !== '' || pendingFiles.length > 0;
+
       if (hasContent && (profile?.paymail || pandaProfile)) {
-        setMessageContent("");
+        setMessageContent('');
         event.target.reset();
         try {
           await sendMessage(
@@ -160,22 +166,22 @@ const WriteArea = () => {
             content,
             activeChannelId,
             activeUserId,
-            decIdentity
+            decIdentity,
           );
         } catch (_e) {
           dispatch(
             receiveNewMessage({
-              B: { content: "Error: Failed to send" },
+              B: { content: 'Error: Failed to send' },
               MAP: {
-                app: "bitchatnitro.com",
-                type: "message",
-                paymail: "system@bitchatnitro.com",
+                app: 'bitchatnitro.com',
+                type: 'message',
+                paymail: 'system@bitchatnitro.com',
               },
               timestamp: moment().unix(),
               blk: { t: moment().unix() },
-              tx: { h: "error" },
-              _id: "error",
-            })
+              tx: { h: 'error' },
+              _id: 'error',
+            }),
           );
         }
       }
@@ -191,7 +197,7 @@ const WriteArea = () => {
       decIdentity,
       dispatch,
       sendMessage,
-    ]
+    ],
   );
 
   const handleKeyDown = useCallback((event) => {
@@ -227,7 +233,9 @@ const WriteArea = () => {
     if (event.keyCode === ENTER_KEY && !event.shiftKey) {
       // Handle Enter key press (without shift)
       event.preventDefault();
-      event.target.form.dispatchEvent(new Event('submit', { cancelable: true }));
+      event.target.form.dispatchEvent(
+        new Event('submit', { cancelable: true }),
+      );
     } else if (event.keyCode === V_KEY && event.ctrlKey) {
       // Handle Ctrl+V if needed
     }
@@ -238,7 +246,10 @@ const WriteArea = () => {
   }, [setPendingFiles]);
 
   const handlePlusClick = useCallback(() => {
-    if (signStatus === FetchStatus.Loading || postStatus === FetchStatus.Loading) {
+    if (
+      signStatus === FetchStatus.Loading ||
+      postStatus === FetchStatus.Loading
+    ) {
       return;
     }
     dispatch(toggleFileUpload());
@@ -253,7 +264,7 @@ const WriteArea = () => {
             {pendingFiles.map((f, idx) => (
               <AttachmentItem key={f.name}>
                 <AttachmentName>{f.name}</AttachmentName>
-                {idx < pendingFiles.length - 1 ? "," : ""}
+                {idx < pendingFiles.length - 1 ? ',' : ''}
               </AttachmentItem>
             ))}
             {pendingFiles.length > 0 && (
@@ -273,7 +284,10 @@ const WriteArea = () => {
           onClick={handlePlusClick}
           type="button"
           aria-label="Add attachment"
-          disabled={signStatus === FetchStatus.Loading || postStatus === FetchStatus.Loading}
+          disabled={
+            signStatus === FetchStatus.Loading ||
+            postStatus === FetchStatus.Loading
+          }
         >
           <StyledPlusIcon />
         </PlusButton>
@@ -285,30 +299,30 @@ const WriteArea = () => {
           autoComplete="off"
           placeholder={
             !activeUser?.idKey && activeUser
-              ? "DMs Disabled"
+              ? 'DMs Disabled'
               : activeUser && loadingMembers
-              ? "Loading members..."
-              : !activeUser && loadingPins
-              ? "Loading pinned channels..."
-              : !activeUser && loadingChannels
-              ? "Loading channels..."
-              : activeUser && loadingFriendRequests
-              ? "Loading friends"
-              : loadingMessages
-              ? "Loading messages..."
-              : decryptStatus === FetchStatus.Loading
-              ? "Decrypting..."
-              : signStatus === FetchStatus.Loading
-              ? "Signing..."
-              : postStatus === FetchStatus.Loading
-              ? "Posting..."
-              : `Message ${
-                  activeChannelId
-                    ? `#${activeChannelId}`
-                    : activeUserId
-                    ? `@${activeUserId}`
-                    : "in global chat"
-                }`
+                ? 'Loading members...'
+                : !activeUser && loadingPins
+                  ? 'Loading pinned channels...'
+                  : !activeUser && loadingChannels
+                    ? 'Loading channels...'
+                    : activeUser && loadingFriendRequests
+                      ? 'Loading friends'
+                      : loadingMessages
+                        ? 'Loading messages...'
+                        : decryptStatus === FetchStatus.Loading
+                          ? 'Decrypting...'
+                          : signStatus === FetchStatus.Loading
+                            ? 'Signing...'
+                            : postStatus === FetchStatus.Loading
+                              ? 'Posting...'
+                              : `Message ${
+                                  activeChannelId
+                                    ? `#${activeChannelId}`
+                                    : activeUserId
+                                      ? `@${activeUserId}`
+                                      : 'in global chat'
+                                }`
           }
           onKeyUp={handleKeyUp}
           onKeyDown={handleKeyDown}

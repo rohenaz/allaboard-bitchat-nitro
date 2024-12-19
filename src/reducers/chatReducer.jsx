@@ -8,10 +8,7 @@ audio.volume = 0.25;
 
 export const loadMessages = createAsyncThunk(
   'chat/loadMessages',
-  async (
-    { activeChannelId, activeUserId, myBapId },
-    { rejectWithValue },
-  ) => {
+  async ({ activeChannelId, activeUserId, myBapId }, { rejectWithValue }) => {
     try {
       const response = await channelAPI.getMessages(
         activeChannelId,

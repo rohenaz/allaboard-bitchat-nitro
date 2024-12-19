@@ -172,10 +172,7 @@ const UserList = () => {
             onClick={clickDm}
             type="button"
           >
-            <ListItem
-              text={'DIRECT MESSAGES'}
-              icon={<MdKeyboardArrowDown />}
-            />
+            <ListItem text={'DIRECT MESSAGES'} icon={<MdKeyboardArrowDown />} />
           </button>
         </List>
         <List gap="2px">

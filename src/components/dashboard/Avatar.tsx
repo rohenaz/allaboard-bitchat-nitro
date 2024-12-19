@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 
 import { head } from 'lodash';
 import { FaTerminal } from 'react-icons/fa';
@@ -59,7 +60,9 @@ const CodeIcon: React.FC<WrapperProps> = ({ ...delegated }) => {
 export const bitfsUrl = 'https://x.bitfs.network/';
 export const bicoinFilesUrl = 'https://media.bitcoinfiles.org/';
 
-const IdentityIcon: React.FC<WrapperProps & { icon: string }> = ({ ...delegated }) => {
+const IdentityIcon: React.FC<WrapperProps & { icon: string }> = ({
+  ...delegated
+}) => {
   return (
     delegated.icon && (
       <Wrapper color="white" {...delegated}>
@@ -149,4 +152,4 @@ const Avatar: React.FC<AvatarProps> = ({ status, onClick, ...delegated }) => {
   );
 };
 
-export default Avatar; 
+export default Avatar;

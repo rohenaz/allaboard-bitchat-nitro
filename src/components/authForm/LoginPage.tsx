@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { YoursIcon, useYoursWallet } from 'yours-wallet-provider';
@@ -26,7 +27,9 @@ const LoginPage: React.FC = () => {
 
   const { setAuthToken, profile, getProfile } = useHandcash();
   const dispatch = useDispatch();
-  const [selectedWallet, setSelectedWallet] = useState<'handcash' | 'yours'>('handcash');
+  const [selectedWallet, setSelectedWallet] = useState<'handcash' | 'yours'>(
+    'handcash',
+  );
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -83,9 +86,12 @@ const LoginPage: React.FC = () => {
     }
   }, [dispatch, navigate, profile, pandaAuth]);
 
-  const walletChanged = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedWallet(e.target.value as 'handcash' | 'yours');
-  }, []);
+  const walletChanged = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSelectedWallet(e.target.value as 'handcash' | 'yours');
+    },
+    [],
+  );
 
   return (
     <Layout heading="Welcome back!">
@@ -174,4 +180,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage; 
+export default LoginPage;

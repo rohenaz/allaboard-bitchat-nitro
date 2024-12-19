@@ -3,6 +3,18 @@ import styled from 'styled-components';
 import MessageFile from './MessageFile';
 import FilePreviewModal from './modals/FilePreviewModal';
 
+interface File {
+  txid?: string;
+  name?: string;
+  url?: string;
+  'content-type'?: string;
+  media_type?: string;
+}
+
+interface MessageFilesProps {
+  files?: File[];
+}
+
 const Container = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -12,8 +24,8 @@ const Container = styled.div`
   gap: 8px;
 `;
 
-const MessageFiles = ({ files }) => {
-  const [selectedFile, setSelectedFile] = useState(null);
+const MessageFiles: React.FC<MessageFilesProps> = ({ files }) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   if (!files || files.length === 0) {
     return null;

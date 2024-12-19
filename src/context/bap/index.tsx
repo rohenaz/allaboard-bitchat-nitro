@@ -36,7 +36,7 @@ const BapProvider = (props) => {
         id = identity;
       }
       if (!id) return;
-      
+
       const bapId = new BAP(id.xprv);
       if (id.ids) {
         bapId.importIds(id.ids);

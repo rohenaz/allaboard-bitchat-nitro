@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
 import { head, uniq } from 'lodash';
+import type React from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Nav } from 'rsuite';
@@ -27,20 +28,26 @@ interface MemberListState {
     };
     outgoing: {
       allIds: string[];
-      byId: Record<string, {
-        MAP: Array<{ bapID: string }>;
-      }>;
+      byId: Record<
+        string,
+        {
+          MAP: Array<{ bapID: string }>;
+        }
+      >;
     };
   };
   signers: {
-    byId: Record<string, {
-      idKey: string;
-      identity?: {
-        paymail?: string;
-        logo?: string;
-        alternateName?: string;
-      };
-    }>;
+    byId: Record<
+      string,
+      {
+        idKey: string;
+        identity?: {
+          paymail?: string;
+          logo?: string;
+          alternateName?: string;
+        };
+      }
+    >;
   };
 }
 
@@ -79,16 +86,22 @@ const Friends: React.FC = () => {
 
   const memberList = useSelector((state: RootState) => state.memberList);
 
-  const handleClick = useCallback((_e: React.MouseEvent, bapId: string) => {
-    navigate(`/@/${bapId}`);
-  }, [navigate]);
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent, bapId: string) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
+  const handleClick = useCallback(
+    (_e: React.MouseEvent, bapId: string) => {
       navigate(`/@/${bapId}`);
-    }
-  }, [navigate]);
+    },
+    [navigate],
+  );
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent, bapId: string) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        navigate(`/@/${bapId}`);
+      }
+    },
+    [navigate],
+  );
 
   if (!identity) {
     return (
@@ -191,4 +204,4 @@ const Friends: React.FC = () => {
   );
 };
 
-export default Friends; 
+export default Friends;

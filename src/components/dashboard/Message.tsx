@@ -2,7 +2,8 @@ import { IconButton } from '@mui/material';
 import EmojiPicker from 'emoji-picker-react';
 import { head, tail, uniqBy } from 'lodash';
 import moment from 'moment';
-import React, { useCallback, useMemo, useState } from 'react';
+import type React from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FaCheckCircle, FaLock } from 'react-icons/fa';
 import { MdAddReaction } from 'react-icons/md';
 import OutsideClickHandler from 'react-outside-click-handler';
@@ -16,6 +17,46 @@ import { isValidEmail } from '../../utils/strings';
 import ArrowTooltip from './ArrowTooltip';
 import Avatar from './Avatar';
 import MessageFiles from './MessageFiles';
+
+interface MessageProps {
+  message: {
+    tx: {
+      h: string;
+    };
+    MAP: Array<{
+      paymail?: string;
+      messageID?: string;
+      type?: string;
+    }>;
+    AIP?: Array<{
+      identity?: {
+        paymail?: string;
+        logo?: string;
+        alternateName?: string;
+      };
+      verified?: boolean;
+      bapId?: string;
+    }>;
+    B: Array<{
+      Data?: {
+        utf8?: string;
+      };
+      'content-type'?: string;
+      media_type?: string;
+    }>;
+    timestamp?: number;
+    blk: {
+      t: number;
+    };
+    _id?: string;
+  };
+  reactions?: {
+    byMessageTarget: Record<string, any[]>;
+    byTxTarget: Record<string, any[]>;
+  };
+  appIcon?: React.ReactNode;
+  handleClick?: (event: React.MouseEvent) => void;
+}
 
 const md = new Remarkable({
   html: true,
@@ -110,128 +151,41 @@ const Content = styled.div`
   }
 `;
 
-const Message = ({ message, reactions, appIcon, handleClick }) => {
-  //const user = useSelector((state) => state.session.user);
-  // const [showTextArea, setShowTextArea] = useState(false);
-  const [showReactions, setShowReactions] = useState(false);
-  // const dispatch = useDispatch();
-  // const [openDeleteMessage, setOpenPopup] = useState(false);
+const Message: React.FC<MessageProps> = ({
+  message,
+  reactions,
+  appIcon,
+  handleClick,
+}) => {
   const { profile } = useHandcash();
   const { likeMessage } = useBitcoin();
-  const likes = useSelector((state) => state.chat.likes.byTxId[message.tx.h]);
-  const isVerified = isValidEmail(head(message.MAP).paymail || '');
-  // const handleSubmit = (event) => {
-  //   event.preventDefault();
-  //   const content = event.target.value;
-  //   console.log(content);
-  //   dispatch(
-  //     editMessage({
-  //       id: message.tx.h,
-  //       channelId: activeChannel.id,
-  //       content,
-  //       paymail,
-  //     })
-  //   );
-  // };
-
-  // const handleDeleteButtonClick = () => {
-  //   dispatch(deleteMessage({ id: message.tx.h, channelId: activeChannel.id }));
-  // };
-
-  // useEffect(() => {
-  //   if (!showTextArea) {
-  //     return;
-  //   }
-
-  //   const onKeyDown = (event) => {
-  //     const enterKey = 13;
-  //     const escapeKey = 27;
-  //     if (event.keyCode === enterKey) {
-  //       handleSubmit(event);
-  //       setShowTextArea(false);
-  //     } else if (event.keyCode === escapeKey) {
-  //       event.preventDefault();
-  //       setShowTextArea(false);
-  //     }
-  //   };
-
-  //   document.addEventListener("keydown", onKeyDown);
-  //   return () => document.removeEventListener("keydown", onKeyDown);
-  // });
-
-  // const handleOpenPopup = () => setOpenPopup(true);
-  // const handleClosePopup = () => setOpenPopup(false);
+  const likes = useSelector(
+    (state: any) => state.chat.likes.byTxId[message.tx.h],
+  );
+  const [showReactions, setShowReactions] = useState(false);
+  const isVerified = isValidEmail(head(message.MAP)?.paymail || '');
 
   const toggleReactions = useCallback(() => {
     setShowReactions(!showReactions);
   }, [showReactions]);
 
   const messageContent = useMemo(() => {
-    const m = { ...message };
-    // Object.defineProperties(m, {
-    //   B: {
-    //     content: {
-    //       writable: true,
-    //     },
-    //   },
-    // });
-
-    const data = head(m.B)?.Data?.utf8;
-    // if (data?.length > 0) {
-    //   return data;
-
-    //   // let chunks = head(m.B)?.Data?.utf8?.split(" ");
-    //   // let idxs = [];
-    //   // chunks.forEach((c, i) => {
-    //   //   if (c.startsWith("#")) {
-    //   //     idxs.push(i);
-    //   //   }
-    //   // });
-
-    //   // for (let idx of idxs) {
-    //   //   let text = chunks[idx];
-    //   //   chunks[
-    //   //     idx
-    //   //   ] = `[${text}](https://bitchatnitro.com/channels/${text.replace(
-    //   //     /[^a-zA-Z\-\d\s:]/g,
-    //   //     ""
-    //   //   )})`;
-    //   // }
-    //   // // let l = Autolinker.link(chunks.join(" "));
-    //   // // return DOMPurify.sanitize(marked(chunks.join(" ")));
-    //   // try {
-    //   //   const m = md.render(chunks.join(" "));
-    //   //   return m;
-    //   // } catch (e) {
-    //   //   console.error(e);
-    //   // }
-    // }
-
-    /**
-     * If there is no text message, we don't want to render it.
-     * This can happen when a message contains only file(s).
-     */
-    const contentType = head(m.B)?.['content-type'] ?? head(m.B)?.media_type;
+    const data = head(message.B)?.Data?.utf8;
+    const contentType =
+      head(message.B)?.['content-type'] ?? head(message.B)?.media_type;
     if (contentType !== 'text/plain') {
       return null;
     }
-
     return data;
   }, [message]);
 
-  /**
-   * When a message contains text, the files are after the text.
-   * When a message contains only files, the files are the message.
-   */
   const messageFiles = useMemo(
     () => (messageContent ? tail(message.B) : message.B),
     [message, messageContent],
   );
 
-  // useEffect(() => console.log(messageContent), [messageContent]);
-
   const emojiClick = useCallback(
-    async (e, txId) => {
+    async (e: { emoji: string }, txId: string) => {
       setShowReactions(false);
       await likeMessage(profile?.paymail, 'tx', txId, e.emoji);
     },
@@ -239,20 +193,18 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   );
 
   const emojis = useMemo(() => {
-    // Combine legacy reactions with new likes
     const allReactions = [
-      ...(reactions?.byMessageTarget[head(message.MAP).messageID] || []),
+      ...(reactions?.byMessageTarget[head(message.MAP)?.messageID || ''] || []),
       ...(reactions?.byTxTarget[message.tx.h] || []),
     ];
 
-    // Add new likes format if available
     if (likes) {
-      const likesAsReactions = likes.likes.map((like) => ({
+      const likesAsReactions = likes.likes.map((like: string) => ({
         MAP: [
           {
-            emoji: '❤️', // Default emoji for likes
-            paymail: like, // Like contains the paymail
-            type: 'like', // Mark as a new-style like
+            emoji: '❤️',
+            paymail: like,
+            type: 'like',
           },
         ],
       }));
@@ -269,7 +221,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   }, [reactions, message, likes]);
 
   const hasReacted = useCallback(
-    (emoji, paymail) => {
+    (emoji: string, paymail: string) => {
       return emojis.some(
         (e) => head(e.MAP).emoji === emoji && head(e.MAP).paymail === paymail,
       );
@@ -281,9 +233,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
     if (!messageContent) {
       return null;
     }
-
     return md.render(messageContent);
-    // return parse(sanitize(messageContent));
   }, [messageContent]);
 
   return (
@@ -292,10 +242,9 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
         <Avatar
           size="27px"
           w="40px"
-          //bgColor={message.user.avatarColor}
           bgcolor={'#000'}
           paymail={
-            head(message.AIP)?.identity?.paymail || head(message.MAP).paymail
+            head(message.AIP)?.identity?.paymail || head(message.MAP)?.paymail
           }
           icon={head(message.AIP)?.identity?.logo}
         />
@@ -305,7 +254,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
           <div className="flex flex-col md:flex-row justify-start">
             <Username onClick={handleClick}>
               {head(message.AIP)?.identity?.alternateName ||
-                head(message.MAP).paymail}
+                head(message.MAP)?.paymail}
             </Username>
 
             <div
@@ -340,8 +289,8 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                       marginRight: '.5rem',
                     }}
                   >
-                    {head(message.AIP).bapId
-                      ? head(message.AIP).bapId.slice(0, 8)
+                    {head(message.AIP)?.bapId
+                      ? head(message.AIP)?.bapId.slice(0, 8)
                       : ''}
                   </div>
                 </button>
@@ -360,29 +309,11 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
                   {message.timestamp
                     ? moment.unix(message.timestamp).fromNow()
                     : moment.unix(message.blk.t).fromNow()}
-                  {/* {message.editedAt ? " (edited)" : ""} */}
                 </Timestamp>
               </a>
             </InfoContainer>
           </div>
         </Header>
-        {/* {showTextArea ? (
-          <>
-            <form onSubmit={handleSubmit}>
-              <ChannelTextArea
-                type="text"
-                name="content"
-                defaultValue={message.B.content}
-              />
-              <Operation>
-                escape to{" "}
-                <button onClick={() => setShowTextArea(false)}>cancel</button> •
-                enter to <button>save</button>
-              </Operation>
-              <InvisibleSubmitButton />
-            </form>
-          </>
-        ) : ( */}
         {parsedContent && <Content>{parsedContent}</Content>}
 
         <MessageFiles files={messageFiles} />
@@ -427,11 +358,8 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
             {appIcon}
           </div>
         </div>
-        {/* )} */}
       </div>
 
-      {/* {(paymail === message.MAP.paymail ||
-        profile?.paymail === message.MAP.paymail) && ( */}
       <>
         <MessageButtons>
           {!showReactions && (
@@ -446,11 +374,6 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
               </IconButton>
             </ArrowTooltip>
           )}
-          {/* <ArrowTooltip title="Delete" placement="top">
-              <IconButton onClick={handleOpenPopup}>
-                <RiDeleteBin5Fill />
-              </IconButton>
-            </ArrowTooltip> */}
         </MessageButtons>
 
         {showReactions && (
@@ -475,23 +398,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
             </OutsideClickHandler>
           </div>
         )}
-
-        {/* <Modal open={openDeleteMessage} onClose={handleClosePopup}>
-            <PopupContainer className="disable-select">
-              <PopupMessageContainer>
-                <h2>Delete Message</h2>
-                Are you sure you want to delete this message?
-              </PopupMessageContainer>
-              <PopupButtonContainer>
-                <CancelButton onClick={handleClosePopup}>Cancel</CancelButton>
-                <DeleteButton onClick={handleDeleteButtonClick}>
-                  Delete
-                </DeleteButton>
-              </PopupButtonContainer>
-            </PopupContainer>
-          </Modal> */}
       </>
-      {/* )} */}
     </Container>
   );
 };

@@ -53,20 +53,26 @@ interface Session {
 }
 
 interface MemberListState {
-  byId: Record<string, {
-    idKey: string;
-    paymail: string;
-    logo?: string;
-    isFriend?: boolean;
-  }>;
+  byId: Record<
+    string,
+    {
+      idKey: string;
+      paymail: string;
+      logo?: string;
+      isFriend?: boolean;
+    }
+  >;
   friendRequests: {
     incoming: {
-      byId: Record<string, {
-        MAP: {
-          publicKey: string;
-          type: string;
-        }[];
-      }>;
+      byId: Record<
+        string,
+        {
+          MAP: {
+            publicKey: string;
+            type: string;
+          }[];
+        }
+      >;
     };
   };
 }
@@ -81,9 +87,20 @@ interface BitcoinContextValue {
   pinStatus: FetchStatus;
   sendFriendRequest: (friendIdKey: string, xprv: string) => Promise<void>;
   friendRequestStatus: FetchStatus;
-  sendMessage: (pm: string, content: string, channel: string, userId: string, decIdentity: DecIdentity) => Promise<void>;
+  sendMessage: (
+    pm: string,
+    content: string,
+    channel: string,
+    userId: string,
+    decIdentity: DecIdentity,
+  ) => Promise<void>;
   postStatus: FetchStatus;
-  likeMessage: (pm: string, contextName: string, contextValue: string, emoji?: string) => Promise<void>;
+  likeMessage: (
+    pm: string,
+    contextName: string,
+    contextValue: string,
+    emoji?: string,
+  ) => Promise<void>;
   likeStatus: FetchStatus;
   decryptStatus: FetchStatus;
   signOpReturnWithAIP: (hexArray: string[]) => Promise<string[]>;
@@ -103,7 +120,9 @@ interface PendingFile {
   data: string;
 }
 
-const BitcoinContext = React.createContext<BitcoinContextValue | undefined>(undefined);
+const BitcoinContext = React.createContext<BitcoinContextValue | undefined>(
+  undefined,
+);
 
 const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
   const { notifyIndexer } = useBmap();
@@ -113,10 +132,14 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
   const [pinStatus, setPinStatus] = useState<FetchStatus>(FetchStatus.Idle);
   const [postStatus, setPostStatus] = useState<FetchStatus>(FetchStatus.Idle);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
-  const [pendingFilesOutputs, setPendingFilesOutputs] = useState<string[][]>([]);
+  const [pendingFilesOutputs, setPendingFilesOutputs] = useState<string[][]>(
+    [],
+  );
   const [signStatus, setSignStatus] = useState<FetchStatus>(FetchStatus.Idle);
   const [likeStatus, setLikeStatus] = useState<FetchStatus>(FetchStatus.Idle);
-  const [friendRequestStatus, setFriendRequestStatus] = useState<FetchStatus>(FetchStatus.Idle);
+  const [friendRequestStatus, setFriendRequestStatus] = useState<FetchStatus>(
+    FetchStatus.Idle,
+  );
 
   const dispatch = useDispatch();
   const params = useParams();
@@ -145,7 +168,6 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
           setSignStatus(FetchStatus.Success);
           resolve(signedOps);
-
         } else {
           setSignStatus(FetchStatus.Error);
           reject(new Error('no auth token'));
@@ -569,7 +591,12 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
   );
 
   const likeMessage = useCallback(
-    async (pm: string, contextName: string, contextValue: string, emoji?: string) => {
+    async (
+      pm: string,
+      contextName: string,
+      contextValue: string,
+      emoji?: string,
+    ) => {
       try {
         const dataPayload = [
           MAP_PREFIX, // MAP Prefix
@@ -771,13 +798,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
         setFriendRequestStatus(FetchStatus.Error);
       }
     },
-    [
-      self,
-      decIdentity,
-      authToken,
-      notifyIndexer,
-      signOpReturnWithAIP,
-    ],
+    [self, decIdentity, authToken, notifyIndexer, signOpReturnWithAIP],
   );
 
   const value = useMemo(
@@ -813,9 +834,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
   );
 
   return (
-    <BitcoinContext.Provider value={value}>
-      {children}
-    </BitcoinContext.Provider>
+    <BitcoinContext.Provider value={value}>{children}</BitcoinContext.Provider>
   );
 };
 
