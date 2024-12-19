@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 
-import { FaDiscord } from "react-icons/fa";
-import styled from "styled-components";
+import { FaDiscord } from 'react-icons/fa';
+import styled from 'styled-components';
 
 const Wrapper = styled.div`
   display: flex;

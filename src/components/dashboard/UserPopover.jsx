@@ -1,17 +1,17 @@
-import React from "react";
+import React from 'react';
 
-import Popover from "@mui/material/Popover";
-import styled from "styled-components";
+import Popover from '@mui/material/Popover';
+import styled from 'styled-components';
 
-import { head } from "lodash";
-import moment from "moment";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { useBap } from "../../context/bap";
-import { useHandcash } from "../../context/handcash";
-import { receiveNewMessage } from "../../reducers/chatReducer";
-import Avatar, { GreenDotWrapper } from "./Avatar";
-import InvisibleSubmitButton from "./InvisibleSubmitButton";
+import { head } from 'lodash';
+import moment from 'moment';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useBap } from '../../context/bap';
+import { useHandcash } from '../../context/handcash';
+import { receiveNewMessage } from '../../reducers/chatReducer';
+import Avatar, { GreenDotWrapper } from './Avatar';
+import InvisibleSubmitButton from './InvisibleSubmitButton';
 
 const StyledPopover = styled(Popover)`
   & .MuiPopover-paper {
@@ -97,16 +97,15 @@ const Input = styled.input`
 const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
   const userId = head(user.AIP)?.bapId || user.idKey;
   const navigate = useNavigate();
-  const { authToken } = useHandcash();
   const { decIdentity } = useBap();
   const dispatch = useDispatch();
-  const incomingFriendRequests = useSelector((state) => {
+  const _incomingFriendRequests = useSelector((state) => {
     return state.memberList.friendRequests.incoming;
   });
-  const outgoingFriendRequests = useSelector((state) => {
+  const _outgoingFriendRequests = useSelector((state) => {
     return state.memberList.friendRequests.outgoing;
   });
-  const session = useSelector((state) => state.session);
+  const _session = useSelector((state) => state.session);
   const userName =
     user?.user?.alternateName ||
     head(user?.MAP)?.paymail ||
@@ -117,29 +116,29 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
     event.preventDefault();
     const content = event.target.content.value;
 
-    if (content !== "") {
+    if (content !== '') {
       event.target.reset();
       setShowPopover(false);
       if (!decIdentity) {
-        console.error("no auth token");
+        console.error('no auth token');
         dispatch(
           receiveNewMessage({
             B: {
               content:
-                "Error: Failed to send. You need to import an identity to use DMs.",
-              "content-type": "text/plain",
-              encoding: "utf8",
+                'Error: Failed to send. You need to import an identity to use DMs.',
+              'content-type': 'text/plain',
+              encoding: 'utf8',
             },
             MAP: {
-              app: "bitchatnitro.com",
-              type: "message",
-              paymail: "system@bitchatnitro.com",
+              app: 'bitchatnitro.com',
+              type: 'message',
+              paymail: 'system@bitchatnitro.com',
             },
             timestamp: moment().unix(),
             blk: { t: moment().unix() },
-            tx: { h: "error" },
-            _id: "error",
-          })
+            tx: { h: 'error' },
+            _id: 'error',
+          }),
         );
         return;
       }
@@ -155,15 +154,15 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
     <StyledPopover {...delegated}>
       <Banner
         // bgColor={user.avatarColor}
-        bgcolor={`#000`}
-      ></Banner>
+        bgcolor={'#000'}
+      />
       <AvatarWrapper>
         <Avatar
           size="52px"
           w="90px"
           border="6px solid var(--background-floating)"
           //bgColor={user.avatarColor}
-          bgcolor={`#000`}
+          bgcolor={'#000'}
           paymail={head(user?.MAP)?.paymail || user?.identity?.paymail}
           icon={user?.user?.logo || user?.identity?.logo}
         />
@@ -172,7 +171,7 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
         <Username>{userName}</Username>
       </Header>
       <Content>
-        <Divider></Divider>
+        <Divider />
       </Content>
 
       <Footer>
@@ -199,9 +198,7 @@ const UserPopover = ({ user, self, setShowPopover, ...delegated }) => {
               type="text"
               name="content"
               placeholder={`message @${userName} ${(
-                user._id ||
-                head(user.AIP)?.bapId ||
-                ""
+                user._id || head(user.AIP)?.bapId || ''
               ).slice(0, 8)}`}
             />
             <InvisibleSubmitButton />

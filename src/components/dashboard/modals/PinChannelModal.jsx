@@ -1,18 +1,18 @@
-import { Modal } from "@mui/material";
-import moment from "moment";
-import React, { useCallback, useMemo, useState } from "react";
-import { Slider } from "rsuite";
-import styled from "styled-components";
-import { useBitcoin } from "../../../context/bitcoin";
-import { useHandcash } from "../../../context/handcash";
-import { FetchStatus } from "../../../utils/common";
-import { useLocalStorage } from "../../../utils/storage";
+import { Modal } from '@mui/material';
+import moment from 'moment';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Slider } from 'rsuite';
+import styled from 'styled-components';
+import { useBitcoin } from '../../../context/bitcoin';
+import { useHandcash } from '../../../context/handcash';
+import { FetchStatus } from '../../../utils/common';
+import { useLocalStorage } from '../../../utils/storage';
 export const costPerUnit = 0.025;
 export const minutesPerUnit = 10;
 
 const Scope = {
-  Me: "me-scope",
-  Everyone: "everyone-scope",
+  Me: 'me-scope',
+  Everyone: 'everyone-scope',
 };
 
 const PopupMessageContainer = styled.div`
@@ -88,28 +88,25 @@ const PinChannelModal = ({ open, onClose, channel }) => {
   const { profile } = useHandcash();
   const { sendPin, pinStatus, pinnedScopes } = useBitcoin();
   const [selectedScope, setSelectedScope] = useState(Scope.Everyone);
-  const [myPins, setMyPins] = useLocalStorage("bitchat-local-pins", []);
+  const [myPins, setMyPins] = useLocalStorage('bitchat-local-pins', []);
 
   const price = useMemo(() => {
     return (units * costPerUnit).toFixed(2);
-  }, [units, costPerUnit]);
+  }, [units]);
 
-  const scopeChanged = useCallback(
-    (e) => {
-      setSelectedScope(e.target.value);
-    },
-    [selectedScope]
-  );
+  const scopeChanged = useCallback((e) => {
+    setSelectedScope(e.target.value);
+  }, []);
 
   const handleTitle = useMemo(() => {
-    let minutes = units * minutesPerUnit;
-    let hourPrefix = minutes > 60 ? `${Math.floor(minutes / 60)}h ` : null;
-    let minutesText =
+    const minutes = units * minutesPerUnit;
+    const hourPrefix = minutes > 60 ? `${Math.floor(minutes / 60)}h ` : null;
+    const minutesText =
       minutes % 60 === 0
-        ? ""
+        ? ''
         : hourPrefix
-        ? `${minutes % 60}m`
-        : `${minutes} minutes`;
+          ? `${minutes % 60}m`
+          : `${minutes} minutes`;
     return hourPrefix ? `${hourPrefix} ${minutesText}` : minutesText;
   }, [units]);
 
@@ -128,7 +125,17 @@ const PinChannelModal = ({ open, onClose, channel }) => {
         setMyPins([...pinnedScopes, channel]);
       }
     }
-  }, [myPins, selectedScope, units, profile, channel, sendPin]);
+  }, [
+    selectedScope,
+    channel,
+    profile?.paymail,
+    units,
+    onClose,
+    myPins,
+    pinnedScopes,
+    setMyPins,
+    sendPin,
+  ]);
 
   return (
     open && (
@@ -139,28 +146,28 @@ const PinChannelModal = ({ open, onClose, channel }) => {
             Pinned channels appear in a section above the channel list and have
             a rad gold border. How long should we pin this channel?
           </PopupMessageContainer>
-          <div style={{ padding: "0 2rem" }}>
+          <div style={{ padding: '0 2rem' }}>
             <p>Who should see this pinned channel?</p>
             <label>
-              Just Me{" "}
+              Just Me{' '}
               <input
                 type="radio"
                 name="who"
                 id={Scope.Me}
                 value={Scope.Me}
-                style={{ marginRight: ".5rem" }}
+                style={{ marginRight: '.5rem' }}
                 onChange={scopeChanged}
                 checked={selectedScope === Scope.Me}
               />
             </label>
             <label>
-              Everyone{" "}
+              Everyone{' '}
               <input
                 type="radio"
                 name="who"
                 id={Scope.Everyone}
                 value={Scope.Everyone}
-                style={{ marginRight: ".5rem" }}
+                style={{ marginRight: '.5rem' }}
                 onChange={scopeChanged}
                 checked={selectedScope === Scope.Everyone}
               />
@@ -168,17 +175,17 @@ const PinChannelModal = ({ open, onClose, channel }) => {
           </div>
           {selectedScope === Scope.Everyone && (
             <>
-              <div style={{ padding: "0 2rem" }}>
+              <div style={{ padding: '0 2rem' }}>
                 <Slider
                   min={1}
                   max={144}
                   value={units}
                   handleStyle={{
                     borderRadius: 10,
-                    color: "#fff",
+                    color: '#fff',
                     fontSize: 12,
                     height: 22,
-                    whiteSpace: "nowrap",
+                    whiteSpace: 'nowrap',
                   }}
                   tooltip={false}
                   className="custom-slider"
@@ -188,10 +195,10 @@ const PinChannelModal = ({ open, onClose, channel }) => {
               </div>
 
               <PinUntilContainer>
-                Pin until:{" "}
+                Pin until:{' '}
                 {moment()
-                  .add(units * minutesPerUnit, "minutes")
-                  .format("MMM Do, h:mm:ss a")}
+                  .add(units * minutesPerUnit, 'minutes')
+                  .format('MMM Do, h:mm:ss a')}
               </PinUntilContainer>
               <PopupButtonContainer>
                 <CancelButton onClick={onClose}>Cancel</CancelButton>
@@ -199,7 +206,7 @@ const PinChannelModal = ({ open, onClose, channel }) => {
                   disabled={pinStatus === FetchStatus.Loading}
                   onClick={pinChannel}
                 >
-                  {pinStatus === FetchStatus.Loading ? "Pinning" : `$${price}`}
+                  {pinStatus === FetchStatus.Loading ? 'Pinning' : `$${price}`}
                 </PinButton>
               </PopupButtonContainer>
             </>

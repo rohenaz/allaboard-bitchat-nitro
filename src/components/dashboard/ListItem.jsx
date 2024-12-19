@@ -1,13 +1,13 @@
-import React from "react";
-import { AiFillPushpin } from "react-icons/ai";
+import React from 'react';
+import { AiFillPushpin } from 'react-icons/ai';
 
-import styled, { css } from "styled-components";
+import styled, { css } from 'styled-components';
 
 const Text = styled.span`
   font-weight: 500;
   ${(p) =>
-    `font-size: ${p.textStyle?.fontSize ? p.textStyle.fontSize : "15px"}`};
-  ${(p) => `color: ${p.isActive ? "var(--header-primary)" : "var(--channels-default)"}`};
+    `font-size: ${p.textStyle?.fontSize ? p.textStyle.fontSize : '15px'}`};
+  ${(p) => `color: ${p.isActive ? 'var(--header-primary)' : 'var(--channels-default)'}`};
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -72,7 +72,7 @@ const ListItem = ({
 }) => {
   return (
     <Container isActive={isActive} isPinned={isPinned} {...delegated}>
-      <>{icon}</>
+      {icon}
       <Wrapper>
         {text && (
           <Text

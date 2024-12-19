@@ -23,12 +23,12 @@ export const UPLOAD_FILE_SIZE_LIMIT = 1024 * 50; // 50kb
  */
 export function formatBytes(bytes) {
   if (bytes < 1024) {
-    return bytes + "B";
-  } else if (bytes < 1024 * 1024) {
-    return (bytes / 1024).toFixed(0) + "KB";
-  } else {
-    return (bytes / (1024 * 1024)).toFixed(0) + "MB";
+    return `${bytes}B`;
   }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(0)}KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(0)}MB`;
 }
 
 /**
@@ -41,11 +41,11 @@ function canPlayType(mimeType) {
     return false;
   }
 
-  const elementType = mimeType.startsWith("audio")
-    ? "audio"
-    : mimeType.startsWith("video")
-    ? "video"
-    : null;
+  const elementType = mimeType.startsWith('audio')
+    ? 'audio'
+    : mimeType.startsWith('video')
+      ? 'video'
+      : null;
 
   if (!elementType) {
     return false;
@@ -53,7 +53,6 @@ function canPlayType(mimeType) {
 
   const dummyMediaElement = document.createElement(elementType);
   if (!dummyMediaElement.canPlayType) {
-    console.log("canPlayType is not supported");
     return false;
   }
 
@@ -69,21 +68,21 @@ export function validateFile(file) {
   if (file.size > UPLOAD_FILE_SIZE_LIMIT) {
     return {
       valid: false,
-      error: "File size exceeds the limit. Please choose a smaller file.",
+      error: 'File size exceeds the limit. Please choose a smaller file.',
     };
   }
 
-  const isImage = file.type.startsWith("image");
+  const isImage = file.type.startsWith('image');
   const isTypeSupported = isImage || canPlayType(file.type);
 
   if (!isTypeSupported) {
     return {
       valid: false,
-      error: "File type not supported. Please choose a different file.",
+      error: 'File type not supported. Please choose a different file.',
     };
   }
 
-  return { valid: true, error: "" };
+  return { valid: true, error: '' };
 }
 
 /**
@@ -92,12 +91,12 @@ export function validateFile(file) {
  * @returns {string|null} - The base64 URL of the file, or null if the file object is invalid.
  */
 export function getBase64Url(bFile) {
-  if (!bFile || !bFile.Data || !bFile["content-type"]) {
+  if (!bFile || !bFile.Data || !bFile['content-type']) {
     return null;
   }
 
   const b64Data = bFile.Data.utf8;
-  const contentType = bFile["content-type"];
+  const contentType = bFile['content-type'];
 
   if (!b64Data || !contentType) {
     return null;

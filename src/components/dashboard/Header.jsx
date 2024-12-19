@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 
 import {
   FaBars,
@@ -7,24 +7,24 @@ import {
   FaSignInAlt,
   FaSignOutAlt,
   FaUserFriends,
-} from "react-icons/fa";
-import { ImProfile } from "react-icons/im";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import styled from "styled-components";
-import tw from "twin.macro";
-import { useHandcash } from "../../context/handcash";
-import { hideInDesktop, interactiveColor } from "../../design/mixins";
-import { useActiveUser } from "../../hooks";
-import { toggleMemberList } from "../../reducers/memberListReducer";
-import { toggleProfile } from "../../reducers/profileReducer";
-import { logout } from "../../reducers/sessionReducer";
-import { toggleSettings } from "../../reducers/settingsReducer";
-import { toggleSidebar } from "../../reducers/sidebarReducer";
-import ArrowTooltip from "./ArrowTooltip";
-import At from "./At";
-import Hashtag from "./Hashtag";
-import { SettingsModal } from "./modals/SettingsModal";
+} from 'react-icons/fa';
+import { ImProfile } from 'react-icons/im';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import styled from 'styled-components';
+import tw from 'twin.macro';
+import { useHandcash } from '../../context/handcash';
+import { hideInDesktop, interactiveColor } from '../../design/mixins';
+import { useActiveUser } from '../../hooks';
+import { toggleMemberList } from '../../reducers/memberListReducer';
+import { toggleProfile } from '../../reducers/profileReducer';
+import { logout } from '../../reducers/sessionReducer';
+import { toggleSettings } from '../../reducers/settingsReducer';
+import { toggleSidebar } from '../../reducers/sidebarReducer';
+import ArrowTooltip from './ArrowTooltip';
+import At from './At';
+import Hashtag from './Hashtag';
+import { SettingsModal } from './modals/SettingsModal';
 
 const Container = styled.div`
   background-color: var(--background-primary);
@@ -63,15 +63,21 @@ const IconWrapper = styled.button`
   ${(p) => p.$isActive && tw`text-white bg-background-modifier-selected`};
 `;
 
-const IconButton = ({ children, href, isActive, isHamburger, ...delegated }) => {
-  const tag = href ? "a" : "button";
-  const type = tag === "button" ? "button" : undefined;
+const IconButton = ({
+  children,
+  href,
+  isActive,
+  isHamburger,
+  ...delegated
+}) => {
+  const tag = href ? 'a' : 'button';
+  const type = tag === 'button' ? 'button' : undefined;
 
   return (
-    <IconWrapper 
-      as={tag} 
-      type={type} 
-      href={href} 
+    <IconWrapper
+      as={tag}
+      type={type}
+      href={href}
       $isActive={isActive}
       $isHamburger={isHamburger}
       {...delegated}
@@ -121,11 +127,11 @@ const Header = ({ isFriendsPage }) => {
             </div>
             <Heading>
               {(isFriendsPage
-                ? "Friends"
+                ? 'Friends'
                 : !channels?.loading && activeChannelId) ||
                 activeUser?.user?.alternateName ||
                 activeUserId ||
-                "global chat"}
+                'global chat'}
             </Heading>
           </div>
         </div>
@@ -145,7 +151,7 @@ const Header = ({ isFriendsPage }) => {
           </IconButton>
         </ArrowTooltip>
         <ArrowTooltip
-          title={`${isMemberListOpen ? "Hide" : "Show"} Member list`}
+          title={`${isMemberListOpen ? 'Hide' : 'Show'} Member list`}
         >
           <IconButton
             onClick={() => dispatch(toggleMemberList())}
@@ -154,7 +160,7 @@ const Header = ({ isFriendsPage }) => {
             <FaUserFriends />
           </IconButton>
         </ArrowTooltip>
-        <ArrowTooltip title={`${isProfileOpen ? "Hide" : "Show"} Profile`}>
+        <ArrowTooltip title={`${isProfileOpen ? 'Hide' : 'Show'} Profile`}>
           <IconButton
             onClick={() => dispatch(toggleProfile())}
             isActive={isProfileOpen}
@@ -171,7 +177,7 @@ const Header = ({ isFriendsPage }) => {
         )}
         {guest && (
           <ArrowTooltip title="Login">
-            <IconButton onClick={() => navigate(`/login`)}>
+            <IconButton onClick={() => navigate('/login')}>
               <FaSignInAlt />
             </IconButton>
           </ArrowTooltip>

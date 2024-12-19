@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 import macrosPlugin from 'vite-plugin-babel-macros';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
@@ -13,11 +13,11 @@ export default defineConfig({
             'babel-plugin-styled-components',
             {
               displayName: true,
-              ssr: false
-            }
-          ]
-        ]
-      }
+              ssr: false,
+            },
+          ],
+        ],
+      },
     }),
     macrosPlugin(),
     nodePolyfills({
@@ -38,10 +38,10 @@ export default defineConfig({
     'process.env': {
       ...process.env,
       NODE_ENV: process.env.NODE_ENV || 'development',
-      NODE_VERSION: process.versions.node || '18.0.0'
+      NODE_VERSION: process.versions.node || '18.0.0',
     },
     global: 'globalThis',
-    Buffer: ['buffer', 'Buffer']
+    Buffer: ['buffer', 'Buffer'],
   },
   optimizeDeps: {
     include: [
@@ -54,13 +54,13 @@ export default defineConfig({
       'styled-components',
       '@bsv/sdk',
       'bsv-bap',
-      'buffer'
+      'buffer',
     ],
     esbuildOptions: {
       target: 'esnext',
       jsx: 'automatic',
-      platform: 'browser'
-    }
+      platform: 'browser',
+    },
   },
   build: {
     target: 'esnext',
@@ -78,10 +78,10 @@ export default defineConfig({
             '@mui/material',
             'styled-components',
             '@bsv/sdk',
-            'bsv-bap'
-          ]
-        }
-      }
-    }
-  }
-}); 
+            'bsv-bap',
+          ],
+        },
+      },
+    },
+  },
+});

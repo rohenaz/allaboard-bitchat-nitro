@@ -1,44 +1,47 @@
-import { head } from "lodash";
+import { Hash, PrivateKey, PublicKey } from '@bsv/sdk';
+import { BAP } from 'bsv-bap';
+import { head } from 'lodash';
 import React, {
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-} from "react";
-import { useDispatch } from "react-redux";
-import { FetchStatus } from "../../utils/common";
-import { useLocalStorage } from "../../utils/storage";
-import { useHandcash } from "../handcash";
-import { BAP } from "bsv-bap";
-import { PrivateKey, PublicKey, Hash } from "@bsv/sdk";
+} from 'react';
+import { useDispatch } from 'react-redux';
+import { FetchStatus } from '../../utils/common';
+import { useLocalStorage } from '../../utils/storage';
+import { useHandcash } from '../handcash';
 
 const BapContext = React.createContext(undefined);
 
 const BapProvider = (props) => {
-  const [identity, setIdentity] = useLocalStorage(idStorageKey);
+  const [identity, setIdentity] = useState(
+    localStorage.getItem('bitchat-nitro._bapid'),
+  );
   const [decIdentity, setDecIdentity] = useState();
   const [bapProfile, setBapProfile] = useLocalStorage(profileStorageKey);
   const [bapProfileStatus, setBapProfileStatus] = useState(FetchStatus.Loading);
   const [loadIdentityStatus, setLoadIdentityStatus] = useState(
-    FetchStatus.Idle
+    FetchStatus.Idle,
   );
   const { authToken, hcEncrypt, hcDecrypt, decryptStatus } = useHandcash();
-  const dispatch = useDispatch();
 
   useEffect(() => {
     const fire = async () => {
-      let id;
+      let id: { xprv: string; ids?: { idKey: string }[] } | undefined;
       if (authToken) {
         id = await hcDecrypt(identity);
       } else {
-        return;
+        id = identity;
       }
-      let bapId = new BAP(id.xprv);
+      if (!id) return;
+      
+      const bapId = new BAP(id.xprv);
       if (id.ids) {
         bapId.importIds(id.ids);
       }
-      let bid = head(bapId.listIds());
+      const bid = head(bapId.listIds());
       id.bapId = bid;
       setDecIdentity(id);
     };
@@ -46,19 +49,12 @@ const BapProvider = (props) => {
     if (identity && decryptStatus === FetchStatus.Idle && !decIdentity) {
       fire();
     }
-  }, [
-    dispatch,
-    identity,
-    hcDecrypt,
-    decryptStatus,
-    decIdentity,
-    setDecIdentity,
-  ]);
+  }, [identity, hcDecrypt, decryptStatus, decIdentity, authToken]);
 
-  const isValidIdentity = useCallback((decryptedIdString) => {
+  const isValidIdentity = useCallback((decryptedIdString: string) => {
     const decIdentity = JSON.parse(decryptedIdString);
 
-    let bapId;
+    let bapId: BAP | undefined;
     try {
       bapId = new BAP(decIdentity.xprv);
     } catch (e) {
@@ -82,41 +78,29 @@ const BapProvider = (props) => {
 
   const onFileChange = useCallback(
     async (e) => {
-      /*Selected files data can be collected here.*/
-      console.log(e.target.files);
       setLoadIdentityStatus(FetchStatus.Loading);
-      // const encryptedData = localStorage.getItem("bitchat-nitro._bapid");
-
       const file = head(e.target.files);
       const text = await toText(file);
 
       if (!isValidIdentity(text)) {
-        console.log("error: invalid identity file");
         setLoadIdentityStatus(FetchStatus.Error);
         return;
       }
 
       try {
-        // console.log({ text, authToken });
-        // encrypt the uploaded file and store it locally
         if (authToken) {
-          // handcash
           const encryptedData = await hcEncrypt(JSON.parse(text));
-          // console.log({ encryptedData });
           setIdentity(encryptedData);
         } else {
-          // TODO: Handle encrypt / decrypt with panda
-          alert("ToDo: Handle encrypt / decrypt with panda");
+          alert('ToDo: Handle encrypt / decrypt with panda');
           return;
-          // const { encryptedData } = await relayEncrypt(JSON.parse(text));
-          // setIdentity(encryptedData);
         }
         setLoadIdentityStatus(FetchStatus.Success);
-      } catch (e) {
+      } catch (_e) {
         setLoadIdentityStatus(FetchStatus.Error);
       }
     },
-    [loadIdentityStatus, isValidIdentity, authToken, hcEncrypt, setIdentity]
+    [isValidIdentity, authToken, hcEncrypt],
   );
 
   const getIdentity = useCallback(async () => {
@@ -124,30 +108,28 @@ const BapProvider = (props) => {
       return bapProfile;
     }
     setBapProfileStatus(FetchStatus.Loading);
-    console.log("get identity");
 
     const payload = {
-      idKey: ``,
+      idKey: '',
     };
-    const res = await fetch(`https://bap-api.com/v1/getIdentity`, {
-      method: "POST",
+    const _res = await fetch('https://bap-api.com/v1/getIdentity', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
     });
-    const resp = { idKey: "something" };
+    const resp = { idKey: 'something' };
     setBapProfileStatus(FetchStatus.Success);
     setBapProfile(resp);
     return resp;
-  }, [bapProfileStatus, bapProfile]);
+  }, [bapProfile, setBapProfile]);
 
   const value = useMemo(
     () => ({
       identity,
       setIdentity,
       decIdentity,
-      setDecIdentity,
       getIdentity,
       bapProfileStatus,
       bapProfile,
@@ -155,16 +137,14 @@ const BapProvider = (props) => {
       loadIdentityStatus,
     }),
     [
-      identity, // encrypted identity file
+      identity,
       getIdentity,
       decIdentity,
-      setDecIdentity,
       bapProfileStatus,
-      setIdentity,
-      onFileChange,
       bapProfile,
+      onFileChange,
       loadIdentityStatus,
-    ]
+    ],
   );
 
   return (
@@ -177,7 +157,7 @@ const BapProvider = (props) => {
 const useBap = () => {
   const context = useContext(BapContext);
   if (context === undefined) {
-    throw new Error("useBap must be used within an BapProvider");
+    throw new Error('useBap must be used within an BapProvider');
   }
   return context;
 };
@@ -188,8 +168,7 @@ export { BapProvider, useBap };
 // Utils
 //
 
-const idStorageKey = "nitro__BapProvider_id";
-const profileStorageKey = "nitro__BapProvider_profile";
+const profileStorageKey = 'nitro__BapProvider_profile';
 
 const toText = (file) =>
   new Promise((resolve, reject) => {

@@ -1,6 +1,6 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from 'react';
 
-import { useSelector } from "react-redux";
+import { useSelector } from 'react-redux';
 
 // Detect window width
 export const useWindowWidth = () => {
@@ -10,9 +10,9 @@ export const useWindowWidth = () => {
     function updateSize() {
       setWidth(window.innerWidth);
     }
-    window.addEventListener("resize", updateSize);
+    window.addEventListener('resize', updateSize);
     updateSize();
-    return () => window.removeEventListener("resize", updateSize);
+    return () => window.removeEventListener('resize', updateSize);
   }, []);
   return width;
 };
@@ -34,18 +34,17 @@ export const useActiveUser = () => {
 
 export const usePopover = () => {
   const [showPopover, setShowPopover] = useState(false);
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event, user) => {
-    console.log({ user });
     setUser(user);
     setShowPopover(true);
     setAnchorEl(event.currentTarget);
   };
 
   const handleClickAway = () => {
-    setUser("");
+    setUser('');
     setShowPopover(false);
     setAnchorEl(null);
   };

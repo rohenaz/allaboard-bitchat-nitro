@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react';
 
-import styled from "styled-components";
+import styled from 'styled-components';
 
 const Wrapper = styled.div`
   display: flex;
-  flex-direction: ${(p) => (p.horizontal ? "row" : "column")};
+  flex-direction: ${(p) => (p.horizontal ? 'row' : 'column')};
   gap: ${(p) => p.gap};
 `;
 

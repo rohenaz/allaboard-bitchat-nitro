@@ -6,17 +6,17 @@ export const FetchStatus = {
 };
 
 export const defaultAlias = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  alternateName: "",
-  logo: "",
-  image: "",
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  alternateName: '',
+  logo: '',
+  image: '',
   homeLocation: {
-    "@type": "Place",
-    name: "",
+    '@type': 'Place',
+    name: '',
   },
-  description: "",
-  url: "",
-  paymail: "",
-  bitcoinAddress: "",
+  description: '',
+  url: '',
+  paymail: '',
+  bitcoinAddress: '',
 };

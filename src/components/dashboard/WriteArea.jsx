@@ -123,13 +123,13 @@ const WriteArea = () => {
   const pendingMessage = useMemo(() => searchParams.get("m"), [searchParams]);
   const [messageContent, setMessageContent] = useState(pendingMessage || "");
 
-  const channelName = activeChannelId || activeUserId || last(window?.location?.pathname?.split("/"));
+  const _channelName = activeChannelId || activeUserId || last(window?.location?.pathname?.split("/"));
 
   const changeContent = useCallback((e) => {
     setMessageContent(e.target.value);
   }, []);
 
-  const togglePlusPopover = useCallback(() => {
+  const _togglePlusPopover = useCallback(() => {
     setShowPlusPopover((prev) => !prev);
   }, []);
 
@@ -145,7 +145,6 @@ const WriteArea = () => {
     async (event) => {
       event.preventDefault();
       if (!authToken && !connected) {
-        console.log("Cannot post. No Handcash auth and no panda connection");
         return;
       }
 
@@ -163,8 +162,7 @@ const WriteArea = () => {
             activeUserId,
             decIdentity
           );
-        } catch (e) {
-          console.log("dispatch error message", e);
+        } catch (_e) {
           dispatch(
             receiveNewMessage({
               B: { content: "Error: Failed to send" },
@@ -203,10 +201,16 @@ const WriteArea = () => {
     const C_KEY = 67;
     let ctrlDown = false;
 
-    if (event.keyCode === CTRL_KEY || event.keyCode === CMD_KEY) ctrlDown = true;
+    if (event.keyCode === CTRL_KEY || event.keyCode === CMD_KEY) {
+      ctrlDown = true;
+    }
 
-    if (ctrlDown && event.keyCode === C_KEY) console.log("Document catch Ctrl+C");
-    if (ctrlDown && event.keyCode === V_KEY) console.log("Document catch Ctrl+V");
+    if (ctrlDown && event.keyCode === C_KEY) {
+      // Handle Ctrl+C if needed
+    }
+    if (ctrlDown && event.keyCode === V_KEY) {
+      // Handle Ctrl+V if needed
+    }
   }, []);
 
   const handleKeyUp = useCallback((event) => {
@@ -214,15 +218,18 @@ const WriteArea = () => {
     const CTRL_KEY = 17;
     const CMD_KEY = 91;
     const V_KEY = 86;
-    const C_KEY = 67;
-    let ctrlDown = false;
 
-    if (event.keyCode === CTRL_KEY || event.keyCode === CMD_KEY) ctrlDown = false;
+    if (event.keyCode === CTRL_KEY || event.keyCode === CMD_KEY) {
+      // Reset ctrl key state
+      return;
+    }
 
-    if (event.keyCode === ENTER_KEY) {
-      console.log("enter");
-    } else if (event.keyCode === V_KEY && event.keyCode === CTRL_KEY) {
-      console.log("paste detected");
+    if (event.keyCode === ENTER_KEY && !event.shiftKey) {
+      // Handle Enter key press (without shift)
+      event.preventDefault();
+      event.target.form.dispatchEvent(new Event('submit', { cancelable: true }));
+    } else if (event.keyCode === V_KEY && event.ctrlKey) {
+      // Handle Ctrl+V if needed
     }
   }, []);
 
@@ -305,7 +312,7 @@ const WriteArea = () => {
           }
           onKeyUp={handleKeyUp}
           onKeyDown={handleKeyDown}
-          onFocus={(e) => console.log(e.target)}
+          onFocus={() => {}}
           value={messageContent}
           onChange={changeContent}
           ref={inputRef}

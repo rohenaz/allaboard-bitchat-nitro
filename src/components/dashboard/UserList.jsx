@@ -1,18 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FaPlus, FaUserFriends } from "react-icons/fa";
-import { MdArrowBack } from "react-icons/md";
-import { useDispatch, useSelector } from "react-redux";
-import { Link as RDLink } from "react-router-dom";
-import styled from "styled-components";
-import { useBap } from "../../context/bap";
-import { useHandcash } from "../../context/handcash";
-import { useWindowWidth } from "../../hooks";
-import { loadUsers } from "../../reducers/memberListReducer";
-import { toggleSidebar } from "../../reducers/sidebarReducer";
-import Avatar from "./Avatar";
-import List from "./List";
-import ListItem from "./ListItem";
-import DirectMessageModal from "./modals/DirectMessageModal";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { FaPlus, FaUserFriends } from 'react-icons/fa';
+import { MdArrowBack, MdKeyboardArrowDown } from 'react-icons/md';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link as RDLink } from 'react-router-dom';
+import styled from 'styled-components';
+import { useHandcash } from '../../context/handcash';
+import { loadUsers } from '../../reducers/memberListReducer';
+import { toggleSidebar } from '../../reducers/sidebarReducer';
+import Avatar from './Avatar';
+import List from './List';
+import ListItem from './ListItem';
+import DirectMessageModal from './modals/DirectMessageModal';
 
 const Link = styled(RDLink)`
   &:hover {
@@ -74,53 +72,22 @@ const Username = styled.div`
   font-size: 14px;
 `;
 
-const UserList = ({ activeUserId }) => {
-  const { decIdentity } = useBap();
-
+const UserList = () => {
   const dispatch = useDispatch();
+  const [showDirectMessageModal, setShowDirectMessageModal] = useState(false);
+  const messages = useSelector((state) => state.chat.messages);
+  const memberList = useSelector((state) => state.memberList);
+  const session = useSelector((state) => state.session);
+  const isInDesktop = useSelector((state) => state.app.isInDesktop);
+  const { profile } = useHandcash();
+
   useEffect(() => {
     dispatch(loadUsers());
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   if (decIdentity) {
-  //     dispatch(loadFriends(decIdentity.bapId));
-  //   }
-  // }, [decIdentity, dispatch]);
-
-  const { profile } = useHandcash();
-
-  // const user = useSelector((state) => state.session.user);
-  const memberList = useSelector((state) => state.memberList);
-  const session = useSelector((state) => state.session);
-  const isInDesktop = useWindowWidth() > 768;
-  const messages = useSelector((state) => state.chat.messages);
-  const [showDirectMessageModal, setShowDirectMessageModal] = useState();
-  const [hoveringUser, setHoveringUser] = useState();
-
-  const mouseOver = useCallback(
-    (id) => {
-      if (id) {
-        setHoveringUser(id);
-      }
-    },
-    [hoveringUser]
-  );
-
-  const mouseOut = useCallback(
-    (id) => {
-      if (hoveringUser === id) {
-        setHoveringUser(undefined);
-      }
-    },
-    [hoveringUser]
-  );
-
   const renderUser = useCallback(
     (id) => {
-      console.log({ member: memberList.byId[id] });
       const member = memberList.byId[id];
-      // TODO avatar needs a vallback image
       return (
         <Link
           key={id}
@@ -128,35 +95,35 @@ const UserList = ({ activeUserId }) => {
           onClick={() => !isInDesktop && dispatch(toggleSidebar())}
         >
           <ListItem
-            icon={<Avatar w={32} h={32} icon={member?.identity.logo} />}
-            text={member.identity?.alternateName || id || "global"}
-            style={{
-              gap: "8px",
-              padding: "8px 4px",
-            }}
             id={id}
             isPinned={false}
-            onMouseEnter={(e) => mouseOver(e.target.id)}
-            onMouseLeave={(e) => mouseOut(e.target.id)}
             hasActivity={
               id &&
-              messages?.allIds?.some(
-                (mid) => messages.byId[mid]?.AIP?.bapId === id
+              messages.allIds.some(
+                (messageId) =>
+                  messages.byId[messageId].MAP.paymail === member.paymail,
               )
             }
-            isActive={id === activeUserId || (!id && !activeUserId)}
-            showPin={false}
-            onClickPin={() => {}}
+            text={member.paymail}
+            icon={
+              <Avatar
+                size="27px"
+                w="40px"
+                bgcolor={'#000'}
+                paymail={member.paymail}
+                icon={member.logo}
+              />
+            }
           />
         </Link>
       );
     },
-    [hoveringUser, messages, isInDesktop, activeUserId, memberList.allIds]
+    [messages, isInDesktop, dispatch, memberList.byId],
   );
 
   const clickDm = useCallback(() => {
     setShowDirectMessageModal(true);
-  }, [showDirectMessageModal]);
+  }, []);
 
   const user = useMemo(() => {
     return session.memberList?.signers.byId[session.user.idKey];
@@ -166,65 +133,50 @@ const UserList = ({ activeUserId }) => {
     <Container className="disable-select">
       <Header>
         <Heading>
-          <MdArrowBack style={{ marginRight: ".5rem" }} />
-          <Link to={`/channels`}>Bitchat [Nitro]</Link>
+          <MdArrowBack style={{ marginRight: '.5rem' }} />
+          <Link to={'/channels'}>Bitchat [Nitro]</Link>
         </Heading>
       </Header>
       <Content className="scrollable">
-        <List gap={`2px`} style={{ width: "100%" }}>
+        <List gap={'2px'} style={{ width: '100%' }}>
           <Link
-            key={`friends-menu-item-link`}
-            to={`/friends`}
+            key={'friends-menu-item-link'}
+            to={'/friends'}
             onClick={() => !isInDesktop && dispatch(toggleSidebar())}
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: " space-between",
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: ' space-between',
             }}
           >
             <ListItem
               showPin={false}
               style={{
-                gap: "8px",
-                padding: "8px 4px",
-                width: "100%",
+                gap: '8px',
+                padding: '8px 4px',
+                width: '100%',
               }}
               icon={
                 <FaUserFriends
-                  width={`32px`}
-                  height={`32px`}
-                  style={{ margin: "0 .5rem" }}
+                  width={'32px'}
+                  height={'32px'}
+                  style={{ margin: '0 .5rem' }}
                 />
               }
-              text={`Friends`}
-              id={`friends-menu-item`}
-              onMouseEnter={(e) => mouseOver(e.target.id)}
-              onMouseLeave={(e) => mouseOut(e.target.id)}
+              text={'Friends'}
+              id={'friends-menu-item'}
             />
           </Link>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: " space-between",
-              marginTop: `1rem`,
-              marginBottom: ".5rem",
-            }}
+          <button
+            className="w-full text-left flex items-center justify-between px-2 mb-1 text-[var(--channels-default)] cursor-pointer bg-transparent border-0"
             onClick={clickDm}
+            type="button"
           >
             <ListItem
-              text={`DIRECT MESSAGES`}
-              textStyle={{ fontSize: ".85rem", width: "100%" }}
+              text={'DIRECT MESSAGES'}
+              icon={<MdKeyboardArrowDown />}
             />
-            <FaPlus
-              style={{
-                color: "#EEE",
-                marginRight: ".5rem",
-                width: "12px",
-                height: "12px",
-              }}
-            />
-          </div>
+          </button>
         </List>
         <List gap="2px">
           {!memberList.loading && memberList.allIds.map(renderUser)}
@@ -235,7 +187,7 @@ const UserList = ({ activeUserId }) => {
           size="21px"
           w="32px"
           // bgColor={user.avatarColor}
-          bgcolor={"#000"}
+          bgcolor={'#000'}
           status="online"
           paymail={user?.paymail || profile?.paymail}
         />

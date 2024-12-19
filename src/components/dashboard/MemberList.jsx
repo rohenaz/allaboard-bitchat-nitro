@@ -1,14 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from 'react';
 
-import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
+import { useDispatch, useSelector } from 'react-redux';
+import styled from 'styled-components';
 
-import { usePopover } from "../../hooks";
-import { loadUsers } from "../../reducers/memberListReducer";
-import Avatar from "./Avatar";
-import List from "./List";
-import ListItem from "./ListItem";
-import UserPopover from "./UserPopover";
+import { usePopover } from '../../hooks';
+import { loadUsers } from '../../reducers/memberListReducer';
+import Avatar from './Avatar';
+import List from './List';
+import ListItem from './ListItem';
+import UserPopover from './UserPopover';
 
 const Container = styled.div`
   background-color: var(--background-secondary);
@@ -32,7 +32,7 @@ const Heading = styled.h3`
   text-transform: uppercase;
 `;
 
-const MemberList = ({ isMobile }) => {
+const MemberList = () => {
   const memberList = useSelector((state) => state.memberList);
   const [
     user,
@@ -48,7 +48,7 @@ const MemberList = ({ isMobile }) => {
     if (!memberList.allIds.length) {
       dispatch(loadUsers());
     }
-  }, [dispatch]);
+  }, [dispatch, memberList.allIds.length]);
 
   return (
     <Container>
@@ -66,15 +66,14 @@ const MemberList = ({ isMobile }) => {
                 <Avatar
                   size="21px"
                   w="32px"
-                  // bgColor={identity?.avatarColor}
-                  bgcolor={`#000`}
+                  bgcolor={'#000'}
                   status="online"
                   paymail={u?.identity?.paymail}
                   icon={u?.identity?.logo}
                 />
               }
               text={u?.identity?.alternateName}
-              style={{ gap: "12px", padding: "6px 8px" }}
+              style={{ gap: '12px', padding: '6px 8px' }}
               onClick={(event) => handleClick(event, u)}
             />
           );
@@ -84,8 +83,8 @@ const MemberList = ({ isMobile }) => {
         open={showPopover}
         anchorEl={anchorEl}
         onClose={handleClickAway}
-        anchorOrigin={{ vertical: "center", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'center', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         user={user}
         setShowPopover={setShowPopover}
       />

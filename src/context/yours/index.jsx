@@ -1,24 +1,22 @@
-import { useYoursWallet } from "yours-wallet-provider";
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { useLocalStorage } from "../../utils/storage";
-import { P2PKH } from "@bsv/sdk";
+import { P2PKH } from '@bsv/sdk';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { useYoursWallet } from 'yours-wallet-provider';
+import { useLocalStorage } from '../../utils/storage';
 
-const wocApiUrl = "https://api.whatsonchain.com/v1/bsv/main";
+const wocApiUrl = 'https://api.whatsonchain.com/v1/bsv/main';
 
 const YoursContext = React.createContext(undefined);
 
-const getUtxos = async (fromAddress, pullFresh) => {
+const getUtxos = async (fromAddress, _pullFresh) => {
   try {
-    console.log("Getting utxos", { fromAddress, pullFresh });
     const resp = await fetch(`${wocApiUrl}/address/${fromAddress}/unspent`, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
 
     const data = await resp.json();
-    console.log({ data });
     const u = data
       .map((utxo) => {
         return {
@@ -29,10 +27,8 @@ const getUtxos = async (fromAddress, pullFresh) => {
         };
       })
       .sort((a, b) => (a.satoshis > b.satoshis ? -1 : 1));
-    console.log("Setting utxos", u);
     return u;
-  } catch (error) {
-    console.log(error);
+  } catch (_error) {
     return [];
   }
 };
@@ -63,7 +59,6 @@ const AutoYoursProvider = (props) => {
     isConnected,
     isReady,
     getSocialProfile,
-    getPaymentUtxos,
     getAddresses,
     broadcast,
     getBalance,
@@ -83,7 +78,7 @@ const AutoYoursProvider = (props) => {
           await connect();
         }
         setConnected(true);
-      } catch (e) {
+      } catch (_e) {
         setConnected(false);
       }
     };
@@ -95,9 +90,7 @@ const AutoYoursProvider = (props) => {
   useEffect(() => {
     const fire = async () => {
       const addresses = await getAddresses();
-      console.log("Getting utxos for", addresses.bsvAddress);
       const u = await getUtxos(addresses.bsvAddress, true);
-      console.log({ utxos: u });
       setUtxos(u);
       const profile = await getSocialProfile();
       profile.addresses = addresses;
@@ -122,12 +115,25 @@ const AutoYoursProvider = (props) => {
     () => ({
       connected,
       pandaProfile,
-      utxos,
+      isReady,
+      getSocialProfile,
+      getAddresses,
       broadcast,
-      getSignatures,
       sendBsv,
+      utxos,
+      getSignatures,
     }),
-    [connected, pandaProfile, utxos, broadcast, getSignatures, sendBsv]
+    [
+      connected,
+      pandaProfile,
+      isReady,
+      getSocialProfile,
+      getAddresses,
+      broadcast,
+      sendBsv,
+      utxos,
+      getSignatures,
+    ],
   );
 
   return <YoursContext.Provider value={value} {...props} />;
@@ -136,7 +142,7 @@ const AutoYoursProvider = (props) => {
 const useYours = () => {
   const context = useContext(YoursContext);
   if (context === undefined) {
-    throw new Error("useYours must be used within a YoursProvider");
+    throw new Error('useYours must be used within a YoursProvider');
   }
   return context;
 };
@@ -147,4 +153,4 @@ export { AutoYoursProvider, useYours };
 // Utils
 //
 
-const profileStorageKey = "nitro__YoursProvider_profile";
+const profileStorageKey = 'nitro__YoursProvider_profile';

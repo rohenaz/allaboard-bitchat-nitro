@@ -1,10 +1,3 @@
-import React from "react";
-import styled from "styled-components";
-import {
-  toggleHideUnverifiedMessages,
-  toggleSettings,
-} from "../../../reducers/settingsReducer";
-import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +5,14 @@ import {
   FormControlLabel,
   FormGroup,
   Switch,
-} from "@mui/material";
+} from '@mui/material';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import styled from 'styled-components';
+import {
+  toggleHideUnverifiedMessages,
+  toggleSettings,
+} from '../../../reducers/settingsReducer';
 
 const SettingsContainer = styled.div`
   box-shadow: 24px;
@@ -26,7 +26,7 @@ const Label = styled.label`
 export const SettingsModal = () => {
   const dispatch = useDispatch();
   const { isOpen, hideUnverifiedMessages } = useSelector(
-    (state) => state.settings
+    (state) => state.settings,
   );
 
   return (

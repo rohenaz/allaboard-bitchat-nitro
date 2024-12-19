@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   profile: {},
@@ -6,13 +6,13 @@ const initialState = {
 };
 
 const profileSlice = createSlice({
-  name: "profile",
+  name: 'profile',
   initialState,
   reducers: {
     setProfile(state, action) {
       state.profile = action.payload;
     },
-    toggleProfile(state, action) {
+    toggleProfile(state, _action) {
       state.isOpen = !state.isOpen;
     },
   },

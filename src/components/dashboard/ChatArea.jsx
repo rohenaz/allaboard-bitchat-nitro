@@ -1,7 +1,7 @@
-import React from "react";
-import tw, { styled } from "twin.macro";
-import Messages from "./Messages";
-import WriteArea from "./WriteArea";
+import React from 'react';
+import tw, { styled } from 'twin.macro';
+import Messages from './Messages';
+import WriteArea from './WriteArea';
 
 const Container = styled.div`
   ${tw`bg-background-primary flex flex-col w-full overflow-hidden`}

@@ -1,17 +1,17 @@
-import React from "react";
+import React from 'react';
 
-import { FaTerminal } from "react-icons/fa";
-import { GiUnicorn } from "react-icons/gi";
-import { HiPlus } from "react-icons/hi";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import styled, { css } from "styled-components";
+import { FaTerminal } from 'react-icons/fa';
+import { GiUnicorn } from 'react-icons/gi';
+import { HiPlus } from 'react-icons/hi';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import styled, { css } from 'styled-components';
 
-import { baseIcon, roundedBackground } from "../../design/mixins";
-import BlockpostIcon from "../icons/BlockpostIcon";
-import NitroIcon from "../icons/NitroIcon";
-import RetrofeedIcon from "../icons/RetrofeedIcon";
-import ArrowTooltip from "./ArrowTooltip";
+import { baseIcon, roundedBackground } from '../../design/mixins';
+import BlockpostIcon from '../icons/BlockpostIcon';
+import NitroIcon from '../icons/NitroIcon';
+import RetrofeedIcon from '../icons/RetrofeedIcon';
+import ArrowTooltip from './ArrowTooltip';
 
 const PillWrapper = styled.div`
   position: absolute;
@@ -26,7 +26,7 @@ const PillWrapper = styled.div`
 
 const PillContainer = styled.div`
   width: 8px;
-  height: ${(p) => (p.$isActive ? "40px" : "0")};
+  height: ${(p) => (p.$isActive ? '40px' : '0')};
   margin-left: -4px;
   border-radius: 0 4px 4px 0;
   background-color: var(--header-primary);
@@ -34,16 +34,16 @@ const PillContainer = styled.div`
 `;
 
 const codeIconStyle = css`
-  color: ${(p) => (p.isActive ? "white" : "var(--text-normal)")};
+  color: ${(p) => (p.isActive ? 'white' : 'var(--text-normal)')};
   background-color: ${(p) =>
-    p.isActive ? "var(--brand)" : "var(--background-primary)"};
+    p.isActive ? 'var(--brand)' : 'var(--background-primary)'};
 
   &:hover {
     background-color: var(--brand);
   }
 `;
 
-const IconWrapper = styled.div`
+const _IconWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -77,7 +77,7 @@ const IconWrapper = styled.div`
     `}
 
   &:hover + ${PillWrapper} > ${PillContainer} {
-    height: ${(p) => (p.isActive ? "40px" : "24px")};
+    height: ${(p) => (p.isActive ? '40px' : '24px')};
   }
 
   ${(p) => p.isActive && codeIconStyle}
@@ -86,7 +86,7 @@ const IconWrapper = styled.div`
 const ServerIcon = styled.div`
   width: 48px;
   height: 48px;
-  border-radius: ${(p) => (p.$isDiscord ? "16px" : "50%")};
+  border-radius: ${(p) => (p.$isDiscord ? '16px' : '50%')};
   background-color: var(--background-primary);
   cursor: pointer;
   display: flex;
@@ -111,7 +111,7 @@ const ListItem = styled.div`
 
 const Pill = styled.div`
   width: 8px;
-  height: ${(props) => (props.$isActive ? "40px" : "8px")};
+  height: ${(props) => (props.$isActive ? '40px' : '8px')};
   background-color: var(--background-primary);
   border-radius: 0 4px 4px 0;
   margin-left: -4px;
@@ -145,7 +145,7 @@ const ServerList = () => {
               }
             }}
           >
-            <NitroIcon style={{ padding: ".5rem" }} />
+            <NitroIcon style={{ padding: '.5rem' }} />
           </ServerIcon>
 
           <Pill $isActive />
@@ -153,7 +153,11 @@ const ServerList = () => {
       </ListItem>
       <ListItem>
         <ArrowTooltip title="Bitchat Classic" placement="left">
-          <a href="https://bitchat.allaboardbitcoin.com" target="_blank">
+          <a
+            href="https://bitchat.allaboardbitcoin.com"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
             <ServerIcon color="lime" bgcolor="#000">
               <FaTerminal />
             </ServerIcon>
@@ -162,11 +166,15 @@ const ServerList = () => {
       </ListItem>
       <ListItem>
         <ArrowTooltip title="BlockPost.network" placement="left">
-          <a href="https://blockpost.network/bitchat" target="_blank">
+          <a
+            href="https://blockpost.network/bitchat"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
             <ServerIcon
               color="white"
               bgcolor="#49485a"
-              style={{ padding: ".25rem" }}
+              style={{ padding: '.25rem' }}
             >
               <BlockpostIcon />
             </ServerIcon>
@@ -175,11 +183,15 @@ const ServerList = () => {
       </ListItem>
       <ListItem>
         <ArrowTooltip title="Pewnicorn Social Club" placement="left">
-          <a href="https://www.pewnicornsocial.club" target="_blank">
+          <a
+            href="https://www.pewnicornsocial.club"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
             <ServerIcon
               color="pink"
               bgcolor="#49485a"
-              style={{ padding: ".5rem" }}
+              style={{ padding: '.5rem' }}
             >
               <GiUnicorn />
             </ServerIcon>
@@ -188,11 +200,15 @@ const ServerList = () => {
       </ListItem>
       <ListItem>
         <ArrowTooltip title="Retrofeed" placement="left">
-          <a href="https://retrofeed.me/chat" target="_blank">
+          <a
+            href="https://retrofeed.me/chat"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
             <ServerIcon
               color="#F42B2C"
               bgcolor="#49485a"
-              style={{ padding: ".5rem" }}
+              style={{ padding: '.5rem' }}
             >
               <RetrofeedIcon />
             </ServerIcon>
@@ -204,6 +220,7 @@ const ServerList = () => {
           <a
             href="https://bitcoinschema.org/#/social_schema?id=message"
             target="_blank"
+            rel="noreferrer noopener"
           >
             <ServerIcon color="#5865f2" bgcolor="#333">
               <HiPlus />

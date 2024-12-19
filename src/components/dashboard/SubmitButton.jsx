@@ -1,9 +1,9 @@
-import React from "react";
-import { RiArrowRightCircleFill } from "react-icons/ri";
+import React from 'react';
+import { RiArrowRightCircleFill } from 'react-icons/ri';
 
-import styled from "styled-components";
+import styled from 'styled-components';
 
-export const Wrapper = styled.button.attrs((p) => ({ type: "submit" }))`
+export const Wrapper = styled.button.attrs((_p) => ({ type: 'submit' }))`
   border-radius: 100%;
 `;
 

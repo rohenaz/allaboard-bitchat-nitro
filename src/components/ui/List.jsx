@@ -1,9 +1,9 @@
-import styled from "styled-components";
-import { BsPin, BsPinFill } from "react-icons/bs";
+import { BsPin, BsPinFill } from 'react-icons/bs';
+import styled from 'styled-components';
 
 const Wrapper = styled.div`
   display: flex;
-  flex-direction: ${(p) => (p.$horizontal ? "row" : "column")};
+  flex-direction: ${(p) => (p.$horizontal ? 'row' : 'column')};
   gap: ${(p) => p.$gap};
 `;
 
@@ -17,7 +17,7 @@ const ListItemContainer = styled.div`
   color: var(--channels-default);
   opacity: ${(props) => (props.$hasActivity ? 1 : 0.6)};
   background-color: ${(props) =>
-    props.$isActive ? "var(--background-modifier-selected)" : "transparent"};
+    props.$isActive ? 'var(--background-modifier-selected)' : 'transparent'};
   &:hover {
     background-color: var(--background-modifier-hover);
     color: var(--interactive-hover);
@@ -34,7 +34,7 @@ const PinButton = styled.button`
   }
 `;
 
-const ListItem = ({
+const _ListItem = ({
   icon,
   text,
   style,
@@ -61,7 +61,7 @@ const ListItem = ({
       {icon}
       <span>{text}</span>
       {showPin && (
-        <PinButton 
+        <PinButton
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -84,4 +84,4 @@ const List = ({ horizontal, gap, children, ...delegated }) => {
   );
 };
 
-export default List; 
+export default List;

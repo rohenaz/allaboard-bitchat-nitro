@@ -1,27 +1,27 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { IconButton } from "@mui/material";
-import EmojiPicker from "emoji-picker-react";
-import { head, tail, uniqBy } from "lodash";
-import moment from "moment";
-import { FaCheckCircle, FaLock } from "react-icons/fa";
-import { MdAddReaction } from "react-icons/md";
-import OutsideClickHandler from "react-outside-click-handler";
-import { Remarkable } from "remarkable";
-import RemarkableReactRenderer from "remarkable-react";
-import styled from "styled-components";
-import { useBitcoin } from "../../context/bitcoin";
-import { useHandcash } from "../../context/handcash";
-import { isValidEmail } from "../../utils/strings";
-import ArrowTooltip from "./ArrowTooltip";
-import Avatar from "./Avatar";
-import MessageFiles from "./MessageFiles";
-import { useSelector } from "react-redux";
+import { IconButton } from '@mui/material';
+import EmojiPicker from 'emoji-picker-react';
+import { head, tail, uniqBy } from 'lodash';
+import moment from 'moment';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FaCheckCircle, FaLock } from 'react-icons/fa';
+import { MdAddReaction } from 'react-icons/md';
+import OutsideClickHandler from 'react-outside-click-handler';
+import { useSelector } from 'react-redux';
+import { Remarkable } from 'remarkable';
+import RemarkableReactRenderer from 'remarkable-react';
+import styled from 'styled-components';
+import { useBitcoin } from '../../context/bitcoin';
+import { useHandcash } from '../../context/handcash';
+import { isValidEmail } from '../../utils/strings';
+import ArrowTooltip from './ArrowTooltip';
+import Avatar from './Avatar';
+import MessageFiles from './MessageFiles';
 
 const md = new Remarkable({
   html: true,
   typographer: true,
   breaks: true,
-  linkTarget: "_blank",
+  linkTarget: '_blank',
 });
 md.renderer = new RemarkableReactRenderer();
 
@@ -117,9 +117,9 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   // const dispatch = useDispatch();
   // const [openDeleteMessage, setOpenPopup] = useState(false);
   const { profile } = useHandcash();
-  const { likeMessage, likeStatus } = useBitcoin();
-  const likes = useSelector(state => state.chat.likes.byTxId[message.tx.h]);
-  const isVerified = isValidEmail(head(message.MAP).paymail || "");
+  const { likeMessage } = useBitcoin();
+  const likes = useSelector((state) => state.chat.likes.byTxId[message.tx.h]);
+  const isVerified = isValidEmail(head(message.MAP).paymail || '');
   // const handleSubmit = (event) => {
   //   event.preventDefault();
   //   const content = event.target.value;
@@ -167,7 +167,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
   }, [showReactions]);
 
   const messageContent = useMemo(() => {
-    let m = { ...message };
+    const m = { ...message };
     // Object.defineProperties(m, {
     //   B: {
     //     content: {
@@ -211,9 +211,8 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
      * If there is no text message, we don't want to render it.
      * This can happen when a message contains only file(s).
      */
-    const contentType =
-      head(m.B)?.["content-type"] ?? head(m.B)?.["media_type"];
-    if (contentType !== "text/plain") {
+    const contentType = head(m.B)?.['content-type'] ?? head(m.B)?.media_type;
+    if (contentType !== 'text/plain') {
       return null;
     }
 
@@ -226,18 +225,17 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
    */
   const messageFiles = useMemo(
     () => (messageContent ? tail(message.B) : message.B),
-    [message, messageContent]
+    [message, messageContent],
   );
 
   // useEffect(() => console.log(messageContent), [messageContent]);
 
   const emojiClick = useCallback(
     async (e, txId) => {
-      console.log("emoji clicked", e, txId);
       setShowReactions(false);
-      await likeMessage(profile?.paymail, "tx", txId, e.emoji);
+      await likeMessage(profile?.paymail, 'tx', txId, e.emoji);
     },
-    [profile, showReactions]
+    [profile, likeMessage],
   );
 
   const emojis = useMemo(() => {
@@ -246,31 +244,38 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
       ...(reactions?.byMessageTarget[head(message.MAP).messageID] || []),
       ...(reactions?.byTxTarget[message.tx.h] || []),
     ];
-    
+
     // Add new likes format if available
     if (likes) {
-      const likesAsReactions = likes.likes.map(like => ({
-        MAP: [{
-          emoji: "❤️", // Default emoji for likes
-          paymail: like, // Like contains the paymail
-          type: "like" // Mark as a new-style like
-        }]
+      const likesAsReactions = likes.likes.map((like) => ({
+        MAP: [
+          {
+            emoji: '❤️', // Default emoji for likes
+            paymail: like, // Like contains the paymail
+            type: 'like', // Mark as a new-style like
+          },
+        ],
       }));
-      return uniqBy([...allReactions, ...likesAsReactions], 
-        (r) => `${head(r.MAP).paymail}-${head(r.MAP).emoji}`
+      return uniqBy(
+        [...allReactions, ...likesAsReactions],
+        (r) => `${head(r.MAP).paymail}-${head(r.MAP).emoji}`,
       );
     }
-    
-    return uniqBy(allReactions, 
-      (r) => `${head(r.MAP).paymail}-${head(r.MAP).emoji}`
+
+    return uniqBy(
+      allReactions,
+      (r) => `${head(r.MAP).paymail}-${head(r.MAP).emoji}`,
     );
   }, [reactions, message, likes]);
 
-  const hasReacted = useCallback((emoji, paymail) => {
-    return emojis.some(
-      (e) => head(e.MAP).emoji === emoji && head(e.MAP).paymail === paymail
-    );
-  }, [emojis]);
+  const hasReacted = useCallback(
+    (emoji, paymail) => {
+      return emojis.some(
+        (e) => head(e.MAP).emoji === emoji && head(e.MAP).paymail === paymail,
+      );
+    },
+    [emojis],
+  );
 
   const parsedContent = useMemo(() => {
     if (!messageContent) {
@@ -288,14 +293,14 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
           size="27px"
           w="40px"
           //bgColor={message.user.avatarColor}
-          bgcolor={`#000`}
+          bgcolor={'#000'}
           paymail={
             head(message.AIP)?.identity?.paymail || head(message.MAP).paymail
           }
           icon={head(message.AIP)?.identity?.logo}
         />
       </AvatarWrapper>
-      <div style={{ width: "100%" }}>
+      <div style={{ width: '100%' }}>
         <Header className="justify-between w-full !items-start">
           <div className="flex flex-col md:flex-row justify-start">
             <Username onClick={handleClick}>
@@ -305,44 +310,41 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
 
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               {head(message.AIP)?.verified && (
-                <div
+                <button
+                  type="button"
                   onClick={() =>
                     window.open(
                       `https://whatsonchain.com/tx/${message.tx.h}`,
-                      "_blank"
+                      '_blank',
                     )
                   }
-                  style={{
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
+                  className="flex items-center cursor-pointer bg-transparent border-0"
                 >
                   <FaLock
                     style={{
-                      width: ".6rem",
-                      marginRight: ".5rem",
-                      color: "#777",
+                      width: '.6rem',
+                      marginRight: '.5rem',
+                      color: '#777',
                     }}
                   />
                   <div
                     style={{
-                      fontSize: ".75rem",
-                      color: "#777",
-                      marginRight: ".5rem",
+                      fontSize: '.75rem',
+                      color: '#777',
+                      marginRight: '.5rem',
                     }}
                   >
                     {head(message.AIP).bapId
                       ? head(message.AIP).bapId.slice(0, 8)
-                      : ""}
+                      : ''}
                   </div>
-                </div>
+                </button>
               )}
             </div>
 
@@ -352,6 +354,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
               <a
                 href={`https://whatsonchain.com/tx/${message.tx.h}`}
                 target="_blank"
+                rel="noreferrer noopener"
               >
                 <Timestamp>
                   {message.timestamp
@@ -386,35 +389,40 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
 
         <div
           style={{
-            marginTop: ".5rem",
-            display: "flex",
+            marginTop: '.5rem',
+            display: 'flex',
           }}
         >
           {uniqBy(emojis, (reaction) => head(reaction.MAP).emoji)?.map(
             (reaction) => (
-              <div
+              <button
                 key={`${head(reaction.MAP).paymail}-${head(reaction.MAP).emoji}`}
-                className="rounded-md text-white text-sm border border-[#333] p-1 mr-1 cursor-pointer"
+                type="button"
+                className="rounded-md text-white text-sm border border-[#333] p-1 mr-1 cursor-pointer bg-transparent"
                 onClick={() => {
                   if (!hasReacted(head(reaction.MAP).emoji, profile?.paymail)) {
                     likeMessage(
                       profile?.paymail,
-                      head(reaction.MAP).context || "tx",
-                      head(reaction.MAP).context ? head(reaction.MAP)[head(reaction.MAP).context] : message.tx.h,
-                      head(reaction.MAP).emoji
+                      head(reaction.MAP).context || 'tx',
+                      head(reaction.MAP).context
+                        ? head(reaction.MAP)[head(reaction.MAP).context]
+                        : message.tx.h,
+                      head(reaction.MAP).emoji,
                     );
                   }
                 }}
               >
-                {head(reaction.MAP).emoji}{" "}
-                {emojis.filter(
-                  (e) => head(e.MAP).emoji === head(reaction.MAP).emoji
-                )?.length}{" "}
-              </div>
-            )
+                {head(reaction.MAP).emoji}{' '}
+                {
+                  emojis.filter(
+                    (e) => head(e.MAP).emoji === head(reaction.MAP).emoji,
+                  )?.length
+                }{' '}
+              </button>
+            ),
           )}
           <div
-            style={{ position: "absolute", bottom: "1rem", right: "1.2rem" }}
+            style={{ position: 'absolute', bottom: '1rem', right: '1.2rem' }}
           >
             {appIcon}
           </div>
@@ -430,7 +438,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
             <ArrowTooltip title="Add Reaction" placement="top">
               <IconButton
                 style={{
-                  color: "rgba(255,255,255,.5)",
+                  color: 'rgba(255,255,255,.5)',
                 }}
                 onClick={toggleReactions}
               >
@@ -448,11 +456,11 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
         {showReactions && (
           <div
             style={{
-              position: "absolute",
-              bottom: "0",
-              right: "0",
-              marginBottom: ".25rem",
-              marginRight: ".5rem",
+              position: 'absolute',
+              bottom: '0',
+              right: '0',
+              marginBottom: '.25rem',
+              marginRight: '.5rem',
             }}
           >
             <OutsideClickHandler
@@ -461,7 +469,7 @@ const Message = ({ message, reactions, appIcon, handleClick }) => {
               }}
             >
               <EmojiPicker
-                theme={"dark"}
+                theme={'dark'}
                 onEmojiClick={(e) => emojiClick(e, message.tx.h)}
               />
             </OutsideClickHandler>

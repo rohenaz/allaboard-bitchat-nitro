@@ -1,10 +1,10 @@
-import { head, last } from "lodash";
-import { receiveNewChannel, receiveNewPin } from "../reducers/channelsReducer";
-import { receiveNewMessage, receiveNewReaction } from "../reducers/chatReducer";
-import { receiveNewFriend } from "../reducers/memberListReducer";
+import { head, last } from 'lodash';
+import { receiveNewChannel, receiveNewPin } from '../reducers/channelsReducer';
+import { receiveNewMessage, receiveNewReaction } from '../reducers/chatReducer';
+import { receiveNewFriend } from '../reducers/memberListReducer';
 
-const sockQuery = (verbose) => {
-  let q = {
+const sockQuery = (_verbose) => {
+  const q = {
     v: 3,
     q: {
       find: {
@@ -23,31 +23,28 @@ const sockQuery = (verbose) => {
 };
 
 const socketMiddleware = () => {
-  var sock_b64 = btoa(JSON.stringify(sockQuery(false)));
-  var socket_url = "https://bmap-api-production.up.railway.app/s/$all/" + sock_b64;
+  const sock_b64 = btoa(JSON.stringify(sockQuery(false)));
+  const socket_url = `https://bmap-api-production.up.railway.app/s/$all/${sock_b64}`;
 
   return (storeAPI) => {
     // socket
-    let socket = new EventSource(socket_url);
+    const socket = new EventSource(socket_url);
     socket.onmessage = (e) => {
-      var res = JSON.parse(e.data);
-      var data = res.data[0];
+      const res = JSON.parse(e.data);
+      const data = res.data[0];
       if (!data) {
         return;
       }
-      let channelId = last(window?.location?.pathname?.split("/")) || null;
-
-      console.log(res);
+      const channelId = last(window?.location?.pathname?.split('/')) || null;
       const { session } = storeAPI.getState();
       const { memberList } = storeAPI.getState();
       data.myBapId = session.user?.bapId;
       switch (head(data.MAP).type) {
-        case "like":
-          console.log("dispatch new like", data);
+        case 'like':
           storeAPI.dispatch(receiveNewReaction(data));
           break;
-        case "message":
-          if (head(data.MAP).context === "channel") {
+        case 'message':
+          if (head(data.MAP).context === 'channel') {
             storeAPI.dispatch(
               receiveNewChannel({
                 channel: head(data.MAP).channel,
@@ -55,12 +52,12 @@ const socketMiddleware = () => {
                 last_message: head(data.B).Data.utf8,
                 creator: head(data.MAP).paymail || head(data.AIP).bapId,
                 messages: 1,
-              })
+              }),
             );
           }
 
           // If dm
-          if (data.AIP && head(data.MAP).context === "bapID") {
+          if (data.AIP && head(data.MAP).context === 'bapID') {
             const toMe = head(data.MAP).bapID === data.myBapId;
             const fromMe = data.myBapId === head(data.AIP).bapId;
 
@@ -82,15 +79,18 @@ const socketMiddleware = () => {
             }
           } else {
             // Public message
-            if (head(data.MAP).channel && head(data.MAP).channel == channelId) {
+            if (
+              head(data.MAP).channel &&
+              head(data.MAP).channel === channelId
+            ) {
               storeAPI.dispatch(receiveNewMessage(data));
             }
           }
           break;
-        case "friend":
+        case 'friend':
           storeAPI.dispatch(receiveNewFriend(data));
           break;
-        case "pin_channel":
+        case 'pin_channel':
           storeAPI.dispatch(receiveNewPin(data));
           break;
       }
@@ -126,10 +126,10 @@ const socketMiddleware = () => {
     // This part is called when an action is dispatched
     return (next) => (action) => {
       switch (action.type) {
-        case "channels/setActiveChannel":
+        case 'channels/setActiveChannel':
           // socket.emit("set-active-channel", JSON.stringify(action.payload));
           break;
-        case "chat/sendMessage":
+        case 'chat/sendMessage':
           // socket.emit("send-message", action.payload);
           break;
         // case "chat/editMessage":
@@ -145,15 +145,13 @@ const socketMiddleware = () => {
         // case "chat/stopTyping":
         //   socket.emit("stop-typing", action.payload);
         //   break;
-        case "session/connectSocket":
-          console.log("deleteme? - connect");
+        case 'session/connectSocket':
           socket.connect();
           // socket.emit("new-client", action.payload);
           break;
-        case "session/logout":
+        case 'session/logout':
           localStorage.clear();
-          window.location.href = "https://bitchatnitro.com";
-          console.log("deleteme? - socket logout");
+          window.location.href = 'https://bitchatnitro.com';
           // socket.close();
           break;
         default:

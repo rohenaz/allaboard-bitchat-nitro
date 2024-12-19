@@ -1,0 +1,10 @@
+# ABILITY: Self Learning
+As you learn key facts about the project, update .cursorrules with new rules.
+# Bun
+use bun always instead of npm or yarn
+
+# Linting
+bun lint
+
+# BSV Library
+npm: use @bsv/sdk instead of bsv

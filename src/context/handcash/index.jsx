@@ -1,7 +1,7 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { FetchStatus } from "../../utils/common";
-import { lsTest, useLocalStorage } from "../../utils/storage";
-import env from "../../utils/env";
+import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { FetchStatus } from '../../utils/common';
+import env from '../../utils/env';
+import { lsTest, useLocalStorage } from '../../utils/storage';
 
 const HandcashContext = React.createContext(undefined);
 
@@ -12,16 +12,16 @@ const HandcashProvider = (props) => {
   const getProfile = useCallback(async () => {
     // Test localStorage is accessible
     if (!lsTest()) {
-      throw new Error("localStorage is not available");
+      throw new Error('localStorage is not available');
     }
 
     // if we dont have the paymail, get it
     if (authToken) {
       try {
         const resp = await fetch(`${env.REACT_APP_API_URL}/hcProfile`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-type": "application/json",
+            'Content-type': 'application/json',
           },
           body: JSON.stringify({ authToken }),
         });
@@ -41,16 +41,16 @@ const HandcashProvider = (props) => {
       return new Promise((resolve, reject) => {
         // Test localStorage is accessible
         if (!lsTest()) {
-          reject(new Error("localStorage is not available"));
+          reject(new Error('localStorage is not available'));
           return;
         }
 
         // if we dont have the paymail, get it
         if (authToken) {
           fetch(`${env.REACT_APP_API_URL}/hcEncrypt`, {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-type": "application/json",
+              'Content-type': 'application/json',
             },
             body: JSON.stringify({ authToken, data }),
           })
@@ -66,11 +66,11 @@ const HandcashProvider = (props) => {
             })
             .catch((e) => reject(e));
         } else {
-          reject(new Error("no auth token"));
+          reject(new Error('no auth token'));
         }
       });
     },
-    [authToken, setProfile]
+    [authToken],
   );
 
   const hcDecrypt = useCallback(
@@ -78,7 +78,7 @@ const HandcashProvider = (props) => {
       return new Promise((resolve, reject) => {
         // Test localStorage is accessible
         if (!lsTest()) {
-          reject(new Error("localStorage is not available"));
+          reject(new Error('localStorage is not available'));
         }
 
         // if we dont have the paymail, get it
@@ -86,9 +86,9 @@ const HandcashProvider = (props) => {
           if (encryptedData) {
             setDecryptStatus(FetchStatus.Loading);
             fetch(`${env.REACT_APP_API_URL}/hcDecrypt`, {
-              method: "POST",
+              method: 'POST',
               headers: {
-                "Content-type": "application/json",
+                'Content-type': 'application/json',
               },
               body: JSON.stringify({ authToken, encryptedData }),
             })
@@ -99,15 +99,11 @@ const HandcashProvider = (props) => {
                 });
               })
               .catch((e) => {
-                if (typeof e.json === "function") {
-                  e.json().then(({ redirectUrl }) => {
-                    console.log({ redirectUrl });
+                if (typeof e.json === 'function') {
+                  e.json().then(() => {
                     // TODO: Redirect to handcash url when perms get borked
                     // if (redirectUrl) {
-                    //   redirect(redirectUrl);
-                    //   setDecryptStatus(FetchStatus.Idle);
-                    //   reject(e);
-                    //   return;
+                    //   window.location.href = redirectUrl;
                     // }
                   });
                 }
@@ -117,11 +113,11 @@ const HandcashProvider = (props) => {
               });
           }
         } else {
-          reject(new Error("no auth token"));
+          reject(new Error('no auth token'));
         }
       });
     },
-    [decryptStatus, authToken, setProfile]
+    [authToken],
   );
 
   // const hcSignOpReturnWithAIP = useCallback(
@@ -180,7 +176,7 @@ const HandcashProvider = (props) => {
       hcEncrypt,
       hcDecrypt,
       decryptStatus,
-    ]
+    ],
   );
 
   return (
@@ -193,7 +189,7 @@ const HandcashProvider = (props) => {
 const useHandcash = () => {
   const context = useContext(HandcashContext);
   if (context === undefined) {
-    throw new Error("useHandcash must be used within an HandcashProvider");
+    throw new Error('useHandcash must be used within an HandcashProvider');
   }
   return context;
 };
@@ -204,8 +200,8 @@ export { HandcashProvider, useHandcash };
 // Utils
 //
 
-const profileStorageKey = "nitro__HandcashProvider_profile";
-const authTokenStorageKey = "nitro__HandcashProvider_authToken";
+const profileStorageKey = 'nitro__HandcashProvider_profile';
+const authTokenStorageKey = 'nitro__HandcashProvider_authToken';
 
 // Full profile
 // {

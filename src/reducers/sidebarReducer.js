@@ -8,7 +8,7 @@ const sidebarSlice = createSlice({
   name: 'sidebar',
   initialState,
   reducers: {
-    toggleSidebar(state, action) {
+    toggleSidebar(state, _action) {
       state.isOpen = !state.isOpen;
     },
   },

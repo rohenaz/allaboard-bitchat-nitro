@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 
-import styled from "styled-components";
-import NitroIcon from "../icons/NitroIcon";
+import styled from 'styled-components';
+import NitroIcon from '../icons/NitroIcon';
 
 const Wrapper = styled.div`
   display: flex;
@@ -52,7 +52,7 @@ const Layout = ({ heading, children }) => {
     <Wrapper className="disable-select">
       <Container>
         <Header>
-          <NitroIcon style={{ width: "6rem", padding: ".5rem" }} />
+          <NitroIcon style={{ width: '6rem', padding: '.5rem' }} />
         </Header>
         <Heading>{heading}</Heading>
         {children}

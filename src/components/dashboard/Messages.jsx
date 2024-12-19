@@ -1,45 +1,45 @@
+import { ECIES, Hash, PrivateKey, PublicKey } from '@bsv/sdk';
+import { head, last } from 'lodash';
+import moment from 'moment';
 import React, {
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-} from "react";
-import { PrivateKey, PublicKey, ECIES, Hash } from "@bsv/sdk";
-import { head, last } from "lodash";
-import moment from "moment";
-import { AiFillPushpin } from "react-icons/ai";
-import { FaTerminal } from "react-icons/fa";
-import { GiUnicorn } from "react-icons/gi";
-import { MdChat } from "react-icons/md";
-import { useParams } from "react-router-dom";
+} from 'react';
+import { AiFillPushpin } from 'react-icons/ai';
+import { FaTerminal } from 'react-icons/fa';
+import { GiUnicorn } from 'react-icons/gi';
+import { MdChat } from 'react-icons/md';
+import { useParams } from 'react-router-dom';
 
-import { useDispatch, useSelector } from "react-redux";
-import tw, { styled } from "twin.macro";
-import { useBap } from "../../context/bap";
+import { useDispatch, useSelector } from 'react-redux';
+import tw, { styled } from 'twin.macro';
+import { useBap } from '../../context/bap';
 import {
   decrypt,
   friendPrivateKeyFromSeedString,
   useBitcoin,
-} from "../../context/bitcoin";
-import { useHandcash } from "../../context/handcash";
-import { usePopover } from "../../hooks";
+} from '../../context/bitcoin';
+import { useHandcash } from '../../context/handcash';
+import { usePopover } from '../../hooks';
 import {
   loadDiscordReactions,
-  loadMessages,
   loadLikes,
-} from "../../reducers/chatReducer";
-import { FetchStatus } from "../../utils/common";
-import "../common/slider.less";
-import BlockpostIcon from "../icons/BlockpostIcon";
-import NitroIcon from "../icons/NitroIcon";
-import RetrofeedIcon from "../icons/RetrofeedIcon";
-import Avatar from "./Avatar";
-import Hashtag from "./Hashtag";
-import Message from "./Message";
-import UserPopover from "./UserPopover";
-import PinChannelModal from "./modals/PinChannelModal";
-import { isValidEmail } from "../../utils/strings";
+  loadMessages,
+} from '../../reducers/chatReducer';
+import { FetchStatus } from '../../utils/common';
+import '../common/slider.less';
+import { isValidEmail } from '../../utils/strings';
+import BlockpostIcon from '../icons/BlockpostIcon';
+import NitroIcon from '../icons/NitroIcon';
+import RetrofeedIcon from '../icons/RetrofeedIcon';
+import Avatar from './Avatar';
+import Hashtag from './Hashtag';
+import Message from './Message';
+import UserPopover from './UserPopover';
+import PinChannelModal from './modals/PinChannelModal';
 
 const Wrapper = styled.div`
   background-color: var(--background-primary);
@@ -108,16 +108,16 @@ const Messages = () => {
     (reactions.allTxIds || []).concat(reactions.allMessageIds)?.length > 0;
   const [showPinChannelModal, setShowPinChannelModal] = useState(false);
   const friendRequests = useSelector(
-    (state) => state.memberList.friendRequests
+    (state) => state.memberList.friendRequests,
   );
   const session = useSelector((state) => state.session);
   // Scroll to bottom of the chat history whenever there is a new message
   // or when messages finish loading
   const containerBottomRef = useRef(null);
-  const pathName = window?.location?.pathname?.endsWith("/")
+  const pathName = window?.location?.pathname?.endsWith('/')
     ? window?.location?.pathname?.slice(0, -1)
     : window?.location?.pathname;
-  const pathId = last(pathName.split("/")) || null;
+  const pathId = last(pathName.split('/')) || null;
   // const activeChannelId = params.channel;
   // const activeUserId = params.user;
 
@@ -135,41 +135,36 @@ const Messages = () => {
 
   useEffect(() => {
     if (messages.loading === false && containerBottomRef.current) {
-      setTimeout(() => containerBottomRef.current.scrollIntoView({ behavior: 'smooth' }), 0);
+      setTimeout(
+        () => containerBottomRef.current.scrollIntoView({ behavior: 'smooth' }),
+        0,
+      );
     }
   }, [messages.loading]);
 
   useEffect(() => {
-    console.log({ activeUserId, activeChannelId, pathId });
     if (activeChannelId) {
-      console.log("load messages", {
-        activeChannelId,
-      });
       dispatch(
         loadMessages({
           activeChannelId,
-          page: 1 // Reset to first page when channel changes
-        })
+          page: 1, // Reset to first page when channel changes
+        }),
       );
     }
 
-    if (!activeChannelId && !activeUserId && pathId === "channels") {
-      console.log("load messages global");
+    if (!activeChannelId && !activeUserId && pathId === 'channels') {
       dispatch(loadMessages({}));
     }
   }, [pathId, activeUserId, activeChannelId, dispatch]);
 
   useEffect(() => {
     if (activeUserId && decIdentity?.bapId && !activeChannelId) {
-      console.log("load messages", {
-        activeUserId,
-      });
       dispatch(
         loadMessages({
           activeChannelId,
           activeUserId,
           myBapId: decIdentity?.bapId,
-        })
+        }),
       );
     }
 
@@ -196,24 +191,31 @@ const Messages = () => {
 
     // Use the order from messages.allIds and filter out invalid messages
     return messages.allIds
-      .map(id => {
+      .map((id) => {
         const message = messages.byId[id];
         if (!message) return null;
 
-        if (hideUnverifiedMessages && !isValidEmail(head(message.MAP).paymail)) {
+        if (
+          hideUnverifiedMessages &&
+          !isValidEmail(head(message.MAP).paymail)
+        ) {
           return null;
         }
 
-        const isValidMessage = (
+        const isValidMessage =
           (!activeChannelId && !head(message.MAP).channel) ||
           head(message.AIP)?.bapId === activeUser?._id ||
-          head(message.MAP).channel === activeChannelId
-        );
+          head(message.MAP).channel === activeChannelId;
 
         if (!isValidMessage) return null;
 
-        if (head(message.MAP).encrypted === "true") {
-          return processEncryptedMessage(message, session, friendRequests, decIdentity);
+        if (head(message.MAP).encrypted === 'true') {
+          return processEncryptedMessage(
+            message,
+            session,
+            friendRequests,
+            decIdentity,
+          );
         }
         return message;
       })
@@ -227,7 +229,7 @@ const Messages = () => {
     activeUser?._id,
     session,
     friendRequests,
-    decIdentity
+    decIdentity,
   ]);
 
   useEffect(() => {
@@ -263,16 +265,16 @@ const Messages = () => {
   const expiresIn = useMemo(() => {
     const ps = [...(pins.byChannel[activeChannelId] || [])];
     if (!ps) {
-      return "";
+      return '';
     }
     const channelPin = head(
-      ps.sort((a, b) => (a?.timestamp > b?.timestamp ? -1 : 1))
+      ps.sort((a, b) => (a?.timestamp > b?.timestamp ? -1 : 1)),
     );
     if (!channelPin || !channelPin?.expiresAt) {
-      return "";
+      return '';
     }
 
-    const mins = moment.unix(channelPin?.expiresAt).diff(moment(), "minutes");
+    const mins = moment.unix(channelPin?.expiresAt).diff(moment(), 'minutes');
     if (mins > 60) {
       return `${Math.floor(mins / 60)} hours and ${mins % 60} minutes`;
     }
@@ -286,8 +288,8 @@ const Messages = () => {
   const heading = useMemo(() => {
     if (activeChannelId) {
       return <>Welcome to #{activeChannelId}!</>;
-    } 
-     if (activeUser) {
+    }
+    if (activeUser) {
       return <>{activeUser?.user?.alternateName}</>;
     }
     return null;
@@ -296,13 +298,13 @@ const Messages = () => {
   const subheading = useMemo(() => {
     if (activeChannelId) {
       return <>This is the start of #{activeChannelId}.</>;
-    } 
+    }
     if (activeUser) {
       return self ? (
         <>This is the beginning of your notes.</>
       ) : (
         <>
-          This is the beginning of your direct message history with{" "}
+          This is the beginning of your direct message history with{' '}
           {activeUser?.user?.alternateName}
         </>
       );
@@ -315,7 +317,7 @@ const Messages = () => {
       // console.log("add friend", activeUser);
       sendFriendRequest(activeUser.idKey, decIdentity.xprv);
     } else {
-      console.error("no goods!");
+      console.error('no goods!');
     }
   }, [decIdentity, sendFriendRequest, activeUser]);
 
@@ -329,8 +331,8 @@ const Messages = () => {
           bgcolor="var(--background-accent)"
         />
       );
-    } 
-     if (activeUser) {
+    }
+    if (activeUser) {
       // TODO: Hook up avatar status
       return (
         <>
@@ -339,7 +341,7 @@ const Messages = () => {
             w={72}
             h={72}
             // bgColor={user.avatarColor}
-            bgcolor={"#000"}
+            bgcolor={'#000'}
             // status="online"
             icon={activeUser.user?.logo}
           />
@@ -389,7 +391,6 @@ const Messages = () => {
     !friendRequests.outgoing.allIds.includes(activeUser.idKey)
     // !activeUser.isFriend
   ) {
-    console.log({ activeUser, friendRequests });
     return (
       <Wrapper className="scrollable">
         <Container>
@@ -454,15 +455,15 @@ const Messages = () => {
             <PrimaryHeading>{heading}</PrimaryHeading>
             <SecondaryHeading>
               {self
-                ? "Encrypted notes that only you can read. Click enable notes to generate a key for this conversation."
-                : "You are not currently accepting new messages from non-friends."}
+                ? 'Encrypted notes that only you can read. Click enable notes to generate a key for this conversation.'
+                : 'You are not currently accepting new messages from non-friends.'}
             </SecondaryHeading>
 
             <AddFriendButton
               onClick={addFriend}
               disabled={friendRequestStatus === FetchStatus.Loading}
             >
-              {"Add Friend"}
+              {'Add Friend'}
             </AddFriendButton>
           </HeaderContainer>
           <br />
@@ -530,7 +531,7 @@ const Messages = () => {
               </button>
             )}
           {pins.allChannels.includes(activeChannelId) && (
-            <div style={{ color: "#777" }}>
+            <div style={{ color: '#777' }}>
               This channel is pinned for another {expiresIn}
             </div>
           )}
@@ -554,7 +555,7 @@ const Messages = () => {
           open={showPopover}
           anchorEl={anchorEl}
           onClose={handleClickAway}
-          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           user={user}
           setShowPopover={setShowPopover}
           self={
@@ -575,64 +576,82 @@ const Messages = () => {
 // Helper function to get the appropriate app icon
 const getAppIcon = (message) => {
   const app = head(message.MAP).app;
-  
+
   switch (app) {
-    case "bitchat":
+    case 'bitchat':
       return (
-        <div style={{ color: "lime", display: "flex", alignItems: "center" }}>
-          <FaTerminal style={{ width: ".75rem", height: ".75rem" }} />
+        <div style={{ color: 'lime', display: 'flex', alignItems: 'center' }}>
+          <FaTerminal style={{ width: '.75rem', height: '.75rem' }} />
         </div>
       );
-    case "blockpost.network":
+    case 'blockpost.network':
       return (
-        <div style={{ color: "white", display: "flex", alignItems: "center" }}>
-          <BlockpostIcon style={{ width: "1rem" }} />
+        <div style={{ color: 'white', display: 'flex', alignItems: 'center' }}>
+          <BlockpostIcon style={{ width: '1rem' }} />
         </div>
       );
-    case "bitchatnitro.com":
-      return <NitroIcon style={{ width: ".75rem", height: ".75rem" }} />;
-    case "retrofeed.me":
+    case 'bitchatnitro.com':
+      return <NitroIcon style={{ width: '.75rem', height: '.75rem' }} />;
+    case 'retrofeed.me':
       return (
-        <div style={{ color: "#F42B2C" }}>
-          <RetrofeedIcon style={{ width: ".75rem", height: ".75rem", opacity: "0.5" }} />
+        <div style={{ color: '#F42B2C' }}>
+          <RetrofeedIcon
+            style={{ width: '.75rem', height: '.75rem', opacity: '0.5' }}
+          />
         </div>
       );
-    case "pewnicornsocial.club":
+    case 'pewnicornsocial.club':
       return (
-        <div style={{ color: "pink" }}>
-          <GiUnicorn style={{ width: ".75rem", height: ".75rem", opacity: "0.5" }} />
+        <div style={{ color: 'pink' }}>
+          <GiUnicorn
+            style={{ width: '.75rem', height: '.75rem', opacity: '0.5' }}
+          />
         </div>
       );
     default:
       return (
-        <div style={{ color: "white", display: "flex", alignItems: "center", opacity: ".25" }}>
-          <MdChat style={{ width: ".75rem", height: ".75rem" }} />
+        <div
+          style={{
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            opacity: '.25',
+          }}
+        >
+          <MdChat style={{ width: '.75rem', height: '.75rem' }} />
         </div>
       );
   }
 };
 
 // Helper function to process encrypted messages
-const processEncryptedMessage = (message, session, friendRequests, decIdentity) => {
+const processEncryptedMessage = (
+  message,
+  session,
+  friendRequests,
+  decIdentity,
+) => {
   const messageFromMe = head(message.AIP)?.bapId === session.user?.bapId;
   const messageToMe = head(message.MAP)?.bapID === session.user?.bapId;
   const messageSelf = messageToMe && messageFromMe;
 
   const friendPrivateKey = friendPrivateKeyFromSeedString(
     messageSelf
-      ? "notes"
+      ? 'notes'
       : messageToMe
-      ? head(message.AIP)?.bapId
-      : head(message.MAP)?.bapID,
-    decIdentity.xprv
+        ? head(message.AIP)?.bapId
+        : head(message.MAP)?.bapID,
+    decIdentity.xprv,
   );
 
   const friendPubKey = messageToMe
-    ? head(friendRequests.incoming.byId[head(message.AIP).bapId]?.MAP)?.publicKey
-    : head(friendRequests.incoming.byId[head(message.MAP).bapID]?.MAP)?.publicKey;
+    ? head(friendRequests.incoming.byId[head(message.AIP).bapId]?.MAP)
+        ?.publicKey
+    : head(friendRequests.incoming.byId[head(message.MAP).bapID]?.MAP)
+        ?.publicKey;
 
   if (!messageSelf && (!friendPrivateKey || !friendPubKey)) {
-    console.error("failed to make key", friendPrivateKey, friendPubKey);
+    console.error('failed to make key', friendPrivateKey, friendPubKey);
     return message;
   }
 
@@ -643,16 +662,28 @@ const processEncryptedMessage = (message, session, friendRequests, decIdentity) 
       messageSelf
         ? undefined
         : messageToMe
-        ? new PublicKey(head(friendRequests.incoming.byId[head(message.AIP).bapId]?.MAP).publicKey)
-        : new PublicKey(head(friendRequests.incoming.byId[head(message.MAP).bapID]?.MAP).publicKey)
+          ? new PublicKey(
+              head(friendRequests.incoming.byId[head(message.AIP).bapId]?.MAP)
+                .publicKey,
+            )
+          : new PublicKey(
+              head(friendRequests.incoming.byId[head(message.MAP).bapID]?.MAP)
+                .publicKey,
+            ),
     );
 
     return {
       ...message,
-      B: [{ content: Buffer.from(decryptedContent).toString("utf8") }],
+      B: [{ content: Buffer.from(decryptedContent).toString('utf8') }],
     };
   } catch (e) {
-    console.error("failed to decrypt", head(message.MAP), head(message.AIP), friendPubKey, e);
+    console.error(
+      'failed to decrypt',
+      head(message.MAP),
+      head(message.AIP),
+      friendPubKey,
+      e,
+    );
     return message;
   }
 };

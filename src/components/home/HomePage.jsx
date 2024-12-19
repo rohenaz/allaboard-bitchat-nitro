@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect } from 'react';
 
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router";
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router';
 
-import { loadChannels } from "../../reducers/channelsReducer";
-import Layout from "./Layout";
+import { loadChannels } from '../../reducers/channelsReducer';
+import Layout from './Layout';
 
 const HomePage = () => {
   const dispatch = useDispatch();
@@ -21,7 +21,7 @@ const HomePage = () => {
 
   return (
     <Layout heading="Welcome back!">
-      <button type="button" onClick={navigate("/channels")}>
+      <button type="button" onClick={navigate('/channels')}>
         Start Chatting!
       </button>
     </Layout>

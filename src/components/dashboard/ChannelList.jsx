@@ -1,22 +1,22 @@
+import { head } from 'lodash';
+import moment from 'moment';
 // src/components/dashboard/ChannelList.js
-import { useCallback, useEffect, useState } from "react";
-import { head } from "lodash";
-import moment from "moment";
-import { useDispatch, useSelector } from "react-redux";
-import { Link as RDLink } from "react-router-dom";
-import styled from "styled-components";
-import { useBap } from "../../context/bap";
-import { useBitcoin } from "../../context/bitcoin";
-import { useHandcash } from "../../context/handcash";
-import { useWindowWidth } from "../../hooks";
-import { loadChannels, unpinChannel } from "../../reducers/channelsReducer";
-import { toggleSidebar } from "../../reducers/sidebarReducer";
-import { FetchStatus } from "../../utils/common";
-import Avatar from "./Avatar";
-import Hashtag from "./Hashtag";
-import List from "./List";
-import ListItem from "./ListItem";
-import PinChannelModal from "./modals/PinChannelModal";
+import { useCallback, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link as RDLink } from 'react-router-dom';
+import styled from 'styled-components';
+import { useBap } from '../../context/bap';
+import { useBitcoin } from '../../context/bitcoin';
+import { useHandcash } from '../../context/handcash';
+import { useWindowWidth } from '../../hooks';
+import { loadChannels, unpinChannel } from '../../reducers/channelsReducer';
+import { toggleSidebar } from '../../reducers/sidebarReducer';
+import { FetchStatus } from '../../utils/common';
+import Avatar from './Avatar';
+import Hashtag from './Hashtag';
+import List from './List';
+import ListItem from './ListItem';
+import PinChannelModal from './modals/PinChannelModal';
 
 const Link = styled(RDLink)`
   &:hover {
@@ -112,7 +112,7 @@ const ChannelList = ({ activeChannelId }) => {
   const channels = useSelector((state) => state.channels);
   const isInDesktop = useWindowWidth() > 768;
   const [unpinsSet, setUnpinsSet] = useState(false);
-  const messages = useSelector((state) => state.chat.messages);
+  const _messages = useSelector((state) => state.chat.messages);
   const user = useSelector((state) => state.session.user);
   const { pinStatus } = useBitcoin();
   const [pendingPin, setPendingPin] = useState(false);
@@ -124,14 +124,11 @@ const ChannelList = ({ activeChannelId }) => {
     dispatch(loadChannels());
   }, [dispatch]);
 
-  const mouseOver = useCallback(
-    (id) => {
-      if (id) {
-        setHoveringChannel(id);
-      }
-    },
-    []
-  );
+  const mouseOver = useCallback((id) => {
+    if (id) {
+      setHoveringChannel(id);
+    }
+  }, []);
 
   const mouseOut = useCallback(
     (id) => {
@@ -139,7 +136,7 @@ const ChannelList = ({ activeChannelId }) => {
         setHoveringChannel(undefined);
       }
     },
-    [hoveringChannel]
+    [hoveringChannel],
   );
 
   useEffect(() => {
@@ -162,31 +159,35 @@ const ChannelList = ({ activeChannelId }) => {
     (id) => {
       const channel = channels.byId[id];
       if (!channel) {
-        console.log('Channel not found in byId:', id);
         return null;
       }
 
       return (
         <Link
           key={id}
-          to={`/channels${id ? `/${id}` : ""}`}
+          to={`/channels${id ? `/${id}` : ''}`}
           onClick={() => !isInDesktop && dispatch(toggleSidebar())}
         >
           <ListItem
             icon={<Hashtag size="20px" />}
-            text={channel.channel || "global"}
+            text={channel.channel || 'global'}
             style={{
-              gap: "8px",
-              padding: "8px 4px",
+              gap: '8px',
+              padding: '8px 4px',
             }}
             id={channel.channel}
             isPinned={channels.pins?.byChannel[channel.channel]}
             onMouseEnter={(e) => mouseOver(e.target.id)}
             onMouseLeave={(e) => mouseOut(e.target.id)}
             hasActivity={channel.last_message_time > lastMessageSeen}
-            isActive={channel.channel === activeChannelId || (!channel.channel && !activeChannelId)}
+            isActive={
+              channel.channel === activeChannelId ||
+              (!channel.channel && !activeChannelId)
+            }
             showPin={
-              pinStatus !== FetchStatus.Loading && channel.channel && hoveringChannel === channel.channel
+              pinStatus !== FetchStatus.Loading &&
+              channel.channel &&
+              hoveringChannel === channel.channel
             }
             onClickPin={() => {
               setPendingPin(channel.channel);
@@ -205,7 +206,7 @@ const ChannelList = ({ activeChannelId }) => {
       dispatch,
       mouseOver,
       mouseOut,
-    ]
+    ],
   );
 
   return (
@@ -217,38 +218,37 @@ const ChannelList = ({ activeChannelId }) => {
         <List gap="2px">
           {!channels.loading && channels.pins?.allChannels?.length > 0 && (
             <>
-              {console.log('Rendering pinned channels:', channels.pins.allChannels)}
+              {}
               {channels.pins.allChannels
-                .filter(id => {
+                .filter((id) => {
                   const exists = !!channels.byId[id];
-                  console.log('Pinned channel filter:', { id, exists });
                   return exists;
                 })
                 .map(renderChannel)}
             </>
           )}
-          {!channels.loading && channels.allIds?.length > 0 && (
+          {!channels.loading &&
+            channels.allIds?.length > 0 &&
             channels.allIds
-                .filter(id => {
-                  const notPinned = !channels.pins?.byChannel[id];
-                  const exists = !!channels.byId[id];
-                  return notPinned && exists;
-                })
-                .map(renderChannel)
-          )}
+              .filter((id) => {
+                const notPinned = !channels.pins?.byChannel[id];
+                const exists = !!channels.byId[id];
+                return notPinned && exists;
+              })
+              .map(renderChannel)}
         </List>
       </Content>
       <Footer>
         <Avatar
           size="21px"
           w="32px"
-          bgcolor={"#000"}
+          bgcolor={'#000'}
           status="online"
           paymail={profile?.paymail}
         />
         <Username>
           <div>{user?.alternativeName || profile?.paymail}</div>
-          <div style={{ fontSize: ".75rem", color: "#777" }}>
+          <div style={{ fontSize: '.75rem', color: '#777' }}>
             {decIdentity?.bapId?.slice(0, 8)}
           </div>
         </Username>

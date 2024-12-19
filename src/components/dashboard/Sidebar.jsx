@@ -1,12 +1,12 @@
 // src/components/dashboard/Sidebar.js
-import React, { useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 
-import styled from "styled-components";
+import styled from 'styled-components';
 
-import ChannelList from "./ChannelList";
-import ServerList from "./ServerList";
-import UserList from "./UserList";
+import ChannelList from './ChannelList';
+import ServerList from './ServerList';
+import UserList from './UserList';
 
 const Container = styled.div`
   display: flex;

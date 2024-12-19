@@ -1,7 +1,15 @@
-import { useMemo } from "react";
-import styled from "styled-components";
-import { getBase64Url } from "../../utils/file";
-import { FileRenderer } from "./FileRenderer";
+import { useMemo } from 'react';
+import styled from 'styled-components';
+import { getBase64Url } from '../../utils/file';
+import FileRenderer from './FileRenderer';
+
+interface MessageFileProps {
+  file: {
+    'content-type'?: string;
+    media_type?: string;
+  };
+  onClick?: () => void;
+}
 
 const Container = styled.div`
   flex: 1;
@@ -25,15 +33,15 @@ const Container = styled.div`
   }
 `;
 
-const MessageFile = ({ file, onClick }) => {
+const MessageFile: React.FC<MessageFileProps> = ({ file, onClick }) => {
   const b64 = useMemo(() => getBase64Url(file), [file]);
 
   if (!b64) {
     return null;
   }
 
-  const contentType = file["content-type"] ?? file["media_type"];
-  const fileType = contentType.split("/")[0];
+  const contentType = file['content-type'] ?? file.media_type;
+  const fileType = contentType.split('/')[0];
 
   return (
     <Container>

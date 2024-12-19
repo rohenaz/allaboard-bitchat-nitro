@@ -12,32 +12,46 @@ import Label from './Label';
 import Layout from './Layout';
 import SubmitButton from './SubmitButton';
 
-const LoginPage = () => {
+interface SessionState {
+  error: string;
+}
+
+interface RootState {
+  session: SessionState;
+}
+
+const LoginPage: React.FC = () => {
   const { isReady, connect, isConnected } = useYoursWallet();
-  const [pandaAuth, setPandaAuth] = useState();
+  const [pandaAuth, setPandaAuth] = useState<boolean>();
 
   const { setAuthToken, profile, getProfile } = useHandcash();
   const dispatch = useDispatch();
-  const [selectedWallet, setSelectedWallet] = useState('handcash');
+  const [selectedWallet, setSelectedWallet] = useState<'handcash' | 'yours'>('handcash');
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.has('authToken')) {
       const token = searchParams.get('authToken');
-      setAuthToken(token);
-      getProfile();
+      if (token) {
+        setAuthToken(token);
+        getProfile();
+      }
     }
   }, [getProfile, setAuthToken]);
 
   const handleSubmit = useCallback(
-    async (event) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (event.target.wallet.value === 'handcash') {
+      const target = event.target as typeof event.target & {
+        wallet: { value: 'handcash' | 'yours' };
+      };
+
+      if (target.wallet.value === 'handcash') {
         window.location.href = `${env.REACT_APP_API_URL}/hcLogin`;
         return;
       }
 
-      if (event.target.wallet.value === 'yours') {
+      if (target.wallet.value === 'yours') {
         if (!isReady) {
           window.open(
             'https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj',
@@ -55,15 +69,13 @@ const LoginPage = () => {
         if (keys) {
           setPandaAuth(true);
         }
-
-        return;
       }
     },
     [isReady, connect, isConnected],
   );
 
   const navigate = useNavigate();
-  const session = useSelector((state) => state.session);
+  const session = useSelector((state: RootState) => state.session);
   useEffect(() => {
     if (profile || pandaAuth) {
       dispatch(loadChannels());
@@ -71,8 +83,8 @@ const LoginPage = () => {
     }
   }, [dispatch, navigate, profile, pandaAuth]);
 
-  const walletChanged = useCallback((e) => {
-    setSelectedWallet(e.target.value);
+  const walletChanged = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedWallet(e.target.value as 'handcash' | 'yours');
   }, []);
 
   return (
@@ -162,4 +174,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default LoginPage; 

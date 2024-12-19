@@ -1,8 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { loadFriends } from "../reducers/memberListReducer";
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { loadFriends } from '../reducers/memberListReducer';
 
 export const login = createAsyncThunk(
-  "session/login",
+  'session/login',
   async ({ bapId }, { dispatch, rejectWithValue }) => {
     try {
       // const response = await userAPI.login(userInfo);
@@ -14,7 +14,7 @@ export const login = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
-  }
+  },
 );
 
 // export const signup = createAsyncThunk(
@@ -37,11 +37,11 @@ const initialState = {
 };
 
 const sessionSlice = createSlice({
-  name: "session",
+  name: 'session',
   initialState,
   reducers: {
-    connectSocket(state, action) {},
-    logout(state, action) {
+    connectSocket(_state, _action) {},
+    logout(state, _action) {
       state.isAuthenticated = false;
       state.loading = false;
       state.user = null;
@@ -49,14 +49,14 @@ const sessionSlice = createSlice({
     },
     setBapId(state, action) {
       // console.log("setting bap id to", action.payload);
-      let newUser = Object.assign({}, state.user || {});
+      const newUser = Object.assign({}, state.user || {});
       newUser.idKey = action.payload;
       state.user = newUser;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(login.pending, (state, action) => {
+      .addCase(login.pending, (state, _action) => {
         state.loading = true;
         state.isAuthenticated = false;
       })

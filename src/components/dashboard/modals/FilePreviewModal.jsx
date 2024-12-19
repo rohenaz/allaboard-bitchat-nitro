@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
-import OutsideClickHandler from "react-outside-click-handler";
-import styled from "styled-components";
-import { getBase64Url } from "../../../utils/file";
+import React, { useMemo } from 'react';
+import OutsideClickHandler from 'react-outside-click-handler';
+import styled from 'styled-components';
+import { getBase64Url } from '../../../utils/file';
 
 const PopupMessageContainer = styled.div`
   padding: 16px;
@@ -37,15 +37,15 @@ const FilePreviewModal = ({ open, onClose, file }) => {
   return (
     <div
       style={{
-        position: "fixed",
+        position: 'fixed',
         zIndex: 1000,
-        width: "100vw",
-        height: "100dvh",
-        background: `rgba(0,0,0,.5)`,
-        alignItems: "center",
-        justifyContent: "center",
-        display: `${open ? "flex" : "none"}`,
-        pointerEvents: `${open ? "unset" : "none"}`,
+        width: '100vw',
+        height: '100dvh',
+        background: 'rgba(0,0,0,.5)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        display: `${open ? 'flex' : 'none'}`,
+        pointerEvents: `${open ? 'unset' : 'none'}`,
       }}
       className="top-0 left-0"
     >

@@ -1,27 +1,27 @@
-import React, { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from 'react';
 
-import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
-import Drawer from "@mui/material/Drawer";
-import styled, { css } from "styled-components";
+import Drawer from '@mui/material/Drawer';
+import styled, { css } from 'styled-components';
 
-import { useBap } from "../../context/bap";
-import { hideInDesktop } from "../../design/mixins";
-import { useWindowWidth } from "../../hooks";
-import { setActiveChannel } from "../../reducers/channelsReducer";
+import { useBap } from '../../context/bap';
+import { hideInDesktop } from '../../design/mixins';
+import { useWindowWidth } from '../../hooks';
+import { setActiveChannel } from '../../reducers/channelsReducer';
 import {
   setActiveUser,
   toggleMemberList,
-} from "../../reducers/memberListReducer";
-import { login } from "../../reducers/sessionReducer";
-import { toggleSidebar } from "../../reducers/sidebarReducer";
-import ChatArea from "./ChatArea";
-import Friends from "./Friends";
-import Header from "./Header";
-import MemberList from "./MemberList";
-import ImportIDModal from "./modals/ImportIDModal";
-import Sidebar from "./Sidebar";
+} from '../../reducers/memberListReducer';
+import { login } from '../../reducers/sessionReducer';
+import { toggleSidebar } from '../../reducers/sidebarReducer';
+import ChatArea from './ChatArea';
+import Friends from './Friends';
+import Header from './Header';
+import MemberList from './MemberList';
+import Sidebar from './Sidebar';
+import ImportIDModal from './modals/ImportIDModal';
 
 const Container = styled.div`
   display: grid;
@@ -69,7 +69,7 @@ const MobileDrawer = styled(Drawer)`
 `;
 
 const DesktopItem = styled.div`
-  display: ${(p) => (p.$isOpen ? "block" : "none")};
+  display: ${(p) => (p.$isOpen ? 'block' : 'none')};
 
   @media (max-width: 768px) {
     display: none;
@@ -157,14 +157,15 @@ const Dashboard = ({ isFriendsPage }) => {
 
   useEffect(() => {
     // console.log({ session, decIdentity });
-    if (decIdentity && decIdentity?.bapId && !session.user) {
+    if (decIdentity?.bapId && !session.user) {
       dispatch(
         login({
           bapId: decIdentity.bapId,
-        })
+          idKey: decIdentity.idKey,
+        }),
       );
     }
-  }, [session?.user, decIdentity?.bapId]);
+  }, [decIdentity, session, dispatch]);
 
   return (
     <Container $isMemberListOpen={isMemberListOpen}>

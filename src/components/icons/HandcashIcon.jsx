@@ -19,8 +19,16 @@ const HandcashIcon = (props) => (
       </clipPath>
     </defs>
     <g id="Handcash-icon-white" clipPath="url(#clip-Handcash-icon-white)">
-      <g id="Grupo_1" data-name="Grupo 1" transform="translate(-117.828 -266.829)">
-        <g id="Grupo_297" data-name="Grupo 297" transform="translate(117.828 266.829)">
+      <g
+        id="Grupo_1"
+        data-name="Grupo 1"
+        transform="translate(-117.828 -266.829)"
+      >
+        <g
+          id="Grupo_297"
+          data-name="Grupo 297"
+          transform="translate(117.828 266.829)"
+        >
           <path
             id="Sustracción_1"
             data-name="Sustracción 1"

@@ -1,16 +1,14 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { loadFromLocalStorage, saveInLocalStorage } from "../utils/storage";
+import { createSlice } from '@reduxjs/toolkit';
+import { loadFromLocalStorage, saveInLocalStorage } from '../utils/storage';
 
 export const SETTINGS_OPTIONS = Object.freeze({
-  HIDE: "HIDE",
-  SHOW: "SHOW",
+  HIDE: 'HIDE',
+  SHOW: 'SHOW',
 });
 
 const hideUnverifiedMessagesInitState =
-  loadFromLocalStorage("settings.hideUnverifiedMessages") ===
-  SETTINGS_OPTIONS.HIDE
-    ? false
-    : true;
+  loadFromLocalStorage('settings.hideUnverifiedMessages') !==
+  SETTINGS_OPTIONS.HIDE;
 
 const initialState = {
   hideUnverifiedMessages: hideUnverifiedMessagesInitState,
@@ -18,16 +16,16 @@ const initialState = {
 };
 
 const settingsSlice = createSlice({
-  name: "settings",
+  name: 'settings',
   initialState,
   reducers: {
     toggleHideUnverifiedMessages(state) {
       state.hideUnverifiedMessages = !state.hideUnverifiedMessages;
       saveInLocalStorage(
-        "settings.hideUnverifiedMessages",
+        'settings.hideUnverifiedMessages',
         state.hideUnverifiedMessages
           ? SETTINGS_OPTIONS.SHOW
-          : SETTINGS_OPTIONS.HIDE
+          : SETTINGS_OPTIONS.HIDE,
       );
     },
     toggleSettings(state) {

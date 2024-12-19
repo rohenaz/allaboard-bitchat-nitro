@@ -1,12 +1,12 @@
-import React, { useCallback, useState } from "react";
-import { FaCheck, FaSearch } from "react-icons/fa";
-import OutsideClickHandler from "react-outside-click-handler";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import tw from "twin.macro";
+import axios from 'axios';
+import React, { useCallback, useState } from 'react';
+import { FaCheck, FaSearch } from 'react-icons/fa';
+import OutsideClickHandler from 'react-outside-click-handler';
+import { useNavigate } from 'react-router-dom';
+import tw from 'twin.macro';
 
 const api = axios.create({
-  baseURL: "https://bmap-api-production.up.railway.app/q/",
+  baseURL: 'https://bmap-api-production.up.railway.app/q/',
 });
 
 const ModalOverlay = tw.div`
@@ -34,7 +34,7 @@ const OkayButton = tw.button`
 `;
 
 const DirectMessageModal = ({ open, onClose }) => {
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [results, setResults] = useState([]);
   const navigate = useNavigate();
 
@@ -45,13 +45,13 @@ const DirectMessageModal = ({ open, onClose }) => {
         aggregate: [
           {
             $match: {
-              "MAP.type": "message",
+              'MAP.type': 'message',
               $or: [
-                { "AIP.bapId": term },
-                { "AIP.identity.alternateName": term },
-                { "AIP.identity.paymail": term },
+                { 'AIP.bapId': term },
+                { 'AIP.identity.alternateName': term },
+                { 'AIP.identity.paymail': term },
               ],
-              "AIP.bapId": {
+              'AIP.bapId': {
                 $exists: true,
               },
             },
@@ -59,8 +59,8 @@ const DirectMessageModal = ({ open, onClose }) => {
           {
             $project: {
               user: 1,
-              "AIP.bapId": 1,
-              "AIP.identity": 1,
+              'AIP.bapId': 1,
+              'AIP.identity': 1,
               timestamp: 1,
             },
           },
@@ -71,12 +71,12 @@ const DirectMessageModal = ({ open, onClose }) => {
           },
           {
             $group: {
-              _id: "$AIP.bapId",
+              _id: '$AIP.bapId',
               user: {
-                $first: "$AIP.identity",
+                $first: '$AIP.identity',
               },
               last_message_time: {
-                $last: "$timestamp",
+                $last: '$timestamp',
               },
               actions: {
                 $sum: 1,
@@ -92,14 +92,14 @@ const DirectMessageModal = ({ open, onClose }) => {
 
   const queryUsersB64 = useCallback(
     (term) => btoa(JSON.stringify(queryUsers(term))),
-    [queryUsers]
+    [queryUsers],
   );
 
   const searchUsers = useCallback(
     async (term) => {
       return await api.get(`q/${queryUsersB64(term)}?d=search`);
     },
-    [queryUsersB64]
+    [queryUsersB64],
   );
 
   const handleInputChange = useCallback((e) => {
@@ -108,20 +108,23 @@ const DirectMessageModal = ({ open, onClose }) => {
 
   const handleSubmit = useCallback(async () => {
     if (!inputValue.trim()) return;
-    
+
     try {
       const resp = await searchUsers(inputValue);
       setResults(resp.data.message || []);
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.error('Error searching users:', error);
       setResults([]);
     }
   }, [inputValue, searchUsers]);
 
-  const handleUserSelect = useCallback((userId) => {
-    onClose();
-    navigate(`/@/${userId}`);
-  }, [navigate, onClose]);
+  const handleUserSelect = useCallback(
+    (userId) => {
+      onClose();
+      navigate(`/@/${userId}`);
+    },
+    [navigate, onClose],
+  );
 
   if (!open) return null;
 

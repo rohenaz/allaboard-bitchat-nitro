@@ -1,7 +1,7 @@
-import { useState } from "react";
-import styled from "styled-components";
-import MessageFile from "./MessageFile";
-import FilePreviewModal from "./modals/FilePreviewModal";
+import { useState } from 'react';
+import styled from 'styled-components';
+import MessageFile from './MessageFile';
+import FilePreviewModal from './modals/FilePreviewModal';
 
 const Container = styled.div`
   display: flex;
@@ -22,9 +22,9 @@ const MessageFiles = ({ files }) => {
   return (
     <>
       <Container>
-        {files.map((file, i) => (
+        {files.map((file) => (
           <MessageFile
-            key={i}
+            key={file.txid || file.name || file.url}
             file={file}
             onClick={() => setSelectedFile(file)}
           />

@@ -1,16 +1,16 @@
-import React from "react";
+import React from 'react';
 
-import { FaAt } from "react-icons/fa";
-import styled from "styled-components";
+import { FaAt } from 'react-icons/fa';
+import styled from 'styled-components';
 
-import { baseIcon, roundedBackground } from "../../design/mixins";
+import { baseIcon, roundedBackground } from '../../design/mixins';
 
 export const Wrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   ${baseIcon};
-  color: ${(p) => p.color || "var(--text-muted)"};
+  color: ${(p) => p.color || 'var(--text-muted)'};
   ${(p) => p.bgColor && roundedBackground};
 `;
 

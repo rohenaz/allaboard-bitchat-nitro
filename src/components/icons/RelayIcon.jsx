@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 // Relay dark blue ##0E2E8D
 const RelayIcon = (props) => (

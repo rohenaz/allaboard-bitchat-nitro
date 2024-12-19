@@ -1,4 +1,4 @@
-import { css } from "styled-components";
+import { css } from 'styled-components';
 
 export const wh = ({ w, h = w }) => css`
   width: ${w};
@@ -6,12 +6,12 @@ export const wh = ({ w, h = w }) => css`
 `;
 
 export const font = ({ color, size }) => css`
-  color: ${color || "var(--text-normal)"};
-  font-size: ${size || "1rem"};
+  color: ${color || 'var(--text-normal)'};
+  font-size: ${size || '1rem'};
 `;
 
 export const baseIcon = ({ border }) => css`
-  border: ${border || "none"};
+  border: ${border || 'none'};
   ${wh};
   ${font};
 `;
@@ -20,8 +20,9 @@ export const roundedBackground = ({ bgColor, bgColorOnHover }) => css`
   border-radius: 50%;
   background-color: ${bgColor};
 
-  ${bgColorOnHover &&
-  css`
+  ${
+    bgColorOnHover &&
+    css`
     transition: 0.3s;
 
     &:hover {
@@ -34,11 +35,12 @@ export const roundedBackground = ({ bgColor, bgColorOnHover }) => css`
       css`
         border-radius: 16px;
       `}
-  `}
+  `
+  }
 `;
 
 export const interactiveColor = ({ isActive }) => css`
-  color: ${isActive ? "var(--interactive-active)" : "var(--channels-default)"};
+  color: ${isActive ? 'var(--interactive-active)' : 'var(--channels-default)'};
 
   &:hover {
     color: var(--interactive-hover);
