@@ -28,7 +28,7 @@ interface RootState {
   };
   session: {
     user?: {
-      bapId?: string;
+      idKey?: string;
     };
   };
 }
@@ -61,10 +61,10 @@ const ChannelList: React.FC = () => {
   const user = useSelector((state: RootState) => state.session.user);
 
   useEffect(() => {
-    if (user?.bapId) {
+    if (user?.idKey) {
       dispatch(loadChannels());
     }
-  }, [dispatch, user?.bapId]);
+  }, [dispatch, user]);
 
   const handleClick = useCallback(
     (channelId: string) => {

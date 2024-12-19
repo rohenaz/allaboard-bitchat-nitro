@@ -1,4 +1,3 @@
-import { Popover } from '@mui/material';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -8,11 +7,12 @@ import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { useActiveUser } from '../../hooks';
 import Avatar from './Avatar';
+import Popover from './Popover';
 
 interface RootState {
   session: {
     user?: {
-      bapId?: string;
+      idKey?: string;
     };
   };
 }
@@ -21,78 +21,75 @@ interface UserPopoverProps {
   open: boolean;
   onClose: () => void;
   anchorEl: HTMLElement | null;
-  paymail?: string;
+  paymail: string;
   logo?: string;
   alternateName?: string;
-  bapId?: string;
+  bapId: string;
 }
 
 const Container = styled.div`
+  width: 300px;
   background-color: var(--background-floating);
   border-radius: 8px;
-  padding: 1rem;
-  width: 340px;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
 `;
 
 const Banner = styled.div`
-  background-color: var(--background-secondary);
   height: 60px;
-  margin: -1rem -1rem 0;
-  border-radius: 8px 8px 0 0;
+  background-color: var(--background-accent);
 `;
 
 const AvatarWrapper = styled.div`
-  margin-top: -30px;
-  margin-left: 1rem;
-  margin-bottom: 1rem;
+  margin-top: -40px;
+  margin-left: 16px;
+  margin-bottom: 12px;
   cursor: pointer;
 `;
 
-const Username = styled.div`
+const Username = styled.h3`
+  margin: 0;
+  padding: 0 16px;
   color: var(--header-primary);
-  font-size: 1.25rem;
+  font-size: 20px;
   font-weight: 600;
-  margin-left: 1rem;
-  margin-bottom: 1rem;
+  line-height: 24px;
 `;
 
 const Section = styled.div`
-  margin-bottom: 1rem;
+  margin: 24px 16px 16px;
 `;
 
-const SectionTitle = styled.div`
+const SectionTitle = styled.h4`
+  margin: 0 0 8px;
+  padding: 0;
   color: var(--header-secondary);
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
 `;
 
 const SectionContent = styled.div`
   color: var(--text-normal);
-  font-size: 0.875rem;
+  font-size: 14px;
+  line-height: 18px;
 `;
 
 const Button = styled.button`
+  margin: 0 16px 16px;
+  padding: 2px 16px;
+  width: calc(100% - 32px);
+  height: 32px;
   background-color: var(--button-secondary-background);
   color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 500;
   border: none;
   border-radius: 3px;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.17s ease;
 
   &:hover {
     background-color: var(--button-secondary-background-hover);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 `;
 
@@ -117,8 +114,8 @@ const UserPopover: React.FC<UserPopoverProps> = ({
   }, [authToken, connected]);
 
   const self = useMemo(() => {
-    return bapId === session.user?.bapId;
-  }, [bapId, session.user?.bapId]);
+    return bapId === session.user?.idKey;
+  }, [bapId, session.user?.idKey]);
 
   const handleClick = useCallback(() => {
     if (self) {

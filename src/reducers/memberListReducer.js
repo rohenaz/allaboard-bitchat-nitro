@@ -40,7 +40,7 @@ export const loadFriends = createAsyncThunk(
   async (_, { rejectWithValue, getState }) => {
     const { session } = getState();
     try {
-      const response = await channelAPI.getFriends(session.bapId);
+      const response = await channelAPI.getFriends(session.user?.idKey);
       return response;
     } catch (err) {
       return rejectWithValue(err);
@@ -110,7 +110,7 @@ const memberListSlice = createSlice({
       })
       .addCase(loadFriends.fulfilled, (state, action) => {
         state.friendRequests.loading = false;
-        const friends = action.payload?.data || [];
+        const friends = action.payload?.friend || [];
         for (const friend of friends) {
           // exclude our original broken friend requests
           if (friend.MAP?.type === 'friend') {

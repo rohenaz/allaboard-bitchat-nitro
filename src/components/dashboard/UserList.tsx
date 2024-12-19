@@ -25,7 +25,7 @@ interface RootState {
   };
   session: {
     user?: {
-      bapId?: string;
+      idKey?: string;
     };
   };
 }
@@ -53,11 +53,14 @@ const Container = styled.div`
 `;
 
 const Title = styled.h2`
-  color: var(--header-secondary);
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0 10px;
+  margin: 0;
   text-transform: uppercase;
-  margin: 1.5rem 0 0.5rem 1rem;
+  font-weight: 500;
+  font-size: 12px;
+  height: 24px;
+  line-height: 24px;
+  color: var(--channels-default);
 `;
 
 const UserList: React.FC<UserListProps> = ({
@@ -71,11 +74,7 @@ const UserList: React.FC<UserListProps> = ({
   const params = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const _activeUser = useActiveUser();
 
-  const friendRequests = useSelector(
-    (state: RootState) => state.memberList.friendRequests,
-  );
   const session = useSelector((state: RootState) => state.session);
 
   const activeUserId = useMemo(() => params.user, [params.user]);
@@ -88,12 +87,12 @@ const UserList: React.FC<UserListProps> = ({
 
   const handleClick = useCallback(
     (id: string) => {
-      if (id === session.user?.bapId) {
+      if (id === session.user?.idKey) {
         return;
       }
       navigate(`/channels/@me/${id}`);
     },
-    [navigate, session.user?.bapId],
+    [navigate, session.user?.idKey],
   );
 
   const renderUser = useCallback(
@@ -104,7 +103,7 @@ const UserList: React.FC<UserListProps> = ({
       alternateName?: string;
     }) => {
       const isActive = user._id === activeUserId;
-      const isSelf = user._id === session.user?.bapId;
+      const isSelf = user._id === session.user?.idKey;
 
       return (
         <ListItem
@@ -124,23 +123,24 @@ const UserList: React.FC<UserListProps> = ({
         </ListItem>
       );
     },
-    [activeUserId, handleClick, session.user?.bapId],
+    [activeUserId, handleClick, session.user?.idKey],
   );
 
-  if (loading || friendRequests.loading === FetchStatus.Loading) {
-    return null;
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (
+    !showFriendRequests &&
+    (authToken === FetchStatus.LOADING || connected === FetchStatus.LOADING)
+  ) {
+    return <div>Loading wallet...</div>;
   }
 
   return (
     <Container>
       {title && <Title>{title}</Title>}
-      {users.map(renderUser)}
-      {showFriendRequests && friendRequests.data?.length > 0 && (
-        <>
-          <Title>Friend Requests</Title>
-          {friendRequests.data.map(renderUser)}
-        </>
-      )}
+      {users?.map(renderUser)}
     </Container>
   );
 };

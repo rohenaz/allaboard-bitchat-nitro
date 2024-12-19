@@ -4,6 +4,12 @@
 /build
 *.local
 
+# Performance testing
+/performance_results
+server.log
+curl-format.txt
+measure_performance.sh
+
 # Logs
 logs
 *.log

@@ -39,7 +39,7 @@ const socketMiddleware = () => {
       const channelId = last(window?.location?.pathname?.split('/')) || null;
       const { session } = storeAPI.getState();
       const { memberList } = storeAPI.getState();
-      data.myBapId = session.user?.bapId;
+      data.myBapId = session.user?.idKey;
       switch (head(data.MAP).type) {
         case 'like':
           storeAPI.dispatch(receiveNewReaction(data));
@@ -163,4 +163,4 @@ const socketMiddleware = () => {
   };
 };
 
-export default socketMiddleware();
+export default socketMiddleware;
