@@ -1,3 +1,4 @@
+// src/reducers/channelsReducer.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { find, head } from "lodash";
 import moment from "moment";
@@ -26,11 +27,21 @@ export const loadChannels = createAsyncThunk(
   "channels/loadChannels",
   async (_, { dispatch, rejectWithValue }) => {
     try {
+      console.log('Loading channels...');
       const response = await channelAPI.getChannels();
+      console.log('Channel API response in thunk:', response);
+      
+      // Validate response format
+      if (!response?.data) {
+        console.error('Invalid response format:', response);
+        return rejectWithValue('Invalid response format');
+      }
+      
       dispatch(loadPins());
-      return response?.data;
+      return response.data;
     } catch (err) {
-      return rejectWithValue(err.response);
+      console.error('Error loading channels:', err);
+      return rejectWithValue(err.response || err.message);
     }
   }
 );
@@ -54,19 +65,22 @@ const channelsSlice = createSlice({
     receiveNewChannel(state, action) {
       const channel = action.payload;
       if (!state.byId[channel.channel]) {
-        state.byId[channel.channel] = [];
+        state.byId[channel.channel] = {
+          channel: channel.channel,
+          last_message_time: channel.last_message_time || moment().unix(),
+          last_message: channel.last_message || "",
+          messages: 1,
+        };
       }
 
       if (!state.allIds.includes(channel.channel)) {
-        state.byId[channel.channel] = channel;
         state.allIds.push(channel.channel);
       } else {
         // existing channel - update it
-        // TODO: its less code to merge these the other way
-        let c = Object.assign(state.byId[channel.channel], {});
-        c.last_message_time = channel.last_message_time;
-        c.last_message = channel.last_message;
-        c.messages = c.messages + 1;
+        const c = state.byId[channel.channel];
+        c.last_message_time = channel.last_message_time || c.last_message_time;
+        c.last_message = channel.last_message || c.last_message;
+        c.messages = (c.messages || 0) + 1;
         state.byId[channel.channel] = c;
       }
     },
@@ -93,21 +107,20 @@ const channelsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loadPins.pending, (state, action) => {
+      .addCase(loadPins.pending, (state) => {
         state.pins.loading = true;
       })
       .addCase(loadPins.fulfilled, (state, action) => {
         state.pins.loading = false;
 
-        action.payload.pin_channel.forEach((pin) => {
+        for (const pin of action.payload.pin_channel) {
           const mapChannel = head(pin.MAP).channel;
           const channel = state.byId[mapChannel];
 
           let paymentAmount = 0;
           const proxyChannel = channel?.channel;
-          console.log({ channel, mapChannel, proxyChannel });
           if (channel && mapChannel === channel.channel) {
-            let paymentOutput = find(
+            const paymentOutput = find(
               pin.out,
               (o) => o.e.a === pinPaymentAddress
             );
@@ -115,13 +128,11 @@ const channelsSlice = createSlice({
 
             if (paymentAmount > 0) {
               const units = Math.floor(paymentAmount / satsPerUnit);
-              let expireMinutesFromTimestamp = minutesPerUnit * units;
-              let expireTime =
+              const expireMinutesFromTimestamp = minutesPerUnit * units;
+              const expireTime =
                 expireMinutesFromTimestamp * msPerMinute + pin.timestamp; // 100 sat / minute
 
-              // (calculate .00100000 bsv per 10 minutes) e.v/100000 (5c)
               if (moment.unix(expireTime).diff(moment(), "minutes") > 0) {
-                console.log(moment.unix(expireTime).diff(moment(), "minutes"));
                 pin.expiresAt = expireTime;
                 if (!state.pins.byChannel[mapChannel]) {
                   state.pins.byChannel[mapChannel] = [];
@@ -133,27 +144,83 @@ const channelsSlice = createSlice({
               }
             }
           }
-        });
+        }
       })
-      .addCase(loadChannels.pending, (state, action) => {
+      .addCase(loadChannels.pending, (state) => {
         state.loading = true;
       })
       .addCase(loadChannels.fulfilled, (state, action) => {
+        console.log('Processing channels in reducer:', action);
+        
         state.byId = {};
         state.allIds = [];
         state.loading = false;
-        console.log({ channelsPayload: action.payload });
-        action.payload.message.forEach((c) => {
-          //     return c;
-          //   })
-          //   .sort((a, b) =>
-          //     a.pinned && !b.pinned ? -1 : a.timestamp > b.timestamp ? -1 : 1
-          //   );
-          // return newData;
-          // console.log({ c });
-          state.byId[c.channel] = c;
-          state.allIds.push(c.channel);
-        });
+        
+        try {
+          // Handle different possible response formats
+          let channelsToProcess = [];
+          
+          if (Array.isArray(action.payload)) {
+            // If response is an array
+            channelsToProcess = action.payload;
+          } else if (action.payload?.channels) {
+            // If response has a channels property
+            channelsToProcess = action.payload.channels;
+          } else if (typeof action.payload === 'object') {
+            // If response is an object of channels
+            channelsToProcess = Object.values(action.payload);
+          }
+          
+          console.log('Channels to process:', channelsToProcess);
+          
+          if (channelsToProcess.length === 0) {
+            console.warn('No channels found in response');
+            return;
+          }
+          
+          // Process each channel
+          for (const channel of channelsToProcess) {
+            console.log('Processing channel:', channel);
+            
+            // Handle different channel formats
+            const channelName = channel.name || channel.channel || channel.id;
+            if (!channelName) {
+              console.warn('Skipping channel due to missing name:', channel);
+              continue;
+            }
+            
+            const channelData = {
+              channel: channelName,
+              last_message_time: channel.lastMessageTime || channel.last_message_time || 0,
+              last_message: channel.lastMessage || channel.last_message || "",
+              messages: channel.messageCount || channel.messages || 0,
+              creator: channel.creator || "",
+            };
+            
+            console.log('Adding channel to state:', channelData);
+            state.byId[channelName] = channelData;
+            state.allIds.push(channelName);
+          }
+          
+          console.log('Final channel state:', {
+            byId: state.byId,
+            allIds: state.allIds
+          });
+          
+          // Sort channels by last message time
+          state.allIds.sort((a, b) => {
+            const timeA = state.byId[a]?.last_message_time || 0;
+            const timeB = state.byId[b]?.last_message_time || 0;
+            return timeB - timeA;
+          });
+          
+        } catch (error) {
+          console.error('Error processing channels:', error);
+          // Reset state on error
+          state.byId = {};
+          state.allIds = [];
+          state.loading = false;
+        }
       });
   },
 });
