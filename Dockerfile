@@ -6,7 +6,7 @@ RUN bun install
 COPY . .
 RUN bun run build
 
-# Production stage
+# Production stage - lean and secure
 FROM caddy:2-alpine
 WORKDIR /srv
 COPY --from=builder /app/build /srv
