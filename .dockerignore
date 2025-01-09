@@ -1,0 +1,8 @@
+node_modules
+.git
+.env
+*.md
+.gitignore
+.vscode
+# Ensure build directory is included
+!build/ 

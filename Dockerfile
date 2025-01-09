@@ -6,7 +6,7 @@ RUN bun install
 COPY . .
 RUN bun run build
 
+# Production stage
 FROM caddy:alpine
 COPY --from=builder /app/build /srv/
 COPY Caddyfile /etc/caddy/Caddyfile
-CMD ["caddy", "run"]
