@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json bun.lockb ./
 RUN bun install
 COPY . .
-RUN ls -la && bun run build && ls -la dist
+RUN bun run build
 
 # Production stage
 FROM caddy:2-alpine
