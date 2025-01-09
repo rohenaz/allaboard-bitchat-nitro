@@ -12,5 +12,4 @@ cmds = ["bun install"]
 cmds = ["bun run build"]
 
 [start]
-cmd = "caddy run --config Caddyfile --adapter caddyfile"
-direct = true 
+cmd = "caddy run --config Caddyfile --adapter caddyfile" 

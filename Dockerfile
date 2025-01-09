@@ -6,12 +6,7 @@ RUN bun install
 COPY . .
 RUN bun run build
 
-# Production stage - lean and secure
-FROM caddy:2-alpine
-WORKDIR /srv
+# Production stage
+FROM caddy:alpine
 COPY --from=builder /app/build /srv
-COPY Caddyfile /etc/caddy/Caddyfile
-EXPOSE 80
-EXPOSE 443
-
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"] 
+COPY Caddyfile /etc/caddy/Caddyfile 
