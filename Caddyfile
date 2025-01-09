@@ -1,5 +1,5 @@
-:80 {
-    root * dist
+:{$PORT:80} {
+    root * /app/dist
     encode gzip
     header {
         # Enable cross-origin requests
