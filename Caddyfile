@@ -1,4 +1,5 @@
-{
+:80 {
+    root * dist
     encode gzip
     header {
         # Enable cross-origin requests
@@ -9,9 +10,6 @@
         X-Frame-Options "DENY"
         Referrer-Policy "strict-origin-when-cross-origin"
     }
-    handle {
-        root * dist
-        try_files {path} /index.html
-        file_server
-    }
+    try_files {path} /index.html
+    file_server
 } 
