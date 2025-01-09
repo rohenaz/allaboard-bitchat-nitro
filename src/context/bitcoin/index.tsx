@@ -13,13 +13,13 @@ import React, {
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { Store } from 'redux';
+import { API_BASE_URL, HANDCASH_API_URL } from '../../config/env';
 import { pinPaymentAddress } from '../../reducers/channelsReducer';
 import {
   receiveNewMessage,
   receiveNewReaction,
 } from '../../reducers/chatReducer';
 import { FetchStatus } from '../../utils/common';
-import env from '../../utils/env';
 import { getSigningPathFromHex } from '../../utils/sign';
 import { useBap } from '../bap';
 import { useBmap } from '../bmap';
@@ -218,7 +218,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           // decrypt and import identity
           const signedOps = await signOpReturnWithAIP(hexArray);
 
-          const resp = await fetch(`${env.API_URL}/hcSend/`, {
+          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -254,7 +254,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`${env.API_URL}/hcSend/`, {
+          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ hexArray, authToken, channel }),
@@ -351,6 +351,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
   const handleMessage = useCallback(
     async (pm: string, content: string, channel: string, userId?: string) => {
+      console.log('handleMessage called with:', { pm, content, channel, userId });
       setPostStatus(FetchStatus.Loading);
 
       try {
@@ -404,64 +405,24 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
             isYoursWallet ? 'paymail' : 'bapID',
             userId,
           );
-
-          if (!decIdentity && !isYoursWallet) {
-            return;
-          }
-
-          const { memberList } = storeAPI.getState();
-          const { friendRequests } = memberList;
-          if (
-            !(
-              friendRequests.incoming.byId[userId] ||
-              friendRequests.outgoing.byId[userId]
-            ) &&
-            (isYoursWallet
-              ? session.user?.paymail !== userId
-              : decIdentity?.bapId !== userId)
-          ) {
-            return;
-          }
-
-          if (!isYoursWallet) {
-            const friendPrivateKey = friendPrivateKeyFromSeedString(
-              decIdentity?.bapId === userId ? 'notes' : userId,
-              decIdentity?.xprv,
-            );
-
-            // get the friend's public key
-            const friendPubKey = head(
-              friendRequests.incoming.byId[userId]?.MAP,
-            ).publicKey;
-            // encrypt the content with shared ecies between the two identities
-            dataPayload[1] = encrypt(
-              dataPayload[1],
-              friendPrivateKey,
-              friendPubKey ? new PublicKey(friendPubKey) : undefined,
-            );
-            dataPayload[2] =
-              'application/bitcoin-ecies; content-type=text/plain';
-            dataPayload[3] = 'binary';
-          }
         }
+
+        console.log('Constructed data payload:', dataPayload);
 
         const hexArray = dataPayload.map((d) =>
           Buffer.from(d, 'utf8').toString('hex'),
         );
 
-        if (userId && !decIdentity && !isYoursWallet) {
-          return;
-        }
-
         // Send with Handcash
         if (authToken) {
+          console.log('Sending with Handcash');
           let signedOps: string[] | undefined;
           if (decIdentity && !isYoursWallet) {
             // decrypt and import identity
             signedOps = await signOpReturnWithAIP(hexArray);
           }
 
-          const resp = await fetch(`${env.API_URL}/hcSend/`, {
+          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -473,6 +434,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           });
 
           const { paymentResult } = await resp.json();
+          console.log('Handcash payment result:', paymentResult);
 
           // reset pending files
           if (pendingFiles) {
@@ -485,9 +447,11 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
               dispatch(receiveNewMessage(tx));
 
               setPostStatus(FetchStatus.Success);
-            } catch (_e) {
+              return tx;
+            } catch (error) {
+              console.error('Failed to notify indexer:', error);
               setPostStatus(FetchStatus.Error);
-              return;
+              throw error;
             }
           }
           return;
@@ -495,6 +459,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
         // Send with yours
         if (pandaProfile && utxos) {
+          console.log('Sending with Yours');
           let scriptP;
 
           try {
@@ -523,15 +488,21 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
             tx.timestamp = moment().unix();
             dispatch(receiveNewMessage(tx));
             setPostStatus(FetchStatus.Success);
-            return;
-          } catch (_e) {
+            return tx;
+          } catch (error) {
+            console.error('Failed to send with Yours:', error);
             setPostStatus(FetchStatus.Error);
-            return;
+            throw error;
           }
         }
+
+        console.error('No valid sending method available');
+        setPostStatus(FetchStatus.Error);
+        throw new Error('No valid sending method available');
       } catch (error) {
         console.error('Failed to send message:', error);
         setPostStatus(FetchStatus.Error);
+        throw error;
       }
     },
     [
@@ -587,7 +558,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
           setLikeStatus(FetchStatus.Loading);
 
-          const resp = await fetch(`${env.API_URL}/hcSend/`, {
+          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -679,7 +650,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           const signedOps = await signOpReturnWithAIP(hexArray);
 
           // console.log({ signedOps });
-          const resp = await fetch(`${env.API_URL}/hcSend/`, {
+          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -712,7 +683,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`${env.API_URL}/hcSend/`, {
+          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ hexArray, authToken, userId: friendIdKey }),

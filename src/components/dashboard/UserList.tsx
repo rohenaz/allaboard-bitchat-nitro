@@ -1,5 +1,7 @@
 import React, { type FC } from 'react';
+import { useSelector } from 'react-redux';
 import styled from 'styled-components';
+import type { RootState } from '../../store';
 import Avatar from './Avatar';
 
 interface User {
@@ -75,6 +77,21 @@ const LoadingText = styled.div`
   font-size: 14px;
 `;
 
+const Section = styled.div`
+  margin-bottom: 24px;
+`;
+
+const SectionTitle = styled.h3`
+  padding: 0 8px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--channels-default);
+  user-select: none;
+  text-transform: uppercase;
+`;
+
 export const UserList: FC<UserListProps> = ({
   activeUserId,
   users = [],
@@ -82,7 +99,11 @@ export const UserList: FC<UserListProps> = ({
   title,
   showFriendRequests = false,
 }) => {
-  if (loading) {
+  const friendRequests = useSelector(
+    (state: RootState) => state.memberList.friendRequests,
+  );
+
+  if (loading || friendRequests.loading) {
     return (
       <Container>
         {title && <Title>{title}</Title>}
@@ -94,6 +115,55 @@ export const UserList: FC<UserListProps> = ({
   return (
     <Container>
       {title && <Title>{title}</Title>}
+
+      {showFriendRequests && (
+        <>
+          <Section>
+            <SectionTitle>Incoming Friend Requests</SectionTitle>
+            {friendRequests.incoming.allIds.map((id) => {
+              const request = friendRequests.incoming.byId[id];
+              const signer = request.signer;
+              if (!signer) return null;
+
+              return (
+                <UserItem key={id}>
+                  <Avatar
+                    size="32px"
+                    paymail={signer.paymail}
+                    icon={signer.logo || ''}
+                  />
+                  <UserInfo>
+                    <Username>{signer.paymail}</Username>
+                  </UserInfo>
+                </UserItem>
+              );
+            })}
+          </Section>
+
+          <Section>
+            <SectionTitle>Outgoing Friend Requests</SectionTitle>
+            {friendRequests.outgoing.allIds.map((id) => {
+              const request = friendRequests.outgoing.byId[id];
+              const signer = request.signer;
+              if (!signer) return null;
+
+              return (
+                <UserItem key={id}>
+                  <Avatar
+                    size="32px"
+                    paymail={signer.paymail}
+                    icon={signer.logo || ''}
+                  />
+                  <UserInfo>
+                    <Username>{signer.paymail}</Username>
+                  </UserInfo>
+                </UserItem>
+              );
+            })}
+          </Section>
+        </>
+      )}
+
       {users.map((user) => (
         <UserItem key={user._id} $isActive={user._id === activeUserId}>
           <Avatar size="32px" paymail={user.paymail} icon={user.logo || ''} />

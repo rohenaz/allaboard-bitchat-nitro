@@ -1,13 +1,10 @@
-import React, { type FC } from 'react';
+import type { FC } from 'react';
 import styled from 'styled-components';
-import { useHandcash } from '../../context/handcash';
-import { useYours } from '../../context/yours';
 import ChannelList from './ChannelList';
 import ChatArea from './ChatArea';
 import Header from './Header';
 import { MemberList } from './MemberList';
 import ServerList from './ServerList';
-import { UserList } from './UserList';
 
 interface DashboardProps {
   isFriendsPage: boolean;
@@ -47,9 +44,6 @@ const MainContent = styled.div`
 `;
 
 export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
-  const { authToken } = useHandcash();
-  const { connected } = useYours();
-
   return (
     <Container>
       <ServerColumn>

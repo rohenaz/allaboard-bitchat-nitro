@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCallback, useContext, useMemo, useState } from 'react';
+import { API_BASE_URL, HANDCASH_API_URL } from '../../config/env';
 import { FetchStatus } from '../../utils/common';
-import env from '../../utils/env';
 import { lsTest, useLocalStorage } from '../../utils/storage';
 
 interface HandcashProfile {
@@ -22,7 +22,9 @@ interface HandcashContextValue {
   decryptStatus: FetchStatus;
 }
 
-const HandcashContext = React.createContext<HandcashContextValue | undefined>(undefined);
+const HandcashContext = React.createContext<HandcashContextValue | undefined>(
+  undefined,
+);
 
 const profileStorageKey = 'nitro__HandcashProvider_profile';
 const authTokenStorageKey = 'nitro__HandcashProvider_authToken';
@@ -32,8 +34,14 @@ interface HandcashProviderProps {
 }
 
 const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
-  const [profile, setProfile] = useLocalStorage<HandcashProfile | null>(profileStorageKey, null);
-  const [authToken, setAuthToken] = useLocalStorage<string | null>(authTokenStorageKey, null);
+  const [profile, setProfile] = useLocalStorage<HandcashProfile | null>(
+    profileStorageKey,
+    null,
+  );
+  const [authToken, setAuthToken] = useLocalStorage<string | null>(
+    authTokenStorageKey,
+    null,
+  );
   const [decryptStatus, setDecryptStatus] = useState(FetchStatus.Idle);
 
   const getProfile = useCallback(async () => {
@@ -43,7 +51,7 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
 
     if (authToken) {
       try {
-        const resp = await fetch(`${env.HANDCASH_API_URL}/hcProfile`, {
+        const resp = await fetch(`${HANDCASH_API_URL}/hcProfile`, {
           method: 'POST',
           headers: {
             'Content-type': 'application/json',
@@ -69,7 +77,7 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
         }
 
         if (authToken) {
-          fetch(`${env.HANDCASH_API_URL}/hcEncrypt`, {
+          fetch(`${HANDCASH_API_URL}/hcEncrypt`, {
             method: 'POST',
             headers: {
               'Content-type': 'application/json',
@@ -104,7 +112,7 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
         if (authToken) {
           if (encryptedData) {
             setDecryptStatus(FetchStatus.Loading);
-            fetch(`${env.HANDCASH_API_URL}/hcDecrypt`, {
+            fetch(`${HANDCASH_API_URL}/hcDecrypt`, {
               method: 'POST',
               headers: {
                 'Content-type': 'application/json',

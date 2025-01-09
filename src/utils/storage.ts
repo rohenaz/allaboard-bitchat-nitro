@@ -6,12 +6,15 @@ export const lsTest = () => {
     localStorage.setItem(test, test);
     localStorage.removeItem(test);
     return true;
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 };
 
-export function useLocalStorage<T>(key: string, initialValue?: T): [T | null, (value: T | null) => void] {
+export function useLocalStorage<T>(
+  key: string,
+  initialValue?: T,
+): [T | null, (value: T | null) => void] {
   const [storedValue, setStoredValue] = useState<T | null>(() => {
     if (!lsTest()) {
       return initialValue ?? null;
@@ -19,7 +22,7 @@ export function useLocalStorage<T>(key: string, initialValue?: T): [T | null, (v
 
     try {
       const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue ?? null;
+      return item ? JSON.parse(item) : (initialValue ?? null);
     } catch (error) {
       console.error(error);
       return initialValue ?? null;
@@ -40,4 +43,4 @@ export function useLocalStorage<T>(key: string, initialValue?: T): [T | null, (v
   };
 
   return [storedValue, setValue];
-} 
+}

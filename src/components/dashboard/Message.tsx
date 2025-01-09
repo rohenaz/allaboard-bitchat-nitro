@@ -1,134 +1,17 @@
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import type { EmojiClickData } from 'emoji-picker-react';
 import { head, tail } from 'lodash';
-import type React from 'react';
+import type { FC } from 'react';
 import { useMemo, useState } from 'react';
 import { MdAddReaction } from 'react-icons/md';
 import ReactMarkdown from 'react-markdown';
 import OutsideClickHandler from 'react-outside-click-handler';
 import { useSelector } from 'react-redux';
-import styled from 'styled-components';
 import { useBitcoin } from '../../context/bitcoin';
 import type { RootState } from '../../store';
 import { isValidEmail } from '../../utils/strings';
 import Avatar from './Avatar';
 import MessageFiles from './MessageFiles';
-
-const MessageButtons = styled.div`
-  background-color: var(--background-primary);
-  border-radius: 4px;
-  border: 1px solid var(--background-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  display: none;
-  transition: 0.1s ease-in-out;
-  height: 32px;
-  width: 64px;
-  position: absolute;
-  top: -16px;
-  right: 16px;
-
-  &:hover {
-    box-shadow: 0 0 0 1px rgba(4, 4, 5, 0.15);
-  }
-`;
-
-const Container = styled.div`
-  display: flex;
-  margin: 0.5rem 0;
-  padding: 0.5rem 1rem 0.5rem 0;
-  position: relative;
-  overflow-wrap: anywhere;
-
-  &:hover {
-    background-color: var(--background-secondary);
-
-    ${MessageButtons} {
-      display: flex;
-    }
-  }
-`;
-
-const AvatarWrapper = styled.div`
-  margin: 0 1rem;
-  cursor: pointer;
-`;
-
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  padding-bottom: 0.25rem;
-`;
-
-const Username = styled.a`
-  color: var(--header-primary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-right: 0.5rem;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const InfoContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const Timestamp = styled.div`
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  cursor: default;
-`;
-
-const Content = styled.div`
-  color: var(--text-normal);
-  font-size: 0.875rem;
-
-  a {
-    color: var(--text-link);
-    font-size: 0.75rem;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-`;
-
-const ReactionButton = styled.button`
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  padding: 0.25rem;
-  cursor: pointer;
-  transition: color 0.2s;
-  display: flex;
-  align-items: center;
-  opacity: 0;
-
-  ${Container}:hover & {
-    opacity: 1;
-  }
-
-  &:hover {
-    color: var(--text-normal);
-  }
-`;
-
-const ReactionContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: var(--background-modifier-accent);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-`;
 
 interface BmapTx {
   tx: {
@@ -148,9 +31,10 @@ interface BmapTx {
   }>;
   B?: Array<{
     encoding: string;
-    Data: {
+    Data?: {
       utf8: string;
     };
+    content?: string;
     'content-type'?: string;
     media_type?: string;
   }>;
@@ -168,11 +52,11 @@ interface MessageProps {
   };
 }
 
-const Message: React.FC<MessageProps> = ({ message, reactions }) => {
+const Message: FC<MessageProps> = ({ message, reactions }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { likeMessage } = useBitcoin();
   const session = useSelector((state: RootState) => state.session);
-  const isVerified = isValidEmail(head(message.MAP)?.paymail || '');
+  const _isVerified = isValidEmail(head(message.MAP)?.paymail || '');
 
   const handleEmojiClick = async (
     emojiData: EmojiClickData,
@@ -183,7 +67,18 @@ const Message: React.FC<MessageProps> = ({ message, reactions }) => {
     setShowEmojiPicker(false);
   };
 
-  const messageContent = head(message.B)?.Data?.utf8 || '';
+  const messageContent = useMemo(() => {
+    const firstB = head(message.B);
+    if (!firstB) return '';
+    
+    // Try to get content from any available source
+    return (
+      firstB.content || // Direct content field
+      firstB.Data?.utf8 || // Data.utf8 field
+      '' // Fallback empty string
+    );
+  }, [message]);
+
   const sender = head(message.MAP)?.paymail || '';
   const messageReactions = reactions?.byTxTarget?.[message.tx.h] || [];
 
@@ -209,29 +104,44 @@ const Message: React.FC<MessageProps> = ({ message, reactions }) => {
   );
 
   return (
-    <Container>
-      <AvatarWrapper>
+    <div className="relative flex my-2 py-2 pl-0 pr-4 group hover:bg-base-200">
+      <div className="absolute top-[-16px] right-4 hidden h-8 w-16 bg-base-100 rounded border border-base-200 transition-all duration-100 group-hover:flex items-center justify-center hover:shadow-sm">
+        <button
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          className="btn btn-ghost btn-xs"
+        >
+          <MdAddReaction size={16} />
+        </button>
+      </div>
+
+      <div className="mx-4 cursor-pointer">
         <Avatar icon="" paymail={sender} size="40px" />
-      </AvatarWrapper>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <Header>
-          <Username>{sender}</Username>
-          <Timestamp>
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center pb-1">
+          <button 
+            className="text-base-content font-medium text-sm mr-2 hover:underline cursor-pointer"
+          >
+            {sender}
+          </button>
+          <div className="text-base-content/60 text-xs cursor-default">
             {message.timestamp
               ? new Date(message.timestamp * 1000).toLocaleString()
               : message.blk?.t
                 ? new Date(message.blk.t * 1000).toLocaleString()
                 : ''}
-          </Timestamp>
-        </Header>
-        <Content>
+          </div>
+        </div>
+
+        <div className="text-base-content text-sm">
           <ReactMarkdown
             components={{
               p: ({ children }) => <span>{children}</span>,
               a: ({ href, children }) => (
                 <a
                   href={href}
-                  className="text-[var(--text-link)] hover:underline"
+                  className="text-primary hover:underline"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -242,29 +152,26 @@ const Message: React.FC<MessageProps> = ({ message, reactions }) => {
           >
             {messageContent}
           </ReactMarkdown>
-        </Content>
+        </div>
+
         {messageFiles && <MessageFiles files={messageFiles} />}
-        <InfoContainer>
-          <ReactionButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
-            <MdAddReaction size={16} />
-          </ReactionButton>
+
+        <div className="flex items-center gap-2 mt-1">
           {Object.entries(groupedReactions).map(([emoji, count], index) => (
-            <ReactionContainer key={index}>
+            <div
+              key={`${emoji}-${index}`}
+              className="flex items-center gap-1 bg-base-300/50 px-2 py-1 rounded text-sm"
+            >
               <span>{emoji}</span>
-              {count > 1 && <span style={{ marginLeft: '4px' }}>{count}</span>}
-            </ReactionContainer>
+              {count > 1 && <span className="ml-1">{count}</span>}
+            </div>
           ))}
+
           {showEmojiPicker && (
             <OutsideClickHandler
               onOutsideClick={() => setShowEmojiPicker(false)}
             >
-              <div
-                style={{
-                  position: 'absolute',
-                  zIndex: 50,
-                  marginTop: '0.5rem',
-                }}
-              >
+              <div className="absolute z-50 mt-2">
                 <EmojiPicker
                   onEmojiClick={(emojiData) =>
                     handleEmojiClick(emojiData, message.tx.h)
@@ -275,9 +182,9 @@ const Message: React.FC<MessageProps> = ({ message, reactions }) => {
               </div>
             </OutsideClickHandler>
           )}
-        </InfoContainer>
+        </div>
       </div>
-    </Container>
+    </div>
   );
 };
 

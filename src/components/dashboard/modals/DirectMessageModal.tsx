@@ -64,21 +64,21 @@ const DirectMessageModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-      <div className="bg-[#111] p-8 rounded-2xl text-[#777]">
+    <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-[9999]">
+      <div className="bg-base-100 p-8 rounded-2xl text-base-content/60">
         <form onSubmit={handleSubmit} className="p-4">
           <h2 className="text-lg font-bold mb-4">Direct Message</h2>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
+          {error && <div className="text-error mb-4">{error}</div>}
           <input
             type="text"
             placeholder="Enter username"
             value={username}
             onChange={handleInputChange}
-            className="bg-[#333] text-[#EEE] w-full p-2 border-0 rounded-lg mb-4"
+            className="input input-bordered w-full mb-4"
           />
           <button
             type="submit"
-            className="bg-black p-4 text-white flex items-center mx-auto hover:bg-[#222] transition-colors w-full"
+            className="btn btn-primary w-full"
           >
             Start Conversation
           </button>

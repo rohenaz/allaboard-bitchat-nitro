@@ -1,207 +1,207 @@
-import { head, uniq } from 'lodash';
-import type React from 'react';
-import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useCallback, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Nav } from 'rsuite';
-import NavItem from 'rsuite/esm/Nav/NavItem';
-import styled from 'styled-components';
-import { useBap } from '../../context/bap';
+import { api } from '../../api/fetch';
+import { useHandcash } from '../../context/handcash';
+import { useYours } from '../../context/yours';
+import { loadFriends } from '../../reducers/memberListReducer';
+import type { AppDispatch, RootState } from '../../store';
 import Avatar from './Avatar';
+import { UserList } from './UserList';
+
+interface User {
+  _id: string;
+  paymail: string;
+  logo?: string;
+  alternateName?: string;
+}
 
 interface FriendRequest {
-  signer: {
-    idKey: string;
-    identity?: {
-      paymail?: string;
-      logo?: string;
-      alternateName?: string;
-    };
-  };
+  _id: string;
+  from: string;
+  to: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface MemberListState {
-  friendRequests: {
-    incoming: {
-      allIds: string[];
-      byId: Record<string, FriendRequest>;
-    };
-    outgoing: {
-      allIds: string[];
-      byId: Record<
-        string,
-        {
-          MAP: Array<{ bapID: string }>;
-        }
-      >;
-    };
-  };
-  signers: {
-    byId: Record<
-      string,
-      {
-        idKey: string;
-        identity?: {
-          paymail?: string;
-          logo?: string;
-          alternateName?: string;
-        };
-      }
-    >;
-  };
+interface Channel {
+  id: string;
+  name: string;
+  members: string[];
 }
 
-interface RootState {
-  memberList: MemberListState;
-}
-
-const Wrapper = styled.div`
-  background-color: var(--background-primary);
-  display: flex;
-  flex: 1;
-  overflow: auto;
-  height: 100dvh;
-  width: 100%;
-`;
-
-const Container = styled.div`
-  margin-top: auto;
-  width: 100%;
-`;
-
-const HeaderContainer = styled.div`
-  margin: 16px 16px 4px 16px;
-`;
-
-const Friends: React.FC = () => {
+export const Friends = () => {
+  const { authToken } = useHandcash();
+  const { connected } = useYours();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { identity } = useBap();
-
-  const incomingFriendRequests = useSelector(
-    (state: RootState) => state.memberList.friendRequests.incoming,
-  );
-  const outgoingFriendRequests = useSelector(
-    (state: RootState) => state.memberList.friendRequests.outgoing,
-  );
+  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const memberList = useSelector((state: RootState) => state.memberList);
+  const session = useSelector((state: RootState) => state.session);
 
-  const handleClick = useCallback(
-    (_e: React.MouseEvent, bapId: string) => {
-      navigate(`/@/${bapId}`);
-    },
-    [navigate],
-  );
+  const fetchFriendRequests = useCallback(async () => {
+    if (!session.user?.idKey) return;
 
-  const handleKeyPress = useCallback(
-    (e: React.KeyboardEvent, bapId: string) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        navigate(`/@/${bapId}`);
+    try {
+      const requests = await api.get<FriendRequest[]>('/friend-requests', {
+        params: { userId: session.user.idKey },
+      });
+      setFriendRequests(requests);
+    } catch (error) {
+      console.error('Failed to fetch friend requests:', error);
+    }
+  }, [session.user?.idKey]);
+
+  const handleAcceptFriend = useCallback(
+    async (requestId: string) => {
+      try {
+        await api.put(`/friend-requests/${requestId}/accept`);
+        await fetchFriendRequests();
+        await dispatch(loadFriends());
+      } catch (error) {
+        console.error('Failed to accept friend request:', error);
       }
     },
-    [navigate],
+    [dispatch, fetchFriendRequests],
   );
 
-  if (!identity) {
-    return (
-      <Wrapper className="scrollable">
-        <Container>
-          <HeaderContainer className="disable-select">
-            Import an identity to see friends.
-          </HeaderContainer>
-        </Container>
-      </Wrapper>
-    );
-  }
+  const handleRejectFriend = useCallback(
+    async (requestId: string) => {
+      try {
+        await api.put(`/friend-requests/${requestId}/reject`);
+        await fetchFriendRequests();
+      } catch (error) {
+        console.error('Failed to reject friend request:', error);
+      }
+    },
+    [fetchFriendRequests],
+  );
+
+  const handleAddFriend = useCallback(
+    async (userId: string) => {
+      if (!session.user?.idKey) return;
+
+      try {
+        await api.post('/friend-requests', {
+          from: session.user.idKey,
+          to: userId,
+        });
+        await fetchFriendRequests();
+      } catch (error) {
+        console.error('Failed to send friend request:', error);
+      }
+    },
+    [session.user?.idKey, fetchFriendRequests],
+  );
+
+  const handleStartChat = useCallback(
+    async (userId: string) => {
+      if (!session.user?.idKey) return;
+
+      try {
+        const channel = await api.post<Channel>('/channels', {
+          type: 'dm',
+          members: [session.user.idKey, userId],
+        });
+        navigate(`/channels/${channel.id}`);
+      } catch (error) {
+        console.error('Failed to create DM channel:', error);
+      }
+    },
+    [session.user?.idKey, navigate],
+  );
+
+  useEffect(() => {
+    if (authToken || connected) {
+      setLoading(true);
+      void dispatch(loadFriends()).finally(() => setLoading(false));
+      void fetchFriendRequests();
+    }
+  }, [authToken, connected, dispatch, fetchFriendRequests]);
+
+  const pendingRequests = friendRequests.filter(
+    (request) =>
+      request.status === 'pending' &&
+      request.to === session.user?.idKey &&
+      !memberList.allIds.includes(request.from),
+  );
+
+  const pendingUsers = pendingRequests.map((request) => ({
+    _id: request._id,
+    paymail: request.from,
+    alternateName: request.from,
+  }));
 
   return (
-    <Wrapper className="scrollable">
-      <Container>
-        <HeaderContainer className="disable-select">
-          <Nav>
-            <NavItem
-              active={false}
-              icon={null}
-              href={''}
-              onSelect={() => {}}
-              disabled={false}
-            />
-          </Nav>
-        </HeaderContainer>
+    <div className="bg-base-100 flex-1 overflow-hidden">
+      <div className="flex flex-col h-full">
+        <div className="p-4">
+          <h2 className="text-lg font-bold mb-4">Friends</h2>
+          <div className="flex flex-wrap gap-4">
+            {memberList.allIds.map((id) => {
+              const user = memberList.byId[id];
+              if (!user) return null;
 
-        <div className="p-4 text-white">
-          {memberList.friendRequests.loading ? 'Loading...' : ''}
-          {!memberList.friendRequests.loading && (
-            <div>
-              <div className="my-4 font-semibold">Incoming Friend Requests</div>
-              <div>
-                {uniq(incomingFriendRequests.allIds).map((ifrId) => {
-                  const ifr = incomingFriendRequests.byId[ifrId];
-                  const signer = ifr.signer;
-                  return (
-                    <div key={ifrId}>
+              return (
+                <div key={id} className="flex items-center gap-4 p-4 bg-base-200 rounded-lg">
+                  <Avatar
+                    size="40px"
+                    paymail={user.paymail}
+                    icon={user.logo}
+                  />
+                  <div>
+                    <div className="font-medium">{user.paymail}</div>
+                    <div className="flex gap-2 mt-2">
                       <button
-                        type="button"
-                        className="flex gap-2 my-2 cursor-pointer bg-transparent border-0 w-full text-left"
-                        onClick={(e) => handleClick(e, signer.idKey)}
-                        onKeyDown={(e) => handleKeyPress(e, signer.idKey)}
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleStartChat(user.idKey)}
                       >
-                        <Avatar
-                          size="27px"
-                          w="40px"
-                          bgcolor={'#000'}
-                          paymail={signer.identity?.paymail}
-                          icon={signer.identity?.logo}
-                        />
-                        <div className="flex flex-col items-center justify-center h-full">
-                          <div className="text-gray-400">
-                            {signer.identity?.paymail || signer.idKey}
-                          </div>
-                          <div>{signer.identity?.alternateName}</div>
-                        </div>
+                        Message
                       </button>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="my-4 font-semibold">Waiting for Approval</div>
-              <div>
-                {uniq(outgoingFriendRequests.allIds).map((ofrId) => {
-                  const ofr = outgoingFriendRequests.byId[ofrId];
-                  const signer = memberList.signers.byId[head(ofr.MAP).bapID];
-                  return (
-                    <div key={ofrId}>
-                      <button
-                        type="button"
-                        className="flex gap-2 my-2 cursor-pointer bg-transparent border-0 w-full text-left"
-                        onClick={(e) => handleClick(e, signer.idKey)}
-                        onKeyDown={(e) => handleKeyPress(e, signer.idKey)}
-                      >
-                        <Avatar
-                          size="27px"
-                          w="40px"
-                          bgcolor={'#000'}
-                          paymail={signer.identity?.paymail}
-                          icon={signer.identity?.logo}
-                        />
-                        <div className="flex flex-col items-center justify-center h-full">
-                          <div className="text-gray-400">
-                            {signer.identity?.paymail || signer.idKey}
-                          </div>
-                          <div>{signer.identity?.alternateName}</div>
-                        </div>
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </Container>
-    </Wrapper>
+
+        {pendingUsers.length > 0 && (
+          <div className="p-4 border-t border-base-300">
+            <h3 className="text-lg font-bold mb-4">Friend Requests</h3>
+            <div className="flex flex-wrap gap-4">
+              {pendingUsers.map((user) => (
+                <div key={user._id} className="flex items-center gap-4 p-4 bg-base-200 rounded-lg">
+                  <Avatar
+                    size="40px"
+                    paymail={user.paymail}
+                  />
+                  <div>
+                    <div className="font-medium">{user.paymail}</div>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleAcceptFriend(user._id)}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => handleRejectFriend(user._id)}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
-
-export default Friends;

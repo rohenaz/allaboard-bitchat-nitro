@@ -57,7 +57,7 @@ const SectionTitle = styled.h3`
 `;
 
 const ProfilePanel: React.FC = () => {
-  const dispatch = useDispatch();
+  const _dispatch = useDispatch();
   const session = useSelector((state: RootState) => state.session);
   const isOpen = useSelector((state: RootState) => state.profile.isOpen);
 

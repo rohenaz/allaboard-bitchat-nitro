@@ -1,6 +1,12 @@
 import { last } from 'lodash';
-import type React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
@@ -20,7 +26,7 @@ const Container = styled.div`
   background-color: var(--background-primary);
 `;
 
-const MessagesContainer = styled.div`
+const MessageList = styled.div`
   display: flex;
   flex-direction: column-reverse;
   flex: 1;
@@ -58,13 +64,12 @@ const LoadingContainer = styled.div`
   color: var(--text-normal);
 `;
 
-const Messages: React.FC = () => {
+const Messages: FC = () => {
   const { authToken } = useHandcash();
   const { connected } = useYours();
-  const { postStatus } = useBitcoin();
   const params = useParams();
   const dispatch = useDispatch<AppDispatch>();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageListRef = useRef<any>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -75,44 +80,44 @@ const Messages: React.FC = () => {
   const activeUserId = useMemo(() => params.user, [params.user]);
 
   const channelName =
-    activeChannelId ||
+    params.channel ||
     activeUserId ||
     last(window?.location?.pathname?.split('/'));
 
   const fetchMessageList = useCallback(() => {
-    console.log('🔄 Initializing message fetch for:', channelName, {
-      isAuthenticated: !!authToken,
-      isConnected: connected,
-    });
-    dispatch(fetchMessages(channelName));
-  }, [authToken, connected, dispatch, channelName]);
+    if (channelName) {
+      dispatch(fetchMessages(channelName));
+    }
+  }, [dispatch, channelName]);
 
   useEffect(() => {
-    console.log('📱 Messages component mounted', {
-      messageCount: messages.data.length,
-      loading: messages.loading,
-      error: messages.error,
-    });
     fetchMessageList();
   }, [fetchMessageList]);
 
+  // Scroll to bottom (which is actually the top due to flex-direction: column-reverse)
   useEffect(() => {
-    if (shouldScrollToBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (shouldScrollToBottom && messageListRef.current) {
+      messageListRef.current.scrollTop = 0;
     }
   }, [shouldScrollToBottom, messages.data]);
 
   const handleScroll = useCallback(
-    async (e: React.UIEvent<HTMLDivElement>) => {
-      const { scrollTop } = e.currentTarget;
-      setShouldScrollToBottom(false);
+    (event: { currentTarget: { scrollTop: number; scrollHeight: number; clientHeight: number } }) => {
+      const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+      
+      // Check if we're at the bottom (which is actually scrollTop = 0 due to column-reverse)
+      setShouldScrollToBottom(scrollTop === 0);
 
-      if (scrollTop === 0 && !isLoadingMore && messages.hasMore) {
-        console.log('📜 Loading more messages...');
+      // Check if we're at the top (which is actually the bottom due to column-reverse)
+      if (
+        Math.abs(scrollHeight - clientHeight - scrollTop) < 1 &&
+        !isLoadingMore &&
+        messages.hasMore &&
+        channelName
+      ) {
         setIsLoadingMore(true);
         try {
-          await dispatch(fetchMoreMessages(channelName));
-          console.log('✅ Additional messages loaded');
+          dispatch(fetchMoreMessages(channelName));
         } finally {
           setIsLoadingMore(false);
         }
@@ -122,7 +127,6 @@ const Messages: React.FC = () => {
   );
 
   if (messages.loading) {
-    console.log('⌛ Messages loading state active');
     return (
       <Container>
         <LoadingContainer>Loading messages...</LoadingContainer>
@@ -130,21 +134,17 @@ const Messages: React.FC = () => {
     );
   }
 
-  console.log('🎯 Rendering messages:', {
-    count: messages.data.length,
-    hasMore: messages.hasMore,
-    firstMessage: messages.data[0],
-    lastMessage: messages.data[messages.data.length - 1],
-  });
-
   return (
     <Container>
-      <MessagesContainer onScroll={handleScroll}>
-        <div ref={messagesEndRef} />
-        {messages.data.map((message) => (
-          <Message key={message.tx.h} message={message} reactions={reactions} />
+      <MessageList ref={messageListRef} onScroll={handleScroll}>
+        {messages.data.map((message, index) => (
+          <Message 
+            key={`${message.tx.h}-${message.timestamp || index}`} 
+            message={message} 
+            reactions={reactions} 
+          />
         ))}
-      </MessagesContainer>
+      </MessageList>
     </Container>
   );
 };

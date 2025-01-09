@@ -1,14 +1,24 @@
 import { API_BASE_URL } from '../config/env';
 
+type RequestInit = globalThis.RequestInit;
+type HeadersInit = globalThis.HeadersInit;
+type Event = globalThis.Event;
+
 interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
   requiresAuth?: boolean;
 }
 
 interface SSEOptions {
-  onMessage?: (data: any) => void;
+  onMessage?: (data: unknown) => void;
   onError?: (error: Event) => void;
   onOpen?: () => void;
+}
+
+interface RequestOptions {
+  requiresAuth?: boolean;
+  params?: Record<string, string>;
+  token?: string;
 }
 
 export async function apiFetch<T>(
@@ -70,7 +80,6 @@ export function connectSSE(path: string, options: SSEOptions = {}) {
   };
 
   eventSource.onopen = () => {
-    console.log('SSE Connection opened');
     options.onOpen?.();
   };
 
@@ -96,34 +105,12 @@ export const api = {
     const queryString = params ? `?${new URLSearchParams(params)}` : '';
     const url = `${API_BASE_URL}${path}${queryString}`;
 
-    console.log('Making API request:', {
-      method: 'GET',
-      url,
-      requiresAuth,
-      hasToken: !!options.token,
-    });
-
-    try {
-      const response = await fetch(url, { headers });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log('API response:', {
-        status: response.status,
-        url,
-        dataType: typeof data,
-        isArray: Array.isArray(data),
-        sampleData: Array.isArray(data) ? data.slice(0, 2) : data,
-      });
-      return data as T;
-    } catch (error) {
-      console.error('API request failed:', {
-        url,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const data = await response.json();
+    return data as T;
   },
 
   post: <T>(path: string, data?: unknown, options?: FetchOptions) =>

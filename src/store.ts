@@ -8,6 +8,7 @@ import serverReducer from './reducers/serverReducer';
 import sessionReducer from './reducers/sessionReducer';
 import settingsReducer from './reducers/settingsReducer';
 import sidebarReducer from './reducers/sidebarReducer';
+import socketMiddleware from './middleware/socketMiddleware';
 
 const store = configureStore({
   reducer: {
@@ -29,7 +30,7 @@ const store = configureStore({
           'channels/loadChannels/pending',
         ],
       },
-    }),
+    }).concat(socketMiddleware),
 });
 
 export type AppDispatch = typeof store.dispatch;

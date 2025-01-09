@@ -1,91 +1,61 @@
-import React, { Component, type ErrorInfo, type ReactNode } from 'react';
-import styled from 'styled-components';
-
-const ErrorContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  padding: 20px;
-  background-color: var(--background-primary);
-  color: var(--text-primary);
-`;
-
-const ErrorTitle = styled.h1`
-  margin-bottom: 1rem;
-  color: var(--error);
-`;
-
-const ErrorMessage = styled.pre`
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: var(--background-secondary);
-  border-radius: 4px;
-  overflow: auto;
-  max-width: 100%;
-`;
-
-const RetryButton = styled.button`
-  padding: 8px 16px;
-  background-color: var(--brand);
-  color: var(--text-normal);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: var(--brand-darker);
-  }
-`;
+import { Component, type ErrorInfo, type ReactNode } from 'react'
 
 interface Props {
-  children: ReactNode;
+  children?: ReactNode
 }
 
 interface State {
-  hasError: boolean;
-  error: Error | null;
+  hasError: boolean
+  error?: Error
+  errorInfo?: ErrorInfo
 }
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
-    hasError: false,
-    error: null,
-  };
+    hasError: false
+  }
 
   public static getDerivedStateFromError(error: Error): State {
-    return {
-      hasError: true,
-      error,
-    };
+    return { hasError: true, error }
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+    this.setState({ error, errorInfo })
+    console.error('Uncaught error:', error, errorInfo)
   }
-
-  private handleRetry = () => {
-    this.setState({ hasError: false, error: null });
-    window.location.reload();
-  };
 
   public render() {
     if (this.state.hasError) {
       return (
-        <ErrorContainer>
-          <ErrorTitle>Something went wrong</ErrorTitle>
-          {this.state.error && (
-            <ErrorMessage>{this.state.error.message}</ErrorMessage>
-          )}
-          <RetryButton onClick={this.handleRetry}>Try Again</RetryButton>
-        </ErrorContainer>
-      );
+        <div className="min-h-screen bg-base-100 text-base-content">
+          <div className="container mx-auto p-8">
+            <h1 className="text-error text-4xl font-bold mb-4">
+              Sorry.. there was an error
+            </h1>
+            <div className="bg-base-200 p-4 rounded-lg mb-4">
+              <pre className="whitespace-pre-wrap">
+                {this.state.error?.toString()}
+              </pre>
+            </div>
+            <button
+              className="btn btn-primary text-primary-content"
+              onClick={() => window.location.reload()}
+            >
+              Reload Page
+            </button>
+            <button
+              className="btn btn-primary-focus text-primary-content ml-4"
+              onClick={() => window.history.back()}
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
-export default ErrorBoundary;
+export default ErrorBoundary

@@ -1,165 +1,140 @@
-import type React from 'react';
-import { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import type { FC } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { api } from '../../api/fetch';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
-import { useActiveUser } from '../../hooks';
+import { loadFriends } from '../../reducers/memberListReducer';
+import type { AppDispatch, RootState } from '../../store';
 import Avatar from './Avatar';
-import Popover from './Popover';
 
-interface RootState {
-  session: {
-    user?: {
-      idKey?: string;
-      walletType?: string;
-    };
-  };
-}
-
-interface UserPopoverProps {
-  open: boolean;
-  onClose: () => void;
-  anchorEl: HTMLElement | null;
+interface User {
+  _id: string;
   paymail: string;
   logo?: string;
   alternateName?: string;
-  bapId: string;
 }
 
-const Container = styled.div`
-  width: 300px;
-  background-color: var(--background-floating);
-  border-radius: 8px;
-  overflow: hidden;
-`;
+interface Channel {
+  id: string;
+  name: string;
+  members: string[];
+}
 
-const Banner = styled.div`
-  height: 60px;
-  background-color: var(--background-accent);
-`;
+interface UserPopoverProps {
+  paymail: string;
+  logo?: string;
+  onClose: () => void;
+}
 
-const AvatarWrapper = styled.div`
-  margin-top: -40px;
-  margin-left: 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
-`;
-
-const Username = styled.h3`
-  margin: 0;
-  padding: 0 16px;
-  color: var(--header-primary);
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 24px;
-`;
-
-const Section = styled.div`
-  margin: 24px 16px 16px;
-`;
-
-const SectionTitle = styled.h4`
-  margin: 0 0 8px;
-  padding: 0;
-  color: var(--header-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-`;
-
-const SectionContent = styled.div`
-  color: var(--text-normal);
-  font-size: 14px;
-  line-height: 18px;
-`;
-
-const Button = styled.button`
-  margin: 0 16px 16px;
-  padding: 2px 16px;
-  width: calc(100% - 32px);
-  height: 32px;
-  background-color: var(--button-secondary-background);
-  color: var(--text-normal);
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background-color 0.17s ease;
-
-  &:hover {
-    background-color: var(--button-secondary-background-hover);
-  }
-`;
-
-const UserPopover: React.FC<UserPopoverProps> = ({
-  open,
-  onClose,
-  anchorEl,
-  paymail,
-  logo,
-  alternateName,
-  bapId,
-}) => {
+export const UserPopover: FC<UserPopoverProps> = ({ paymail, logo, onClose }) => {
   const { authToken } = useHandcash();
   const { connected } = useYours();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const _activeUser = useActiveUser();
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   const session = useSelector((state: RootState) => state.session);
 
-  const guest = useMemo(() => {
-    return session.user?.walletType === 'guest';
-  }, [session.user?.walletType]);
+  const fetchUser = useCallback(async () => {
+    if (!paymail) return;
 
-  const self = useMemo(() => {
-    return bapId === session.user?.idKey;
-  }, [bapId, session.user?.idKey]);
-
-  const handleClick = useCallback(() => {
-    if (self || guest) {
-      return;
+    try {
+      setLoading(true);
+      const users = await api.get<User[]>('/users', {
+        params: { paymail },
+      });
+      const targetUser = users.find((u) => u.paymail === paymail);
+      setUser(targetUser || null);
+    } catch (error) {
+      console.error('Failed to fetch user:', error);
+    } finally {
+      setLoading(false);
     }
-    navigate(`/channels/@me/${bapId}`);
-    onClose();
-  }, [navigate, onClose, self, guest, bapId]);
+  }, [paymail]);
+
+  const handleAddFriend = useCallback(async () => {
+    if (!user?._id || !session.user?.idKey) return;
+
+    try {
+      await api.post('/friend-requests', {
+        from: session.user.idKey,
+        to: user._id,
+      });
+      await dispatch(loadFriends());
+    } catch (error) {
+      console.error('Failed to send friend request:', error);
+    }
+  }, [user?._id, session.user?.idKey, dispatch]);
+
+  const handleStartChat = useCallback(async () => {
+    if (!user?._id || !session.user?.idKey) return;
+
+    try {
+      const channel = await api.post<Channel>('/channels', {
+        type: 'dm',
+        members: [session.user.idKey, user._id],
+      });
+      navigate(`/channels/${channel.id}`);
+    } catch (error) {
+      console.error('Failed to create DM channel:', error);
+    }
+  }, [user?._id, session.user?.idKey, navigate]);
+
+  useEffect(() => {
+    if (authToken || connected) {
+      void fetchUser();
+    }
+  }, [authToken, connected, fetchUser]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-[9999]">
+        <div className="bg-base-100 p-8 rounded-2xl text-base-content/60">
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-[9999]">
+        <div className="bg-base-100 p-8 rounded-2xl text-base-content/60">
+          User not found
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Popover
-      open={open}
-      onClose={onClose}
-      anchorEl={anchorEl}
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'center',
-      }}
-      transformOrigin={{
-        vertical: 'top',
-        horizontal: 'center',
-      }}
-    >
-      <Container>
-        <Banner />
-        <AvatarWrapper onClick={handleClick}>
-          <Avatar size="80px" bgcolor={'#000'} paymail={paymail} icon={logo} />
-        </AvatarWrapper>
-        <Username>{alternateName || paymail}</Username>
-        <Section>
-          <SectionTitle>About Me</SectionTitle>
-          <SectionContent>
-            {guest
-              ? 'Please connect your wallet to chat'
-              : self
-                ? "You can't message yourself"
-                : 'Message'}
-          </SectionContent>
-        </Section>
-        {!guest && !self && <Button onClick={handleClick}>Send Message</Button>}
-      </Container>
-    </Popover>
+    <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-[9999]" onClick={onClose}>
+      <div className="bg-base-100 p-8 rounded-2xl text-base-content/60" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-col items-center gap-4">
+          <Avatar
+            size="80px"
+            paymail={paymail}
+            icon={logo}
+          />
+          <div className="text-lg font-bold text-base-content">{paymail}</div>
+          <div className="flex gap-2">
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleStartChat}
+            >
+              Message
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={handleAddFriend}
+            >
+              Add Friend
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
-
-export default UserPopover;

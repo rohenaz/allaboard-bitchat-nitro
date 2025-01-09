@@ -33,6 +33,7 @@ export default [
         setTimeout: true,
         URLSearchParams: true,
         bsv: true,
+        process: true,
       },
     },
     plugins: {
@@ -59,5 +60,16 @@ export default [
       },
     },
     ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
+  },
+  {
+    files: ['**/*.{cjs,js}'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        module: true,
+        require: true,
+        process: true,
+      },
+    },
   },
 ];

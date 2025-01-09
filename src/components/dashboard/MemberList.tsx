@@ -2,23 +2,11 @@ import React, { type FC } from 'react';
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import styled from 'styled-components';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
-import { loadUsers } from '../../reducers/memberListReducer';
+import { loadFriends, loadUsers } from '../../reducers/memberListReducer';
 import type { AppDispatch, RootState } from '../../store';
 import { UserList } from './UserList';
-
-const Container = styled.div`
-  width: 240px;
-  min-width: 240px;
-  background-color: var(--background-secondary);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  flex-shrink: 0;
-`;
 
 export const MemberList: FC = () => {
   const { authToken } = useHandcash();
@@ -56,28 +44,31 @@ export const MemberList: FC = () => {
       alternateName: user.paymail,
     }));
 
-  const fetchMemberList = useCallback(() => {
+  const fetchData = useCallback(() => {
     if (authToken || connected) {
       void dispatch(loadUsers());
+      if (!activeChannel) {
+        void dispatch(loadFriends());
+      }
     }
-  }, [authToken, connected, dispatch]);
+  }, [authToken, connected, dispatch, activeChannel]);
 
   useEffect(() => {
-    fetchMemberList();
-  }, [fetchMemberList]);
+    fetchData();
+  }, [fetchData]);
 
   if (!isOpen) {
     return null;
   }
 
   return (
-    <Container>
+    <div className="w-60 min-w-60 bg-base-200 flex flex-col overflow-hidden relative flex-shrink-0">
       <UserList
         users={filteredUsers}
         loading={memberList.loading}
         title={activeChannel ? `#${activeChannel} Members` : 'All Members'}
         showFriendRequests={!activeChannel}
       />
-    </Container>
+    </div>
   );
 };

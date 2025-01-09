@@ -1,151 +1,120 @@
-import type React from 'react';
+import type { FC } from 'react';
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
-import { fetchServers } from '../../reducers/serverReducer';
+import { loadChannels } from '../../reducers/channelsReducer';
+import type { AppDispatch, RootState } from '../../store';
 import Avatar from './Avatar';
 
 interface Server {
   _id: string;
   name: string;
   description?: string;
-  type?: string;
   icon?: string;
   paymail?: string;
 }
 
-interface RootState {
-  servers: {
-    loading: boolean;
-    data: Server[];
-  };
-  session: {
-    user?: {
-      bapId?: string;
-    };
-  };
+interface ServerState {
+  loading: boolean;
+  error: string | null;
+  data: Server[];
 }
 
-const Container = styled.div`
-  width: 72px;
-  min-width: 72px;
-  background-color: var(--background-tertiary);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 0 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  position: relative;
-  flex-shrink: 0;
-`;
+interface SessionUser {
+  idKey?: string;
+  paymail?: string;
+  logo?: string;
+}
 
-const Separator = styled.div`
-  width: 32px;
-  height: 2px;
-  border-radius: 1px;
-  background-color: var(--background-modifier-accent);
-  margin: 0 0 8px;
-`;
+interface SessionState {
+  user?: SessionUser | null;
+}
 
-const ServerButton = styled.button<{ $active?: boolean }>`
-  width: 48px;
-  height: 48px;
-  border-radius: ${({ $active }) => ($active ? '16px' : '24px')};
-  margin-bottom: 8px;
-  position: relative;
-  cursor: pointer;
-  border: none;
-  background: none;
-  padding: 0;
-  transition: border-radius 0.15s ease-out;
-
-  &:hover {
-    border-radius: 16px;
-  }
-
-  &::before {
-    content: '';
-    display: block;
-    width: 8px;
-    height: ${({ $active }) => ($active ? '40px' : '8px')};
-    position: absolute;
-    left: -16px;
-    top: 50%;
-    transform: translateY(-50%) scale(${({ $active }) => ($active ? 1 : 0)});
-    border-radius: 0 4px 4px 0;
-    background-color: var(--header-primary);
-    transition: all 0.15s ease-out;
-  }
-
-  &:hover::before {
-    transform: translateY(-50%) scale(1);
-    height: 20px;
-  }
-`;
-
-const ServerList: React.FC = () => {
+const ServerList: FC = () => {
   const { authToken } = useHandcash();
   const { connected } = useYours();
-  const params = useParams();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const servers = useSelector((state: RootState) => state.servers);
+  const servers = useSelector<RootState, ServerState>((state) => state.servers);
+  const session = useSelector<RootState, SessionState>((state) => state.session);
 
-  const fetchServerList = useCallback(() => {
-    if (authToken || connected) {
-      dispatch(fetchServers());
-    }
-  }, [authToken, connected, dispatch]);
-
-  useEffect(() => {
-    fetchServerList();
-  }, [fetchServerList]);
-
-  const handleClick = useCallback(
-    (id: string) => {
-      navigate(`/channels/${id}`);
+  const handleServerClick = useCallback(
+    (serverId: string) => {
+      navigate(`/servers/${serverId}`);
     },
     [navigate],
   );
 
-  if (servers.loading) {
-    return null;
-  }
+  const handleHomeClick = useCallback(() => {
+    navigate('/channels/@me');
+  }, [navigate]);
+
+  const handleAddServer = useCallback(() => {
+    navigate('/servers/new');
+  }, [navigate]);
+
+  useEffect(() => {
+    if (authToken || connected) {
+      void dispatch(loadChannels());
+    }
+  }, [authToken, connected, dispatch]);
 
   return (
-    <Container>
-      <ServerButton
-        $active={!params.channel}
-        onClick={() => navigate('/channels/@me')}
+    <div className="w-[72px] bg-base-300 flex flex-col items-center py-3 gap-2">
+      <button
+        className="btn btn-ghost btn-circle"
+        onClick={handleHomeClick}
       >
         <Avatar
           size="48px"
-          bgcolor={'#000'}
-          paymail="bitchat@bitchatnitro.com"
-          icon="/images/blockpost-logo.svg"
+          paymail={session.user?.paymail}
+          icon={session.user?.logo}
         />
-      </ServerButton>
-      <Separator />
-      {servers.data?.map((server) => (
-        <ServerButton
-          key={server._id}
-          $active={server._id === params.channel}
-          onClick={() => handleClick(server._id)}
+      </button>
+
+      <div className="divider divider-horizontal my-2" />
+
+      <div className="flex flex-col gap-2 overflow-y-auto">
+        {servers.data.map((server) => (
+          <button
+            key={server._id}
+            className="btn btn-ghost btn-circle"
+            onClick={() => handleServerClick(server._id)}
+          >
+            <Avatar
+              size="48px"
+              paymail={server.name}
+              icon={server.icon}
+            />
+          </button>
+        ))}
+      </div>
+
+      <div className="divider divider-horizontal my-2" />
+
+      <button
+        className="btn btn-ghost btn-circle"
+        onClick={handleAddServer}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6"
         >
-          <Avatar
-            size="48px"
-            bgcolor={'#000'}
-            paymail={server.paymail}
-            icon={server.icon}
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4.5v15m7.5-7.5h-15"
           />
-        </ServerButton>
-      ))}
-    </Container>
+        </svg>
+      </button>
+    </div>
   );
 };
 

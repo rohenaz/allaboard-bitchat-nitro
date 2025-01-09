@@ -1,71 +1,19 @@
-import React, { type FC, useEffect, useState } from 'react';
-import { FaWallet } from 'react-icons/fa';
+import type { FC, CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
 import {
   type SocialProfile as BaseSocialProfile,
   useYoursWallet,
+  YoursIcon,
 } from 'yours-wallet-provider';
+import { HANDCASH_API_URL } from '../../config/env';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { useAppDispatch } from '../../hooks';
 import { loadChannels } from '../../reducers/channelsReducer';
 import { setYoursUser } from '../../reducers/sessionReducer';
-import env from '../../utils/env';
-import { Button } from '../common/Button';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background-color: var(--background-primary);
-`;
-
-const LoginCard = styled.div`
-  background-color: var(--background-secondary);
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-`;
-
-const Title = styled.h1`
-  color: var(--text-primary);
-  text-align: center;
-  margin-bottom: 2rem;
-`;
-
-const ErrorMessage = styled.div`
-  color: var(--error);
-  text-align: center;
-  margin-top: 1rem;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-`;
-
-const LinkGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  
-  a {
-    color: var(--text-link);
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-`;
+import HandcashIcon from '../icons/HandcashIcon';
+import Layout from './Layout';
 
 interface ExtendedProfile extends BaseSocialProfile {
   paymail?: string;
@@ -108,7 +56,7 @@ export const LoginPage: FC = () => {
   }, [dispatch, navigate, profile, pandaAuth]);
 
   const handleHandcashLogin = () => {
-    window.location.href = `${env.HANDCASH_API_URL}/hcLogin`;
+    window.location.href = `${HANDCASH_API_URL}/hcLogin`;
   };
 
   const handleYoursLogin = async () => {
@@ -139,61 +87,40 @@ export const LoginPage: FC = () => {
       let addresses = null;
 
       try {
-        console.log('Getting profile directly from wallet...');
         const walletProfile = await getWalletProfile();
-        console.log('Wallet profile:', walletProfile);
         if (walletProfile?.displayName) {
           profile = walletProfile as ExtendedProfile;
         }
-      } catch (walletErr) {
-        console.error('Error getting wallet profile:', walletErr);
+      } catch (err) {
+        // Ignore error and try next method
       }
 
       if (!profile?.paymail) {
-        console.log('Getting profile through context...');
         const contextProfile = await getSocialProfile();
         if (contextProfile?.displayName) {
           profile = contextProfile as ExtendedProfile;
         }
-        console.log('Context profile:', profile);
       }
 
-      console.log('Getting addresses...');
       addresses = await getAddresses();
-      console.log('Addresses:', addresses);
 
-      // Generate fake paymail if none exists
-      if (!profile?.paymail && profile?.displayName) {
-        const displayName = profile.displayName;
+      if (!profile?.paymail) {
+        const displayName = profile?.displayName || 'Anonymous';
         const safeName = displayName
           .toLowerCase()
-          .trim()
-          .replace(/\s+/g, '-')
-          .replace(/[^\w.-]/g, '');
+          .replace(/[^a-z0-9]/g, '')
+          .slice(0, 10);
+        const randomSuffix = Math.random().toString(36).slice(2, 7);
         profile = {
-          ...profile,
-          paymail: `${safeName}@yours.org`,
-        };
-      } else if (!profile?.paymail) {
-        profile = {
-          displayName: 'anonymous',
-          paymail: 'anonymous@yours.org',
+          paymail: `${safeName}${randomSuffix}@yours.org`,
+          displayName: displayName,
           avatar: '',
         } as ExtendedProfile;
-      }
-
-      if (!addresses?.bsvAddress) {
-        throw new Error('Failed to get BSV address from Yours wallet.');
       }
 
       if (!profile?.paymail) {
         throw new Error('Failed to get or generate paymail.');
       }
-
-      console.log('Dispatching user info:', {
-        paymail: profile.paymail,
-        address: addresses.bsvAddress,
-      });
 
       dispatch(
         setYoursUser({
@@ -203,59 +130,65 @@ export const LoginPage: FC = () => {
       );
 
       setPandaAuth(true);
-      console.log('Login successful');
     } catch (err) {
-      console.error('Login process failed:', err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to connect to Yours wallet. Please make sure you are logged in and try again.',
-      );
+      setError(err instanceof Error ? err.message : 'Login process failed');
+      setPandaAuth(false);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Container>
-      <LoginCard>
-        <Title>Welcome to BitChat</Title>
-        <ButtonGroup>
-          <Button
-            onClick={handleHandcashLogin}
-            color="#2fac69"
-            $hoverColor="#08a350"
-            disabled={isLoading}
+    <Layout heading="Welcome to BitChat">
+      <div className="flex flex-col gap-4 w-full">
+        <button
+          onClick={handleHandcashLogin}
+          disabled={isLoading}
+          className="btn btn-success w-full text-base-100 gap-2 min-h-12 h-auto py-3"
+          style={{
+            backgroundColor: "#2fac69",
+            "--btn-success-hover": "#08a350",
+          } as CSSProperties}
+        >
+          <HandcashIcon className="w-4 h-4" />
+          Login with Handcash
+        </button>
+        <button
+          onClick={handleYoursLogin}
+          disabled={!isReady || isLoading}
+          className="btn btn-ghost w-full gap-2 min-h-12 h-auto py-3 bg-opacity-25 hover:bg-opacity-10"
+          style={{
+            backgroundColor: "rgb(154, 224, 133)",
+            color: "rgb(154, 224, 133)",
+          }}
+        >
+          <YoursIcon size={"1rem"} />
+          {isLoading ? 'Connecting...' : 'Login with Yours Wallet'}
+        </button>
+      </div>
+      {error && (
+        <div className="alert alert-error mt-4 text-sm">
+          <span>{error}</span>
+        </div>
+      )}
+      <div className="mt-8 text-sm text-center space-y-2">
+        <div>
+          Need an account?{' '}
+          <a
+            href="https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link link-primary"
           >
-            Login with Handcash
-          </Button>
-          <Button
-            onClick={handleYoursLogin}
-            color="rgba(154, 224, 133, 0.25)"
-            $hoverColor="rgba(154, 224, 133, 0.1)"
-            disabled={!isReady || isLoading}
-          >
-            <FaWallet />{' '}
-            {isLoading ? 'Connecting...' : 'Login with Yours Wallet'}
-          </Button>
-        </ButtonGroup>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        <LinkGroup>
-          <div>
-            Need an account?{' '}
-            <a
-              href="https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Register
-            </a>
-          </div>
-          <div>
-            <a href="/channels">Continue as guest (read only)</a>
-          </div>
-        </LinkGroup>
-      </LoginCard>
-    </Container>
+            Register
+          </a>
+        </div>
+        <div>
+          <a href="/channels" className="link link-primary">
+            Continue as guest (read only)
+          </a>
+        </div>
+      </div>
+    </Layout>
   );
 };

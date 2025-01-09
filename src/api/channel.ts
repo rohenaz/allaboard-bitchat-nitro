@@ -1,5 +1,12 @@
-import type { Channel } from '../types/channel';
 import { api } from './fetch';
+
+export interface Channel {
+  channel: string;
+  last_message: string;
+  last_message_time: number;
+  messages: number;
+  creator: string;
+}
 
 export const getChannels = async (): Promise<Channel[]> => {
   return api.get<Channel[]>('/channels');
@@ -30,22 +37,44 @@ export const getFriends = async (idKey: string) => {
 };
 
 export interface Message {
-  id: string;
-  content: string;
-  channelId: string;
-  userId: string;
-  createdAt: string;
-  updatedAt?: string;
-  attachments?: Array<{
-    id: string;
-    url: string;
-    type: string;
-    name: string;
+  txid?: string;
+  tx?: { h: string };
+  paymail?: string;
+  type?: string;
+  context?: string;
+  channel?: string;
+  messageID?: string;
+  encrypted?: string;
+  bapID?: string;
+  content?: string;
+  timestamp?: number;
+  createdAt?: number;
+  blk?: { t: number };
+  myBapId?: string;
+  MAP?: Array<{
+    paymail?: string;
+    type?: string;
+    context?: string;
+    channel?: string;
+    messageID?: string;
+    encrypted?: string;
+    bapID?: string;
   }>;
-  reactions?: Array<{
-    id: string;
-    emoji: string;
-    userId: string;
+  B?: Array<{
+    encoding: string;
+    Data: {
+      utf8: string;
+    };
+  }>;
+}
+
+export interface MessageResponse {
+  results: Message[];
+  signers?: Array<{
+    idKey: string;
+    paymail: string;
+    logo?: string;
+    isFriend?: boolean;
   }>;
 }
 
@@ -55,6 +84,12 @@ export interface MessageQuery {
   after?: string;
   sort?: 'asc' | 'desc';
 }
+
+export const getMessages = async (
+  channelName: string,
+): Promise<MessageResponse> => {
+  return api.get<MessageResponse>(`/channels/${channelName}/messages`);
+};
 
 export interface CreateChannelData {
   name?: string;
@@ -92,19 +127,6 @@ export async function updateChannel(
 
 export async function deleteChannel(id: string): Promise<void> {
   return api.delete(`/channels/${id}`);
-}
-
-export async function getMessages(
-  channelId: string,
-  query: MessageQuery = { sort: 'desc', limit: 100 },
-): Promise<Message[]> {
-  return api.get<Message[]>(`/channels/${channelId}/messages`, {
-    params: {
-      ...query,
-      sort: query.sort || 'desc', // Default to descending order
-      limit: query.limit || 100,
-    },
-  });
 }
 
 export async function sendMessage(

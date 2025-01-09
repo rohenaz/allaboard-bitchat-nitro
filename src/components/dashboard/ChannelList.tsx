@@ -45,7 +45,7 @@ const ChannelList = styled.div`
   padding: 0 8px;
 `;
 
-const ChannelItem = styled.div<{ isActive: boolean }>`
+const ChannelItem = styled.div<{ $isActive: boolean }>`
   display: flex;
   align-items: center;
   padding: 6px 8px;
@@ -60,8 +60,8 @@ const ChannelItem = styled.div<{ isActive: boolean }>`
     color: var(--text-normal);
   }
 
-  ${({ isActive }) =>
-    isActive &&
+  ${({ $isActive }) =>
+    $isActive &&
     `
     background-color: var(--background-modifier-selected);
     color: var(--text-normal);
@@ -137,7 +137,7 @@ const ChannelListContent: React.FC = () => {
         {channels.map((channel) => (
           <ChannelItem
             key={channel.channel}
-            isActive={channel.channel === params.channel}
+            $isActive={channel.channel === params.channel}
             onClick={() => handleClick(channel.channel)}
           >
             <HashtagIcon />
