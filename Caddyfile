@@ -1,0 +1,17 @@
+{
+    encode gzip
+    header {
+        # Enable cross-origin requests
+        Access-Control-Allow-Origin *
+        # Add security headers
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+    handle {
+        root * dist
+        try_files {path} /index.html
+        file_server
+    }
+} 
