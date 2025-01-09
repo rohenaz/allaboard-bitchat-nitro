@@ -24,7 +24,7 @@ const MessagesWrapper = styled.div`
 `;
 
 const WriteAreaWrapper = styled.div`
-  flex-shrink: 0;
+  shrink: 0;
   width: 100%;
   background-color: var(--background-primary);
   border-top: 1px solid var(--background-modifier-accent);

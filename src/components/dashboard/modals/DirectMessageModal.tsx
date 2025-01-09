@@ -64,7 +64,7 @@ const DirectMessageModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-[9999]">
+    <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-9999">
       <div className="bg-base-100 p-8 rounded-2xl text-base-content/60">
         <form onSubmit={handleSubmit} className="p-4">
           <h2 className="text-lg font-bold mb-4">Direct Message</h2>

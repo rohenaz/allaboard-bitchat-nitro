@@ -1,16 +1,14 @@
 import { Global } from '@emotion/react';
 
-import tw, { GlobalStyles as BaseStyles } from 'twin.macro';
-
 const customStyles = {
   body: {
-    ...tw`antialiased`,
+    WebkitFontSmoothing: 'antialiased',
+    MozOsxFontSmoothing: 'grayscale',
   },
 };
 
 export const GlobalStyles = () => (
   <>
-    <BaseStyles />
     <Global styles={customStyles} />
   </>
 );

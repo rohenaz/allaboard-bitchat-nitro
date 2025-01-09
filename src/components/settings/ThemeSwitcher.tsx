@@ -30,7 +30,7 @@ export const ThemeSwitcher: FC<ThemeSwitcherProps> = ({ className }) => {
             <path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z" />
           </svg>
         </button>
-        <ul className="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52">
+        <ul className="dropdown-content menu p-2 shadow-sm bg-base-200 rounded-box w-52">
           <li className="menu-title">
             <span className="text-xs font-semibold opacity-60">Custom Themes</span>
           </li>

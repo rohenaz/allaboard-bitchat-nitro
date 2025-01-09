@@ -142,27 +142,23 @@ export const LoginPage: FC = () => {
     <Layout heading="Welcome to BitChat">
       <div className="flex flex-col gap-4 w-full">
         <button
+          type="button"
           onClick={handleHandcashLogin}
           disabled={isLoading}
-          className="btn btn-success w-full text-base-100 gap-2 min-h-12 h-auto py-3"
-          style={{
-            backgroundColor: "#2fac69",
-            "--btn-success-hover": "#08a350",
-          } as CSSProperties}
+          className="btn btn-primary w-full gap-2 min-h-12 h-auto py-3"
         >
           <HandcashIcon className="w-4 h-4" />
           Login with Handcash
         </button>
         <button
+          type="button"
           onClick={handleYoursLogin}
           disabled={!isReady || isLoading}
-          className="btn btn-ghost w-full gap-2 min-h-12 h-auto py-3 bg-opacity-25 hover:bg-opacity-10"
-          style={{
-            backgroundColor: "rgb(154, 224, 133)",
-            color: "rgb(154, 224, 133)",
-          }}
+          className="btn btn-primary w-full gap-2 min-h-12 h-auto py-3"
         >
-          <YoursIcon size={"1rem"} />
+          <span className="text-white">
+            <YoursIcon size={"1rem"} />
+          </span>
           {isLoading ? 'Connecting...' : 'Login with Yours Wallet'}
         </button>
       </div>

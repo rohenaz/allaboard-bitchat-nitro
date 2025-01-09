@@ -1,10 +1,8 @@
 import styled from 'styled-components';
-import tw from 'twin.macro';
 
-const ChannelTextArea = styled.input.attrs((props) => ({
-  className: props.className,
-}))`
-  ${tw`border-0 rounded-lg text-[15px] h-11 w-full outline-none`}
+const ChannelTextArea = styled.input.attrs({
+  className: 'border-0 rounded-lg text-[15px] h-11 w-full outline-hidden'
+})`
   background-color: var(--channeltextarea-background);
   color: var(--text-normal);
 

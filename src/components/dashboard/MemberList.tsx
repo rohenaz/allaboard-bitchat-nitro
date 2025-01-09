@@ -62,7 +62,7 @@ export const MemberList: FC = () => {
   }
 
   return (
-    <div className="w-60 min-w-60 bg-base-200 flex flex-col overflow-hidden relative flex-shrink-0">
+    <div className="w-60 min-w-60 bg-base-200 flex flex-col overflow-hidden relative shrink-0">
       <UserList
         users={filteredUsers}
         loading={memberList.loading}

@@ -105,7 +105,7 @@ const Message: FC<MessageProps> = ({ message, reactions }) => {
 
   return (
     <div className="relative flex my-2 py-2 pl-0 pr-4 group hover:bg-base-200">
-      <div className="absolute top-[-16px] right-4 hidden h-8 w-16 bg-base-100 rounded border border-base-200 transition-all duration-100 group-hover:flex items-center justify-center hover:shadow-sm">
+      <div className="absolute top-[-16px] right-4 hidden h-8 w-16 bg-base-100 rounded-sm border border-base-200 transition-all duration-100 group-hover:flex items-center justify-center hover:shadow-xs">
         <button
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
           className="btn btn-ghost btn-xs"
@@ -160,7 +160,7 @@ const Message: FC<MessageProps> = ({ message, reactions }) => {
           {Object.entries(groupedReactions).map(([emoji, count], index) => (
             <div
               key={`${emoji}-${index}`}
-              className="flex items-center gap-1 bg-base-300/50 px-2 py-1 rounded text-sm"
+              className="flex items-center gap-1 bg-base-300/50 px-2 py-1 rounded-sm text-sm"
             >
               <span>{emoji}</span>
               {count > 1 && <span className="ml-1">{count}</span>}

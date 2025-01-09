@@ -91,7 +91,7 @@ export const UserPopover: FC<UserPopoverProps> = ({ paymail, logo, onClose }) =>
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-[9999]">
+      <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-9999">
         <div className="bg-base-100 p-8 rounded-2xl text-base-content/60">
           Loading...
         </div>
@@ -101,7 +101,7 @@ export const UserPopover: FC<UserPopoverProps> = ({ paymail, logo, onClose }) =>
 
   if (!user) {
     return (
-      <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-[9999]">
+      <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-9999">
         <div className="bg-base-100 p-8 rounded-2xl text-base-content/60">
           User not found
         </div>
@@ -110,7 +110,7 @@ export const UserPopover: FC<UserPopoverProps> = ({ paymail, logo, onClose }) =>
   }
 
   return (
-    <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-[9999]" onClick={onClose}>
+    <div className="fixed inset-0 bg-base-300/50 flex items-center justify-center z-9999" onClick={onClose}>
       <div className="bg-base-100 p-8 rounded-2xl text-base-content/60" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col items-center gap-4">
           <Avatar

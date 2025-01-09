@@ -85,7 +85,7 @@ const ImportIDModal = () => {
               <button
                 type="button"
                 onClick={uploadIdentity}
-                className="bg-slate-800 px-2 py-1 text-white flex items-center m-auto rounded"
+                className="bg-slate-800 px-2 py-1 text-white flex items-center m-auto rounded-sm"
               >
                 <FaUpload style={{ marginRight: '.5rem' }} />{' '}
                 {loadIdentityStatus === FetchStatus.Loading

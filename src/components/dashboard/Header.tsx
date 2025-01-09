@@ -12,8 +12,6 @@ import { ImProfile } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import tw from 'twin.macro';
-import { useHandcash } from '../../context/handcash';
 import { hideInDesktop } from '../../design/mixins';
 import { useActiveUser } from '../../hooks';
 import { toggleMemberList } from '../../reducers/memberListReducer';
@@ -26,19 +24,15 @@ import ArrowTooltip from './ArrowTooltip';
 import At from './At';
 import Hashtag from './Hashtag';
 import { SettingsModal } from './modals/SettingsModal';
+import { useHandcash } from '../../context/handcash';
 
-const Container = styled.div`
-  ${tw`bg-base-200 border-b border-base-300 h-12 flex-none px-4 flex items-center justify-between w-full`}
-`;
+const Container = styled.div.attrs({
+  className: 'bg-base-200 border-b border-base-300 h-12 flex-none px-4 flex items-center justify-between w-full'
+})``;
 
-const Heading = tw.div`
-  font-semibold
-  text-sm
-  md:text-base
-  whitespace-nowrap
-  text-ellipsis
-  text-base-content
-`;
+const Heading = styled.div.attrs({
+  className: 'font-semibold text-sm md:text-base whitespace-nowrap text-ellipsis text-base-content'
+})``;
 
 interface IconWrapperProps {
   $isActive?: boolean;
@@ -48,15 +42,17 @@ interface IconWrapperProps {
   target?: string;
 }
 
-const IconWrapper = styled.button<IconWrapperProps>`
-  ${tw`flex items-center content-center mr-2 md:mr-3 text-base-content hover:bg-base-300`}
+const IconWrapper = styled.button.attrs<IconWrapperProps>(props => ({
+  className: `flex items-center content-center mr-2 md:mr-3 text-base-content hover:bg-base-300 ${
+    props.$isActive ? 'text-base-content bg-base-300' : ''
+  }`
+}))<IconWrapperProps>`
   background-color: transparent;
   padding: 4px;
   border-radius: 4px;
   font-size: 20px;
   
   ${(p) => p.$isHamburger && hideInDesktop};
-  ${(p) => p.$isActive && tw`text-base-content bg-base-300`};
 `;
 
 interface IconButtonProps {
@@ -94,11 +90,9 @@ const IconButton = ({
   );
 };
 
-const ActionButtons = tw.div`
-  flex
-  items-center
-  gap-1
-`;
+const ActionButtons = styled.div.attrs({
+  className: 'flex items-center gap-1'
+})``;
 
 interface HeaderProps {
   isFriendsPage?: boolean;

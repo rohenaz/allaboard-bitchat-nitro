@@ -1,5 +1,4 @@
 import { css } from 'styled-components';
-import tw from 'twin.macro';
 
 export const hideInDesktop = css`
   @media (min-width: 768px) {

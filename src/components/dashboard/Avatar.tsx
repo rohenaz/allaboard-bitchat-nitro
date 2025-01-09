@@ -13,7 +13,7 @@ const AvatarContainer = styled.div<{ size: string }>`
   height: ${({ size }) => size};
   border-radius: 50%;
   overflow: hidden;
-  flex-shrink: 0;
+  shrink: 0;
   background: var(--background-primary);
   display: flex;
   align-items: center;
