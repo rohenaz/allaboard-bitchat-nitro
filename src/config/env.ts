@@ -6,8 +6,6 @@ export const API_ENDPOINT = `${API_BASE_URL}`;
 
 export const HANDCASH_APP_ID = import.meta.env.VITE_HANDCASH_APP_ID;
 
-export const YOURS_APP_ID = import.meta.env.VITE_YOURS_APP_ID;
-
 export const ENVIRONMENT = import.meta.env.MODE || 'development';
 
 export const HANDCASH_API_URL =
