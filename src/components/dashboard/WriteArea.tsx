@@ -19,18 +19,18 @@ import { receiveNewMessage } from '../../reducers/chatReducer';
 import type { AppDispatch, RootState } from '../../store';
 import { FetchStatus } from '../../utils/common';
 
-type Profile = {
-  paymail?: string;
-  displayName?: string;
-  avatar?: string;
-};
-
-interface PendingFile {
+export interface PendingFile {
   name: string;
   size: number;
   type: string;
   data: string;
 }
+
+type Profile = {
+  paymail?: string;
+  displayName?: string;
+  avatar?: string;
+};
 
 interface SendButtonProps {
   $hasContent: boolean;

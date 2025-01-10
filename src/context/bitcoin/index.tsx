@@ -13,6 +13,7 @@ import React, {
 import { useDispatch, useSelector, useStore } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { Store } from 'redux';
+import { PendingFile } from '../../components/dashboard/WriteArea';
 import { API_BASE_URL, HANDCASH_API_URL } from '../../config/env';
 import { pinPaymentAddress } from '../../reducers/channelsReducer';
 import {
@@ -109,21 +110,14 @@ interface BitcoinContextValue {
   ) => Promise<void>;
   likeStatus: FetchStatusType;
   decryptStatus: FetchStatusType;
-  signOpReturnWithAIP: (hexArray: string[]) => Promise<string[]>;
+  signOpReturnWithAIP: (hexArray: string[]) => string[];
   signStatus: FetchStatusType;
-  pendingFiles: File[];
-  setPendingFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  pendingFiles: PendingFile[];
+  setPendingFiles: React.Dispatch<React.SetStateAction<PendingFile[]>>;
 }
 
 interface BitcoinProviderProps {
   children: React.ReactNode;
-}
-
-interface PendingFile {
-  type: string;
-  size: number;
-  name: string;
-  data: string;
 }
 
 const BitcoinContext = React.createContext<BitcoinContextValue | undefined>(
