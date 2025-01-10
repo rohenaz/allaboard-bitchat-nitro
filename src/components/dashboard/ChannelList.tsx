@@ -21,14 +21,11 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 16px 0;
   overflow-y: auto;
   position: relative;
-  padding-bottom: 52px;
 `;
 
 const Title = styled.h2`
-  padding: 0 16px;
   margin: 0 0 8px 0;
   text-transform: uppercase;
   font-weight: 600;
@@ -42,7 +39,7 @@ const ChannelList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0 8px;
+  height: 100%;
 `;
 
 const ChannelItem = styled.div<{ $isActive: boolean }>`
@@ -121,19 +118,13 @@ const ChannelListContent: React.FC = () => {
     );
   }
 
-  if (!channels.length) {
-    return (
-      <Container>
-        <NoChannelsText>No channels found</NoChannelsText>
-        <UserPanel />
-      </Container>
-    );
-  }
+
 
   return (
     <Container>
       <Title>Text Channels ({channels.length})</Title>
       <ChannelList>
+        {!channels.length && <NoChannelsText>No channels found</NoChannelsText>}
         {channels.map((channel) => (
           <ChannelItem
             key={channel.channel}

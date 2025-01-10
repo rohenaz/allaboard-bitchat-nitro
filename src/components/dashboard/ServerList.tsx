@@ -63,7 +63,7 @@ const ServerList: FC = () => {
   }, [authToken, connected, dispatch]);
 
   return (
-    <div className="w-[72px] bg-base-300 flex flex-col items-center py-3 gap-2">
+    <div className="w-[72px] bg-base-300 flex flex-col items-center py-3 gap-2 h-full">
       <button
         className="btn btn-ghost btn-circle"
         onClick={handleHomeClick}
