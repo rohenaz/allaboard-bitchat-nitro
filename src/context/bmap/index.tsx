@@ -1,10 +1,14 @@
 import React, { useContext, useMemo, useCallback } from 'react';
 import { API_BASE_URL } from '../../config/env';
 
-const BmapContext = React.createContext(undefined);
+interface BmapContextType {
+  notifyIndexer: (rawTx: string) => Promise<any>;
+}
+
+const BmapContext = React.createContext<BmapContextType | undefined>(undefined);
 
 const BmapProvider = (props) => {
-  const notifyIndexer = useCallback((rawTx) => {
+  const notifyIndexer = useCallback((rawTx: string) => {
     return new Promise((resolve, reject) => {
       fetch(`${API_BASE_URL}/ingest`, {
         method: 'POST',
@@ -13,10 +17,8 @@ const BmapProvider = (props) => {
         },
         body: JSON.stringify({ rawTx }),
       })
-        .then((resp) => {
-          const json = resp.json();
-          resolve(json);
-        })
+        .then((resp) => resp.json())
+        .then((json) => resolve(json))
         .catch((e) => {
           reject(new Error('Failed to notify indexer', e));
         });
@@ -33,7 +35,7 @@ const BmapProvider = (props) => {
   return <BmapContext.Provider value={value} {...props} />;
 };
 
-const useBmap = () => {
+const useBmap = (): BmapContextType => {
   const context = useContext(BmapContext);
   if (context === undefined) {
     throw new Error('useBmap must be used within an BmapProvider');
