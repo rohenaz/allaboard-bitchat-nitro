@@ -165,25 +165,37 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
     // Empty effect, can be removed if not needed
   }, []);
 
-  const signOpReturnWithAIP = useCallback((hexArray: string[]) => {
-    setSignStatus(FetchStatus.Loading);
+  const signOpReturnWithAIP = useCallback(
+    (hexArray: string[]): string[] => {
+      setSignStatus(FetchStatus.Loading);
 
-    if (!decIdentity) {
-      setSignStatus(FetchStatus.Error);
-      throw new Error('no auth token');
-    }
+      if (!decIdentity) {
+        setSignStatus(FetchStatus.Error);
+        throw new Error('no auth token');
+      }
 
-    const idy = new BAP(decIdentity.xprv);
-    if (decIdentity.ids) {
-      idy.importIds(decIdentity.ids as any, true);
-    }
+      const idy = new BAP(decIdentity.xprv);
+      if (decIdentity.ids) {
+        idy.importIds(decIdentity.ids as any, true);
+      }
 
-    const id = idy.getId(decIdentity.bapId as string);
-    const signedOps = id?.signOpReturnWithAIP(hexArray);
+      const id = idy.getId(decIdentity.bapId as string);
+      if (!id) {
+        setSignStatus(FetchStatus.Error);
+        throw new Error('no identity found');
+      }
 
-    setSignStatus(FetchStatus.Success);
-    return signedOps;
-  }, [decIdentity]);
+      const signedOps = id.signOpReturnWithAIP(hexArray);
+      if (!signedOps) {
+        setSignStatus(FetchStatus.Error);
+        throw new Error('failed to sign');
+      }
+
+      setSignStatus(FetchStatus.Success);
+      return signedOps;
+    },
+    [decIdentity],
+  );
 
   const sendPin = useCallback(
     async (pm: string, channel: string, units: number) => {
@@ -462,7 +474,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           try {
             if (decIdentity && !isYoursWallet) {
               const signedOps = signOpReturnWithAIP(hexArray);
-              scriptP = Script.fromASM(`OP_0 OP_RETURN ${signedOps?.join(' ')}`);
+              scriptP = Script.fromASM(`OP_0 OP_RETURN ${signedOps.join(' ')}`);
             } else {
               scriptP = Script.fromASM(
                 `OP_0 OP_RETURN ${dataPayload
