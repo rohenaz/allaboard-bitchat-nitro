@@ -1,4 +1,4 @@
-import { ECIES, Hash, PublicKey, Script } from '@bsv/sdk';
+import { ECIES, Hash, PrivateKey, PublicKey, Script } from '@bsv/sdk';
 import bops from 'bops';
 import { BAP } from 'bsv-bap';
 import { head } from 'lodash';
@@ -25,7 +25,8 @@ import { useBap } from '../bap';
 import { useBmap } from '../bmap';
 import { useHandcash } from '../handcash';
 import { useYours } from '../yours';
-
+import { Utils, HD } from '@bsv/sdk';
+const { toHex, toArray } = Utils;
 // Add type definitions
 interface DecIdentity {
   xprv: string;
@@ -164,29 +165,25 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
     // Empty effect, can be removed if not needed
   }, []);
 
-  const signOpReturnWithAIP = useCallback(
-    async (hexArray) => {
-      return new Promise((resolve, reject) => {
-        setSignStatus(FetchStatus.Loading);
-        // if we dont have the paymail, get it
-        if (decIdentity) {
-          const idy = new BAP(decIdentity.xprv);
-          if (decIdentity.ids) {
-            idy.importIds(decIdentity.ids as string, true);
-          }
+  const signOpReturnWithAIP = useCallback((hexArray: string[]) => {
+    setSignStatus(FetchStatus.Loading);
 
-          const signedOps = idy.signOpReturnWithAIP(hexArray);
+    if (!decIdentity) {
+      setSignStatus(FetchStatus.Error);
+      throw new Error('no auth token');
+    }
 
-          setSignStatus(FetchStatus.Success);
-          resolve(signedOps);
-        } else {
-          setSignStatus(FetchStatus.Error);
-          reject(new Error('no auth token'));
-        }
-      });
-    },
-    [decIdentity],
-  );
+    const idy = new BAP(decIdentity.xprv);
+    if (decIdentity.ids) {
+      idy.importIds(decIdentity.ids as any, true);
+    }
+
+    const id = idy.getId(decIdentity.bapId as string);
+    const signedOps = id?.signOpReturnWithAIP(hexArray);
+
+    setSignStatus(FetchStatus.Success);
+    return signedOps;
+  }, [decIdentity]);
 
   const sendPin = useCallback(
     async (pm: string, channel: string, units: number) => {
@@ -342,12 +339,12 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
     setPendingFilesOutputs(computedPendingFilesOutputs);
   }, [computedPendingFilesOutputs]);
 
-  const _sendMessageWithRelay = useCallback(async (_signedDataOuts) => {}, []);
+  // const _sendMessageWithRelay = useCallback(async (_signedDataOuts: string[][]) => {}, []);
 
-  const _sendMessageWithHandcash = useCallback(
-    async (_signedDataOuts) => {},
-    [],
-  );
+  // const _sendMessageWithHandcash = useCallback(
+  //   async (_signedDataOuts) => {},
+  //   [],
+  // );
 
   const handleMessage = useCallback(
     async (pm: string, content: string, channel: string, userId?: string) => {
@@ -464,8 +461,8 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
           try {
             if (decIdentity && !isYoursWallet) {
-              const signedOps = await signOpReturnWithAIP(hexArray);
-              scriptP = Script.fromASM(`OP_0 OP_RETURN ${signedOps.join(' ')}`);
+              const signedOps = signOpReturnWithAIP(hexArray);
+              scriptP = Script.fromASM(`OP_0 OP_RETURN ${signedOps?.join(' ')}`);
             } else {
               scriptP = Script.fromASM(
                 `OP_0 OP_RETURN ${dataPayload
@@ -477,12 +474,19 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
               { script: scriptP.toASM(), amount: 0, currency: 'BSV' },
             ];
 
-            const { rawtx } = await sendBsv([
+            const resp = await sendBsv([
               {
                 script: scriptP.toHex(),
                 satoshis: 0,
               },
             ]);
+
+            if (!resp) {
+              setPostStatus(FetchStatus.Error);
+              throw new Error('failed to send');
+            }
+
+            const { rawtx } = resp;
 
             const tx = await notifyIndexer(rawtx);
             tx.timestamp = moment().unix();
@@ -787,33 +791,33 @@ const B_PREFIX = '19HxigV4QyBv3tHpQVcUEQyq1pzZVdoAut';
 const _AIP_PREFIX = '15PciHG22SNLQJXMoSUaWVi7WSqc7hCfva';
 export const MAP_PREFIX = '1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5';
 
-export const decrypt = (data, privateKey, publicKey) => {
+export const decrypt = (data: string, privateKey: PrivateKey, publicKey: PublicKey) => {
   return publicKey
-    ? ECIES.decrypt(Buffer.from(data, 'base64'), privateKey, publicKey)
-    : ECIES.decrypt(Buffer.from(data, 'base64'), privateKey);
+    ? ECIES.electrumDecrypt(toArray(data), privateKey, publicKey)
+    : ECIES.electrumDecrypt(toArray(data), privateKey);
 };
 
-export const encrypt = (data, privateKey, publicKey) => {
+export const encrypt = (data: string, privateKey: PrivateKey, publicKey: PublicKey) => {
   if (publicKey) {
-    return ECIES.encrypt(data, privateKey, publicKey);
+    return ECIES.electrumDecrypt(toArray(data), privateKey, publicKey);
   }
-  return ECIES.encrypt(data, privateKey, privateKey.toPublicKey());
+  return ECIES.electrumEncrypt(toArray(data), publicKey, privateKey);
 };
 
-export const friendPublicKeyFromSeedString = (seedString, xprv) => {
-  return friendPrivateKeyFromSeedString(seedString, xprv).toPublicKey();
+export const friendPublicKeyFromSeedString = (seedString: string, xprv: string) => {
+  return friendPrivateKeyFromSeedString(seedString, xprv).toPublic();
 };
 
-export const friendPrivateKeyFromSeedString = (seedString, xprv) => {
+export const friendPrivateKeyFromSeedString = (seedString: string, xprv: string) => {
   if (!xprv) {
     throw new Error('no xprv!');
   }
   // Generate a key based on the other users id hash
-  const seedHex = Hash.sha256(Buffer.from(seedString)).toString('hex');
+  const seedHex = toHex(Hash.sha256(toArray(seedString)));
   const signingPath = getSigningPathFromHex(seedHex);
 
   // Note: Since @bsv/sdk doesn't have HD key support yet, we'll rely on bsv-bap's BAP class
   // to handle the HD key derivation. The BAP class should handle this internally.
-  const bapInstance = new BAP(xprv);
-  return bapInstance.derivePrivateKey(signingPath);
+  return HD.fromString(xprv).derive(signingPath);  
 };
+
