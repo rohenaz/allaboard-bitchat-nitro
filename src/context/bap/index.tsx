@@ -1,13 +1,20 @@
 import { BAP } from 'bsv-bap';
 import { head } from 'lodash';
-import React, {
+import {
+  type FC,
+  type ReactNode,
+  type Dispatch,
+  type SetStateAction,
+  createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from 'react';
+import type { ChangeEvent } from 'react';
 import { useDispatch } from 'react-redux';
+import type { UnknownAction } from '@reduxjs/toolkit';
 import { useYoursWallet } from 'yours-wallet-provider';
 import { login } from '../../reducers/sessionReducer';
 import { FetchStatus } from '../../utils/common';
@@ -22,8 +29,8 @@ interface BapContextValue {
   loadIdentityStatus: FetchStatus;
   decryptStatus: FetchStatus;
   pandaAuth: boolean;
-  setPandaAuth: React.Dispatch<React.SetStateAction<boolean>>;
-  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  setPandaAuth: Dispatch<SetStateAction<boolean>>;
+  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
 interface DecryptedIdentity {
@@ -38,22 +45,16 @@ interface BapProfile {
   avatar?: string;
 }
 
-interface Identities {
-  [key: string]: string;
-}
+type BapIdentities = Record<string, string>;
 
-const BapContext = React.createContext<BapContextValue | undefined>(undefined);
+const BapContext = createContext<BapContextValue | undefined>(undefined);
 const profileStorageKey = 'nitro__BapProvider_profile';
-
-export const BapProvider: React.FC<{ children: React.ReactNode }> = ({
+const identityStorageKey = 'bitchat-nitro._bapid';
+export const BapProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [identity, setIdentity] = useState<string | null>(
-    localStorage.getItem('bitchat-nitro._bapid'),
-  );
-  const [decIdentity, setDecIdentity] = useState<DecryptedIdentity | null>(
-    null,
-  );
+  const [identity, setIdentity] = useLocalStorage<string>(identityStorageKey);
+  const [decIdentity, setDecIdentity] = useState<DecryptedIdentity | null>(null);
   const [bapProfile, setBapProfile] = useState<BapProfile | null>(null);
   const [bapProfileStatus, setBapProfileStatus] = useState<FetchStatus>(
     FetchStatus.Loading,
@@ -74,14 +75,14 @@ export const BapProvider: React.FC<{ children: React.ReactNode }> = ({
         // Check if we're using Handcash for decryption
         if (authToken && identity && typeof hcDecrypt === 'function') {
           console.log('Decrypting identity with Handcash');
-          id = await hcDecrypt(identity);
+          id = await hcDecrypt(identity) as DecryptedIdentity;
         } else if (await isConnected()) {
           console.log('Using Yours wallet for identity');
           // For Yours wallet, the identity is stored unencrypted
-          id = identity ? JSON.parse(identity) : undefined;
+          id = identity ? JSON.parse(identity) as DecryptedIdentity : undefined;
         } else {
           console.log('Using raw identity (no wallet)');
-          id = identity ? JSON.parse(identity) : undefined;
+          id = identity ? JSON.parse(identity) as DecryptedIdentity : undefined;
         }
 
         if (!id) {
@@ -93,11 +94,11 @@ export const BapProvider: React.FC<{ children: React.ReactNode }> = ({
         const bapId = new BAP(id.xprv);
         if (id.ids) {
           console.log('Importing IDs:', id.ids);
-          const identities: Identities = {};
+          const identities: BapIdentities = {};
           id.ids.forEach((i) => {
             identities[i.idKey] = i.idKey;
           });
-          bapId.importIds(identities);
+          bapId.importIds(identities as any);
         }
         const bid = head(bapId.listIds());
         if (bid) {
@@ -106,9 +107,9 @@ export const BapProvider: React.FC<{ children: React.ReactNode }> = ({
           setDecIdentity(updatedId);
           // Instead of setting BAP ID directly, update the session with the current wallet and BAP ID
           if (authToken) {
-            dispatch(login({ wallet: 'handcash', authToken, bapId: bid }));
+            dispatch(login({ wallet: 'handcash', authToken, bapId: bid }) as any);
           } else {
-            dispatch(login({ wallet: 'yours', bapId: bid }));
+            dispatch(login({ wallet: 'yours', bapId: bid }) as any);
           }
         } else {
           console.log('No BAP ID found in identity');
@@ -143,11 +144,12 @@ export const BapProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       if (bapId && decIdentity.ids) {
-        const identities: Identities = {};
+        const identities: BapIdentities = {};
         decIdentity.ids.forEach((i) => {
           identities[i.idKey] = i.idKey;
         });
-        bapId.importIds(identities);
+        debugger;
+        bapId.importIds(identities as any);
       } else {
         console.log('No IDs to import');
         return false;
@@ -168,7 +170,7 @@ export const BapProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const onFileChange = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
+    async (event: ChangeEvent<HTMLInputElement>) => {
       setLoadIdentityStatus(FetchStatus.Loading);
       try {
         const file = event.target.files?.[0];
@@ -188,9 +190,7 @@ export const BapProvider: React.FC<{ children: React.ReactNode }> = ({
               throw new Error('Invalid identity file');
             }
 
-            // Store the identity file in localStorage
-            localStorage.setItem('bitchat-nitro._bapid', text);
-            setIdentity(text);
+            // Store the identity file in localStorage            setIdentity(text);
             setLoadIdentityStatus(FetchStatus.Success);
           } catch (error) {
             console.error('Failed to process identity file:', error);

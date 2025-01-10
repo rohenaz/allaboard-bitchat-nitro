@@ -172,7 +172,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
         if (decIdentity) {
           const idy = new BAP(decIdentity.xprv);
           if (decIdentity.ids) {
-            idy.importIds(decIdentity.ids);
+            idy.importIds(decIdentity.ids as string, true);
           }
 
           const signedOps = idy.signOpReturnWithAIP(hexArray);

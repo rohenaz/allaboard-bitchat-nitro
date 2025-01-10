@@ -48,10 +48,8 @@ export const useActiveUserOld = () => {
 export const usePopover = () => {
   const [showPopover, setShowPopover] = useState(false);
   const [user, setUser] = useState('');
-  // eslint-disable-next-line no-undef
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-  // eslint-disable-next-line no-undef
   const handleClick = (event: MouseEvent<HTMLElement>, userId: string) => {
     setUser(userId);
     setShowPopover(true);

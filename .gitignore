@@ -63,9 +63,6 @@ node_modules/
 # Optional npm cache directory
 .npm
 
-# Optional eslint cache
-.eslintcache
-
 # Environment files
 .env.local
 .env.*.local
