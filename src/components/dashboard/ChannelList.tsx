@@ -23,66 +23,66 @@ const Container = styled.div`
   height: 100%;
   overflow-y: auto;
   position: relative;
+  background: var(--b3);
 `;
 
 const Title = styled.h2`
-  margin: 0 0 8px 0;
+  padding: 0.5rem 1rem;
   text-transform: uppercase;
   font-weight: 600;
-  font-size: 12px;
-  height: 24px;
-  line-height: 24px;
-  color: var(--channels-default);
+  font-size: 0.75rem;
+  color: var(--bc);
+  opacity: 0.5;
 `;
 
 const ChannelList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  height: 100%;
+  flex: 1;
 `;
 
 const ChannelItem = styled.div<{ $isActive: boolean }>`
   display: flex;
   align-items: center;
-  padding: 6px 8px;
-  color: var(--channels-default);
-  border-radius: 4px;
+  padding: 0.375rem 0.5rem;
+  margin: 0.125rem 0.25rem;
+  border-radius: 0.375rem;
   cursor: pointer;
-  font-size: 15px;
-  user-select: none;
+  color: var(--bc);
+  opacity: ${({ $isActive }) => ($isActive ? '1' : '0.7')};
+  background: ${({ $isActive }) => ($isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent')};
+  transition: background 200ms;
 
   &:hover {
-    background-color: var(--background-modifier-hover);
-    color: var(--text-normal);
+    background: rgba(255, 255, 255, 0.05);
   }
+`;
 
-  ${({ $isActive }) =>
-    $isActive &&
-    `
-    background-color: var(--background-modifier-selected);
-    color: var(--text-normal);
-  `}
+const ChannelName = styled.span<{ $isActive: boolean }>`
+  color: var(--bc);
+  opacity: ${({ $isActive }) => ($isActive ? '1' : '0.7')};
+  transition: opacity 200ms;
 `;
 
 const HashtagIcon = styled.span`
-  margin-right: 6px;
-  color: var(--channels-default);
-  font-size: 20px;
-  
+  margin-right: 0.5rem;
+  opacity: 0.5;
+  font-size: 1.125rem;
   &::before {
     content: '#';
   }
 `;
 
 const LoadingText = styled.div`
-  padding: 0 16px;
-  color: var(--text-muted);
-  font-size: 14px;
+  padding: 0.5rem 1rem;
+  color: var(--bc);
+  opacity: 0.5;
+  font-size: 0.875rem;
 `;
 
 const NoChannelsText = styled(LoadingText)`
-  color: var(--text-muted);
+  color: var(--bc);
+  opacity: 0.5;
 `;
 
 const ChannelListContent: React.FC = () => {
@@ -132,7 +132,9 @@ const ChannelListContent: React.FC = () => {
             onClick={() => handleClick(channel.channel)}
           >
             <HashtagIcon />
-            {channel.channel}
+            <ChannelName $isActive={channel.channel === params.channel}>
+              {channel.channel}
+            </ChannelName>
           </ChannelItem>
         ))}
       </ChannelList>

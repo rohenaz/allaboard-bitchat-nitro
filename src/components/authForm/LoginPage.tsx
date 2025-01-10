@@ -1,11 +1,8 @@
-import type { FC, CSSProperties } from 'react';
+import type { FC } from 'react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  type SocialProfile as BaseSocialProfile,
-  useYoursWallet,
-  YoursIcon,
-} from 'yours-wallet-provider';
+import { Link, useNavigate } from 'react-router-dom';
+import type { SocialProfile as BaseSocialProfile } from 'yours-wallet-provider';
+import { useYoursWallet } from 'yours-wallet-provider';
 import { HANDCASH_API_URL } from '../../config/env';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
@@ -13,6 +10,7 @@ import { useAppDispatch } from '../../hooks';
 import { loadChannels } from '../../reducers/channelsReducer';
 import { setYoursUser } from '../../reducers/sessionReducer';
 import HandcashIcon from '../icons/HandcashIcon';
+import YoursIcon from '../icons/YoursIcon';
 import Layout from './Layout';
 
 interface ExtendedProfile extends BaseSocialProfile {
@@ -122,6 +120,10 @@ export const LoginPage: FC = () => {
         throw new Error('Failed to get or generate paymail.');
       }
 
+      if (!addresses?.bsvAddress) {
+        throw new Error('Failed to get BSV address.');
+      }
+
       dispatch(
         setYoursUser({
           paymail: profile.paymail,
@@ -139,13 +141,13 @@ export const LoginPage: FC = () => {
   };
 
   return (
-    <Layout heading="Welcome to BitChat">
+    <Layout heading="Open Social Client">
       <div className="flex flex-col gap-4 w-full">
         <button
           type="button"
           onClick={handleHandcashLogin}
           disabled={isLoading}
-          className="btn btn-primary w-full gap-2 min-h-12 h-auto py-3"
+          className="btn btn-accent w-full gap-2"
         >
           <HandcashIcon className="w-4 h-4" />
           Login with Handcash
@@ -154,11 +156,9 @@ export const LoginPage: FC = () => {
           type="button"
           onClick={handleYoursLogin}
           disabled={!isReady || isLoading}
-          className="btn btn-primary w-full gap-2 min-h-12 h-auto py-3"
+          className="btn btn-accent w-full gap-2"
         >
-          <span className="text-white">
-            <YoursIcon size={"1rem"} />
-          </span>
+          <YoursIcon size="1rem" />
           {isLoading ? 'Connecting...' : 'Login with Yours Wallet'}
         </button>
       </div>
@@ -170,19 +170,19 @@ export const LoginPage: FC = () => {
       <div className="mt-8 text-sm text-center space-y-2">
         <div>
           Need an account?{' '}
-          <a
-            href="https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
+          <Link
+            to="https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
             target="_blank"
             rel="noopener noreferrer"
-            className="link link-primary"
+            className="link link-hover"
           >
             Register
-          </a>
+          </Link>
         </div>
         <div>
-          <a href="/channels" className="link link-primary">
+          <Link to="/channels/nitro" className="link link-hover">
             Continue as guest (read only)
-          </a>
+          </Link>
         </div>
       </div>
     </Layout>

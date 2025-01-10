@@ -18,6 +18,8 @@ import { useActiveUser } from '../../hooks';
 import { receiveNewMessage } from '../../reducers/chatReducer';
 import type { AppDispatch, RootState } from '../../store';
 import { FetchStatus } from '../../utils/common';
+import { toB64 } from '../../utils/file';
+import FileRenderer, { type MediaType } from '../dashboard/FileRenderer';
 
 export interface PendingFile {
   name: string;
@@ -105,8 +107,8 @@ const Container = styled.div`
   border-top: 1px solid color-mix(in srgb, var(--p) 10%, transparent);
   width: 100%;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   position: relative;
   
   &::before {
@@ -136,39 +138,70 @@ const Form = styled.form`
 
 const AttachmentBar = styled.div`
   display: flex;
-  align-items: center;
-  position: absolute;
-  margin-top: -40px;
-  background: color-mix(in srgb, var(--b1) 95%, transparent);
-  backdrop-filter: blur(8px);
-  border: 1px solid color-mix(in srgb, var(--p) 10%, transparent);
+  flex-wrap: wrap;
+  gap: 8px;
   width: 100%;
-  border-radius: 8px;
+  max-width: 1200px;
   padding: 8px;
-  z-index: 1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-`;
-
-const AttachmentLabel = styled.span`
-  font-weight: 600;
-  color: var(--bc);
-  margin-right: 8px;
+  margin-bottom: 8px;
 `;
 
 const AttachmentItem = styled.div`
-  margin-right: 8px;
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--b2);
+`;
+
+const AttachmentThumbnail = styled.div`
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
-  color: var(--bc);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  justify-content: center;
+
+  img, video, audio {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 const AttachmentName = styled.div`
-  min-width: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 12px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+const DeleteButton = styled.button`
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--er);
+  }
 `;
 
 const StyledPlusIcon = styled(HiPlusCircle)`
@@ -311,6 +344,7 @@ const WriteArea = () => {
   const [searchParams] = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const activeUser = useActiveUser() as ActiveUser | null;
 
   const friendRequests = useSelector(
@@ -400,8 +434,30 @@ const WriteArea = () => {
 
   const handlePlusClick = useCallback(() => {
     if (postStatus === FetchStatus.Loading) return;
-    console.log('File upload coming soon!');
+    fileInputRef.current?.click();
   }, [postStatus]);
+
+  const handleFileChange = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const newPendingFiles = await Promise.all(
+      files.map(async (file) => {
+        const data = await toB64(file);
+        return {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          data: data.split(',')[1],
+        };
+      })
+    );
+
+    setPendingFiles(prev => [...prev, ...newPendingFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [setPendingFiles]);
 
   const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -494,25 +550,33 @@ const WriteArea = () => {
 
   return (
     <Container>
-      <Form onSubmit={handleSubmit} autoComplete="off">
-        {pendingFiles && pendingFiles.length > 0 && (
-          <AttachmentBar>
-            <AttachmentLabel>Attachments:</AttachmentLabel>
-            {pendingFiles.map((file, idx) => (
-              <AttachmentItem key={file.name}>
-                <AttachmentName>{file.name}</AttachmentName>
-                {idx < pendingFiles.length - 1 ? ',' : ''}
-              </AttachmentItem>
-            ))}
-            <CloseButton
-              onClick={() => setPendingFiles([])}
-              aria-label="Close attachments"
-            >
-              <IoMdClose size={16} />
-            </CloseButton>
-          </AttachmentBar>
-        )}
+      {pendingFiles && pendingFiles.length > 0 && (
+        <AttachmentBar>
+          {pendingFiles.map((file, idx) => (
+            <AttachmentItem key={file.name}>
+              <AttachmentThumbnail>
+                <FileRenderer 
+                  type={file.type.split('/')[0] as MediaType} 
+                  data={`data:${file.type};base64,${file.data}`}
+                />
+              </AttachmentThumbnail>
+              <AttachmentName>{file.name}</AttachmentName>
+              <DeleteButton
+                onClick={() => {
+                  const newFiles = [...pendingFiles];
+                  newFiles.splice(idx, 1);
+                  setPendingFiles(newFiles);
+                }}
+                aria-label="Remove attachment"
+              >
+                <IoMdClose size={16} />
+              </DeleteButton>
+            </AttachmentItem>
+          ))}
+        </AttachmentBar>
+      )}
 
+      <Form onSubmit={handleSubmit} autoComplete="off">
         <PlusButton
           onClick={handlePlusClick}
           type="button"
@@ -521,6 +585,14 @@ const WriteArea = () => {
         >
           <StyledPlusIcon />
         </PlusButton>
+
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+          multiple
+        />
 
         <MessageInput
           ref={inputRef}
