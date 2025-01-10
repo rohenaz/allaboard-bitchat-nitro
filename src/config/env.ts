@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 export const API_BASE_URL =
-  import.meta.env.API_URL || 'http://localhost:3055';
+  import.meta.env.VITE_API_URL || 'http://localhost:3055';
 
 export const API_ENDPOINT = `${API_BASE_URL}`;
 
