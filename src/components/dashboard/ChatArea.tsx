@@ -28,8 +28,7 @@ const WriteAreaWrapper = styled.div`
   width: 100%;
   background-color: var(--background-primary);
   border-top: 1px solid var(--background-modifier-accent);
-  padding: 0 16px 24px;
-`;
+  `;
 
 const ChatArea: React.FC = () => {
   return (
