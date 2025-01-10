@@ -4,6 +4,9 @@ import { useDispatch } from 'react-redux';
 import {
   type Addresses,
   type SocialProfile as BaseSocialProfile,
+  GetSignatures,
+  SendBsv,
+  SendBsvResponse,
   type SignatureResponse,
   type Utxo,
   useYoursWallet,
@@ -25,7 +28,10 @@ export interface WalletProfile {
   balance?: number;
 }
 
-export interface ExtendedProfile extends BaseSocialProfile, WalletProfile {}
+// Extend BaseSocialProfile to include paymail
+type ExtendedBaseSocialProfile = BaseSocialProfile & { paymail: string };
+
+export interface ExtendedProfile extends ExtendedBaseSocialProfile, WalletProfile {}
 
 interface BroadcastParams {
   rawtx: string;
@@ -40,15 +46,12 @@ interface YoursContextType {
   connected: FetchStatus;
   pandaProfile: ExtendedProfile | null;
   isReady: boolean;
-  getSocialProfile: () => Promise<BaseSocialProfile>;
-  getAddresses: () => Promise<Addresses>;
-  broadcast: (params: BroadcastParams) => Promise<string>;
-  sendBsv: (params: SendBsvParams) => Promise<string>;
+  getSocialProfile: () => Promise<BaseSocialProfile | undefined>;
+  getAddresses: () => Promise<Addresses | undefined>;
+  broadcast: (params: BroadcastParams) => Promise<string | undefined>;
+  sendBsv: (params: SendBsv[]) => Promise<SendBsvResponse | undefined>;
   utxos: Utxo[] | undefined;
-  getSignatures: (params: {
-    message: string;
-    address: string;
-  }) => Promise<SignatureResponse>;
+  getSignatures: (params: GetSignatures) => Promise<SignatureResponse[] | undefined>;
 }
 
 const YoursContext = React.createContext<YoursContextType | undefined>(
@@ -138,14 +141,15 @@ const AutoYoursProvider: React.FC<AutoYoursProviderProps> = (props) => {
           console.log('AutoYoursProvider: Got profile:', profile);
           const addresses = await getAddresses();
           console.log('AutoYoursProvider: Got addresses:', addresses);
-          if (profile?.paymail && addresses?.bsvAddress) {
+          if (profile?.displayName && addresses?.bsvAddress) {
+            const yoursPaymail = `${profile.displayName}@yours.org`;
             console.log('AutoYoursProvider: Dispatching user info:', {
-              paymail: profile.paymail,
+              paymail: yoursPaymail,
               address: addresses.bsvAddress,
             });
             dispatch(
               setYoursUser({
-                paymail: profile.paymail,
+                paymail: yoursPaymail,
                 address: addresses.bsvAddress,
               }),
             );
@@ -211,6 +215,7 @@ const AutoYoursProvider: React.FC<AutoYoursProviderProps> = (props) => {
           ...baseProfile,
           addresses,
           utxos: u,
+          paymail: `${baseProfile.displayName}@yours.org`
         };
 
         console.log('AutoYoursProvider: Getting balance...');

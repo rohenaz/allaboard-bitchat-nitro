@@ -351,12 +351,20 @@ const WriteArea = () => {
     const hasHandcash = Boolean(authToken);
     
     // Check if we have a valid Yours wallet connection
-    const hasYours = Boolean(pandaProfile && connected === FetchStatus.Success);
+    const hasYours = Boolean(pandaProfile && connected === FetchStatus.Success.toLowerCase());
+    console.log('Yours auth debug:', { 
+      pandaProfile, 
+      connected, 
+      expectedStatus: FetchStatus.Success.toLowerCase(),
+      hasYours 
+    });
     
     // Check if we have a valid BAP connection
     const hasBap = Boolean(activeUser && decIdentity);
     
-    return hasHandcash || hasYours || hasBap;
+    const result = hasHandcash || hasYours || hasBap;
+    console.log('Auth state:', { hasHandcash, hasYours, hasBap, result });
+    return result;
   }, [authToken, pandaProfile, connected, activeUser, decIdentity]);
 
   const guest = useMemo(() => {
