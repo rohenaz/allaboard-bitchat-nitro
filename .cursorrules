@@ -40,3 +40,7 @@ When reviewing code from target commit c04fc0d4e140a9324dc4477f24239b3dfef2389b:
 3. Compare implementations to restore critical functionality
 4. Focus on core features: authentication, channels, messaging
 5. Note key differences in state management and API handling
+
+# Auth
+- handcash returns from oauth with something like this: https://bitchatnitro.com/?authToken=<some_token >
+- we extract the token from the url and use it to login
