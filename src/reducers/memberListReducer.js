@@ -134,7 +134,7 @@ const memberListSlice = createSlice({
             return;
           }
           // add to signers
-          action.payload.signers.forEach((signer) => {
+          action.payload.signers?.forEach((signer) => {
             if (!state.signers.allIds.includes(signer.idKey)) {
               state.signers.allIds.push(signer.idKey);
               state.signers.byId[signer.idKey] = signer;
