@@ -2,6 +2,7 @@ import { head, last } from "lodash";
 import { receiveNewChannel, receiveNewPin } from "../reducers/channelsReducer";
 import { receiveNewMessage, receiveNewReaction } from "../reducers/chatReducer";
 import { receiveNewFriend } from "../reducers/memberListReducer";
+import env from "../utils/env";
 
 const sockQuery = (verbose) => {
   let q = {
@@ -25,7 +26,7 @@ const sockQuery = (verbose) => {
 const socketMiddleware = () => {
   var sock_b64 = btoa(JSON.stringify(sockQuery(false)));
   var socket_url =
-    "https://bmap-api-production.up.railway.app/s/$all/" + sock_b64; // "https://b.map.sv/s/" + sock_b64;
+    `${env.BMAP_API_URL}/s/$all/` + sock_b64; // "https://b.map.sv/s/" + sock_b64;
 
   return (storeAPI) => {
     // socket

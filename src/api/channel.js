@@ -1,7 +1,8 @@
 import axios from "axios";
+import env from "../utils/env";
 
 const api = axios.create({
-  baseURL: "https://bmap-api-production.up.railway.app/", // "https://b.map.sv/q/",
+  baseURL: `${env.BMAP_API_URL}/`, // "https://b.map.sv/q/",
 });
 
 const verboseMode = false;

@@ -1,12 +1,13 @@
 import React, { useCallback, useState } from "react";
 import { FaCheck, FaSearch } from "react-icons/fa";
 import OutsideClickHandler from "react-outside-click-handler";
+import env from "../../../utils/env";
 
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const api = axios.create({
-  baseURL: "https://bmap-api-production.up.railway.app/q/", // "https://b.map.sv/q/",
+  baseURL: `${env.BMAP_API_URL}/q/`, // "https://b.map.sv/q/",
 });
 
 const DirectMessageModal = ({ open, onClose }) => {

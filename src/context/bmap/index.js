@@ -1,11 +1,12 @@
 import React, { useContext, useMemo } from "react";
+import env from "../../utils/env";
 
 const BmapContext = React.createContext(undefined);
 
 const BmapProvider = (props) => {
   const notifyIndexer = (rawTx) => {
     return new Promise((resolve, reject) => {
-      fetch("https://bmap-api-production.up.railway.app/ingest", {
+      fetch(`${env.BMAP_API_URL}/ingest`, {
         // `https://b.map.sv/ingest`, {
         method: "POST",
         headers: {
