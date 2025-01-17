@@ -8,7 +8,7 @@ audio.volume = 0.25;
 
 export const loadMessages = createAsyncThunk(
   "chat/loadMessages",
-  async ({ activeChannelId, activeUserId, myBapId }, { rejectWithValue }) => {
+  async ({ activeChannelId, activeUserId, activeUserAddress, myBapId, myCurrentAddress }, { rejectWithValue }) => {
     try {
       // console.log("loading messages", {
       //   activeChannelId,
@@ -18,7 +18,9 @@ export const loadMessages = createAsyncThunk(
       const response = await channelAPI.getMessages(
         activeChannelId,
         activeUserId,
-        myBapId
+        activeUserAddress,
+        myBapId,
+        myCurrentAddress
       );
       return response?.data;
     } catch (err) {

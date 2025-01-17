@@ -166,7 +166,9 @@ const Messages = () => {
         loadMessages({
           activeChannelId,
           activeUserId,
+          activeUserAddress: users?.byId[activeUserId]?.currentAddress,
           myBapId: decIdentity?.bapId,
+          myCurrentAddress: users?.byId[decIdentity?.bapId]?.currentAddress,
         })
       );
     }
@@ -409,7 +411,7 @@ const Messages = () => {
       ) : (
         <>
           This is the beginning of your direct message history with{" "}
-          {activeUser?.user?.alternateName}
+          {activeUser?.user?.alternateName || activeUser?.identity?.alternateName}
         </>
       );
     }

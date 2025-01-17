@@ -62,7 +62,7 @@ const MemberList = ({ isMobile }) => {
 
           return (
             <ListItem
-              key={u._id}
+              key={userId}
               icon={
                 <Avatar
                   size="21px"

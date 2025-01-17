@@ -207,7 +207,7 @@ var queryChannels = {
 
 var queryChannelsB64 = btoa(JSON.stringify(queryChannels));
 
-const query = (verboseMode, channelId, userId, myId) => {
+const query = (verboseMode, channelId, userId, userAddress, myId, myAddress) => {
   // console.log("query with", userId, channelId);
   let q = {
     v: 3,
@@ -227,8 +227,8 @@ const query = (verboseMode, channelId, userId, myId) => {
     q.q.find["MAP.channel"] = channelId;
   } else if (userId && myId) {
     q.q.find["$or"] = [
-      { $and: [{ "MAP.bapID": myId }, { "AIP.bapId": userId }] },
-      { $and: [{ "AIP.bapId": myId }, { "MAP.bapID": userId }] },
+      { $and: [{ "MAP.bapID": myId }, { "AIP.address": userAddress }] },
+      { $and: [{ "AIP.address": myAddress }, { "MAP.bapID": userId }] },
     ];
     // stuff added by indexer uses camelCase
     // stuff in the protocol uses caps ID
@@ -298,9 +298,9 @@ export const getFriends = async (idKey) => {
   return await api.get(`q/friend/${queryFriendsB64(idKey)}?d=friends`);
 };
 
-export const getMessages = async (channelId, userId, myId) => {
+export const getMessages = async (channelId, userId, userAddress, myId, myAddress) => {
   return await api.get(
-    `q/message/${query(verboseMode, channelId, userId, myId)}?d=messages`
+    `q/message/${query(verboseMode, channelId, userId, userAddress, myId, myAddress)}?d=messages`
   );
 };
 

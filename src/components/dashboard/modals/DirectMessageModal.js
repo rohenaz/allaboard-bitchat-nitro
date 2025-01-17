@@ -154,7 +154,6 @@ const DirectMessageModal = ({ open, onClose }) => {
                     borderRadius: ".5rem",
                   }}
                   onChange={changeInput}
-                  onSubmit
                 />
 
                 <div
