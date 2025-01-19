@@ -227,8 +227,8 @@ const query = (verboseMode, channelId, userId, userAddress, myId, myAddress) => 
     q.q.find["MAP.channel"] = channelId;
   } else if (userId && myId) {
     q.q.find["$or"] = [
-      { $and: [{ "MAP.bapID": myId }, { "AIP.address": userAddress }] },
-      { $and: [{ "AIP.address": myAddress }, { "MAP.bapID": userId }] },
+      { $and: [{ "MAP.bapID": myId }, { "AIP.algorithm_signing_component": userAddress }] },
+      { $and: [{ "AIP.algorithm_signing_component": myAddress }, { "MAP.bapID": userId }] },
     ];
     // stuff added by indexer uses camelCase
     // stuff in the protocol uses caps ID
