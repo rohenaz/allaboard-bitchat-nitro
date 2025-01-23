@@ -1,4 +1,4 @@
-import React, { type FC } from 'react';
+import { type FC } from 'react';
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -23,15 +23,25 @@ export const MemberList: FC = () => {
   const filteredUsers = memberList.allIds
     .map((id) => {
       const user = memberList.byId[id];
-      if (!user) return null;
+      console.log('Filtering user:', { id, user, activeChannel });
+      if (!user?.idKey) return null;
 
       // If no active channel, show all users
       if (!activeChannel) return user;
 
       // Check if user has sent messages in this channel
       const hasMessagesInChannel = chat.messages.data.some((msg) => {
-        const msgPaymail = msg.MAP?.[0]?.paymail;
-        return msgPaymail === user.paymail;
+        const msgBapId = msg.MAP?.[0]?.bapID;
+        if (msgBapId === user.idKey) {
+          console.log('Message BAP ID:', { msg });
+        }
+        return msgBapId === user.idKey;
+      });
+      console.log('User message check:', { 
+        user: user.paymail, 
+        idKey: user.idKey,
+        hasMessages: hasMessagesInChannel,
+        messageCount: chat.messages.data.length
       });
 
       return hasMessagesInChannel ? user : null;
@@ -39,25 +49,39 @@ export const MemberList: FC = () => {
     .filter((user): user is NonNullable<typeof user> => user !== null)
     .map((user) => ({
       _id: user.idKey,
-      paymail: user.paymail,
-      logo: user.logo,
-      alternateName: user.paymail,
+      paymail: user.displayName || user.paymail || user.idKey,
+      logo: user.icon || user.logo || '',
+      alternateName: user.displayName || user.paymail || user.idKey,
     }));
 
-  const fetchData = useCallback(() => {
-    if (authToken || connected) {
-      void dispatch(loadUsers());
-      if (!activeChannel) {
+  const fetchMemberList = useCallback(() => {
+    console.log('MemberList auth state:', { authToken, connected, hasUsers: memberList.allIds.length > 0, activeChannel });
+    if ((authToken || connected) && !memberList.allIds.length) {
+      if (activeChannel) {
+        console.log('Dispatching loadUsers() for channel');
+        void dispatch(loadUsers());
+      } else {
+        console.log('Dispatching loadFriends() for friends view');
         void dispatch(loadFriends());
       }
     }
-  }, [authToken, connected, dispatch, activeChannel]);
+  }, [authToken, connected, dispatch, memberList.allIds.length, activeChannel]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchMemberList();
+  }, [fetchMemberList]);
+
+  console.log('MemberList state:', { 
+    loading: memberList.loading,
+    userCount: memberList.allIds.length,
+    filteredCount: filteredUsers.length,
+    isOpen,
+    activeChannel,
+    users: memberList.byId
+  });
 
   if (!isOpen) {
+    console.log('MemberList is not open, returning null');
     return null;
   }
 
@@ -66,7 +90,7 @@ export const MemberList: FC = () => {
       <UserList
         users={filteredUsers}
         loading={memberList.loading}
-        title={activeChannel ? `#${activeChannel} Members` : 'All Members'}
+        title={activeChannel ? `#${activeChannel} Members` : 'Friends'}
         showFriendRequests={!activeChannel}
       />
     </div>

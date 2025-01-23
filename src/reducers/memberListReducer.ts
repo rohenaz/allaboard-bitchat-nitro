@@ -3,15 +3,18 @@ import {
   createAsyncThunk,
   createSlice,
 } from '@reduxjs/toolkit';
-import { find, head } from 'lodash';
+import { head } from 'lodash';
 import * as channelAPI from '../api/channel';
+import * as userAPI from '../api/user';
 import type { AppDispatch, RootState } from '../store';
 
 // Define Signer interface
 export interface Signer {
   idKey: string;
-  paymail: string;
-  logo?: string;
+  paymail?: string | null;
+  logo?: string | null;
+  displayName?: string | null;
+  icon?: string | null;
   isFriend?: boolean;
   walletType?: 'handcash' | 'yours';
   currentAddress?: string;
@@ -77,17 +80,27 @@ const initialState: MemberListState = {
   },
 };
 
+// Define response types
+interface GetUsersResponse {
+  message: string;
+  signers: Signer[];
+}
+
 // loadUsers thunk
 export const loadUsers = createAsyncThunk(
   'memberList/loadUsers',
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      const response = await channelAPI.getUsers();
-      if (response?.message === 'Success' && Array.isArray(response?.signers)) {
-        return response.signers;
+      console.log('loadUsers thunk starting');
+      const response = await userAPI.getUsers();
+      console.log('loadUsers thunk got response:', response);
+      if (Array.isArray(response)) {
+        return response;
       }
+      console.log('loadUsers thunk returning empty array - response not an array');
       return [];
     } catch (err: any) {
+      console.error('loadUsers thunk error:', err);
       return rejectWithValue(err.response);
     }
   },
@@ -111,8 +124,16 @@ export const loadFriends = createAsyncThunk<
   }
 
   try {
-    const response = await userAPI.getFriends(bapId);
-    return { ...response, bapId };
+    const users = await userAPI.getFriends(bapId);
+    // Convert User[] to LoadFriendsResponse format
+    const signers = users.map(user => ({
+      idKey: user.idKey || '',
+      paymail: user.paymail,
+      logo: user.avatar,
+      displayName: user.name,
+      isFriend: true
+    }));
+    return { friend: [], signers, bapId };
   } catch (error: any) {
     return rejectWithValue(error.message || 'Failed to load friends');
   }
@@ -160,7 +181,9 @@ const memberListSlice = createSlice({
       state.onlineUsers = action.payload;
     },
     toggleMemberList(state) {
+      console.log('Handling toggleMemberList, current isOpen:', state.isOpen);
       state.isOpen = !state.isOpen;
+      console.log('New isOpen value:', state.isOpen);
     },
     ingestSigners(state, action: PayloadAction<Signer[]>) {
       action.payload.forEach((signer) => {
@@ -184,18 +207,28 @@ const memberListSlice = createSlice({
       })
       .addCase(loadUsers.fulfilled, (state, action) => {
         state.loading = false;
-        console.log('load users fulfilled');
+        console.log('load users fulfilled, payload:', action.payload);
         if (!Array.isArray(action.payload)) {
           console.error('Expected array of users but got:', action.payload);
           return;
         }
         for (const user of action.payload) {
-          console.log('memberList reducer', { user });
+          console.log('Processing user:', user);
           if (!state.allIds.includes(user.idKey)) {
-            state.byId[user.idKey] = user;
+            state.byId[user.idKey] = {
+              ...user,
+              // Support both old and new field names
+              paymail: user.paymail || user.displayName,
+              logo: user.logo || user.icon,
+            };
             state.allIds.push(user.idKey);
+            console.log('Added user to state:', user.idKey);
           }
         }
+        console.log('Final state:', { 
+          userCount: state.allIds.length, 
+          users: state.byId 
+        });
       })
       .addCase(loadUsers.rejected, (state, action) => {
         state.loading = false;

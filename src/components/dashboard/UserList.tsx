@@ -1,19 +1,13 @@
-import React, { type FC } from 'react';
+import { type FC } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import type { RootState } from '../../store';
 import Avatar from './Avatar';
-
-interface User {
-  _id: string;
-  paymail: string;
-  logo?: string;
-  alternateName?: string;
-}
+import type { User as ApiUser } from '../../api/user';
 
 interface UserListProps {
   activeUserId?: string;
-  users?: User[];
+  users?: ApiUser[];
   loading?: boolean;
   title?: string;
   showFriendRequests?: boolean;
@@ -103,11 +97,17 @@ export const UserList: FC<UserListProps> = ({
     (state: RootState) => state.memberList.friendRequests,
   );
 
-  if (loading || friendRequests.loading) {
+  const isLoading = showFriendRequests 
+    ? loading || friendRequests.loading
+    : loading;
+
+  if (isLoading) {
     return (
       <Container>
         {title && <Title>{title}</Title>}
-        <LoadingText>Loading members...</LoadingText>
+        <div className="flex items-center justify-center p-4 text-base-content/50">
+          <span className="loading loading-spinner loading-md"></span>
+        </div>
       </Container>
     );
   }
@@ -129,7 +129,7 @@ export const UserList: FC<UserListProps> = ({
                 <UserItem key={id}>
                   <Avatar
                     size="32px"
-                    paymail={signer.paymail}
+                    paymail={signer.paymail || ''}
                     icon={signer.logo || ''}
                   />
                   <UserInfo>
@@ -151,7 +151,7 @@ export const UserList: FC<UserListProps> = ({
                 <UserItem key={id}>
                   <Avatar
                     size="32px"
-                    paymail={signer.paymail}
+                    paymail={signer.paymail || ''}
                     icon={signer.logo || ''}
                   />
                   <UserInfo>
@@ -165,10 +165,14 @@ export const UserList: FC<UserListProps> = ({
       )}
 
       {users.map((user) => (
-        <UserItem key={user._id} $isActive={user._id === activeUserId}>
-          <Avatar size="32px" paymail={user.paymail} icon={user.logo || ''} />
+        <UserItem key={user.id} $isActive={user.id === activeUserId}>
+          <Avatar
+            size="32px"
+            paymail={user.paymail || ''}
+            icon={user.avatar || ''}
+          />
           <UserInfo>
-            <Username>{user.alternateName || user.paymail}</Username>
+            <Username>{user.name || user.paymail}</Username>
           </UserInfo>
         </UserItem>
       ))}

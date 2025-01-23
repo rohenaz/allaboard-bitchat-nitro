@@ -12,11 +12,6 @@ export const getChannels = async (): Promise<Channel[]> => {
   return api.get<Channel[]>('/channels');
 };
 
-export const getUsers = async () => {
-  const response = await api.get('/identities');
-  return response;
-};
-
 export const getFriends = async (idKey: string) => {
   const queryFriends = (idKey: string) => {
     return {

@@ -10,10 +10,14 @@ use bun always instead of npm or yarn
 - make suggestions of improvements, but dont implement them without confirmation
 
 # Last Known Good State
-Last known good commit: c04fc0d4e140a9324dc4477f24239b3dfef2389b
+Last known good commit: f765eefcf95e090b13fa36cce2f5c36ea2c7bba7
 - frequently check the last known good state of files at the provided commit hash to make sure we haven't broken anything
 
-You can query files from the last known good state using `git show c04fc0d4e140a9324dc4477f24239b3dfef2389b:path/to/file | cat`
+You can query files from the last known good state using:
+1. View file contents: `git show f765eefcf95e090b13fa36cce2f5c36ea2c7bba7:path/to/file | cat`
+2. List changed files: `git diff --name-only f765eefcf95e090b13fa36cce2f5c36ea2c7bba7`
+3. View specific changes: `git diff f765eefcf95e090b13fa36cce2f5c36ea2c7bba7 path/to/file`
+4. Check file history: `git log -p f765eefcf95e090b13fa36cce2f5c36ea2c7bba7 path/to/file`
 
 # Linting
 bun lint
@@ -30,12 +34,9 @@ npm: use bsv-bap for BAP functionality
 - react: dont import React just to use it as a type: React.FC - instead just import FC
 - only import type unless you need to use it as a value
 
-
-
-
 # Reviewing Target Commit
-When reviewing code from target commit c04fc0d4e140a9324dc4477f24239b3dfef2389b:
-1. Use `git show c04fc0d4e140a9324dc4477f24239b3dfef2389b:path/to/file` to view old file versions
+When reviewing code from target commit f765eefcf95e090b13fa36cce2f5c36ea2c7bba7:
+1. Use `git show f765eefcf95e090b13fa36cce2f5c36ea2c7bba7:path/to/file` to view old file versions
 2. Check both .js and .tsx/.ts extensions as files may have been renamed
 3. Compare implementations to restore critical functionality
 4. Focus on core features: authentication, channels, messaging

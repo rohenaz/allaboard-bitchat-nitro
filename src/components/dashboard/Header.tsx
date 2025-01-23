@@ -158,7 +158,10 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
           title={`${isMemberListOpen ? 'Hide' : 'Show'} Member list`}
         >
           <IconButton
-            onClick={() => dispatch(toggleMemberList())}
+            onClick={() => {
+              console.log('Toggling member list');
+              dispatch(toggleMemberList());
+            }}
             isActive={isMemberListOpen}
           >
             <FaUserFriends />

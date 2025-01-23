@@ -476,9 +476,6 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
                   .join(' ')}`,
               );
             }
-            const _outputsP = [
-              { script: scriptP.toASM(), amount: 0, currency: 'BSV' },
-            ];
 
             const resp = await sendBsv([
               {

@@ -37,9 +37,58 @@ export interface FriendRequest {
   updatedAt?: string;
 }
 
+export interface IdentityResponse {
+  idKey: string;
+  rootAddress: string;
+  currentAddress: string;
+  addresses: Array<{
+    address: string;
+    txId: string;
+    block: number;
+  }>;
+  identity: string;
+  identityTxId: string;
+  block: number;
+  timestamp: number;
+  valid: boolean;
+}
+
+function parseIdentity(identityStr: string): Identity {
+  try {
+    const identity = JSON.parse(identityStr);
+    return {
+      name: identity.alternateName || '',
+      avatar: identity.image || identity.logo || '',
+      paymail: identity.paymail || '',
+      status: 'online'
+    };
+  } catch (e) {
+    console.error('Failed to parse identity:', e);
+    return {
+      name: '',
+      status: 'offline'
+    };
+  }
+}
+
 export async function getUsers(query?: UserQuery): Promise<User[]> {
-  return api.get<User[]>('/identities', {
+  const response = await api.get<IdentityResponse[]>('/identities', {
     params: query as Record<string, string>,
+  });
+
+  return response.map(identity => {
+    const parsedIdentity = parseIdentity(identity.identity);
+    return {
+      id: identity.idKey,
+      name: parsedIdentity.name,
+      avatar: parsedIdentity.avatar,
+      paymail: parsedIdentity.paymail,
+      idKey: identity.idKey,
+      status: parsedIdentity.status,
+      lastSeen: new Date(identity.timestamp * 1000).toISOString(),
+      createdAt: new Date(identity.timestamp * 1000).toISOString(),
+      updatedAt: new Date(identity.timestamp * 1000).toISOString()
+    };
   });
 }
 
