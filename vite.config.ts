@@ -1,16 +1,16 @@
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import { defineConfig, loadEnv } from 'vite';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in {env}.`mode` file
-  const env = loadEnv(mode, process.cwd(), '');
-  
+  const _env = loadEnv(mode, process.cwd(), '');
+
   return {
     plugins: [
       react({
@@ -44,6 +44,9 @@ export default defineConfig(({ command, mode }) => {
     build: {
       target: 'esnext',
       outDir: 'build',
+    },
+    esbuild: {
+      logOverride: { 'this-is-undefined-in-esm': 'silent' },
     },
   };
 });

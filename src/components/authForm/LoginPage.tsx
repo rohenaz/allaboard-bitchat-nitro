@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import type { SocialProfile as BaseSocialProfile } from 'yours-wallet-provider';
 import { useYoursWallet } from 'yours-wallet-provider';
 import { HANDCASH_API_URL } from '../../config/env';
@@ -11,7 +12,75 @@ import { loadChannels } from '../../reducers/channelsReducer';
 import { setYoursUser } from '../../reducers/sessionReducer';
 import HandcashIcon from '../icons/HandcashIcon';
 import YoursIcon from '../icons/YoursIcon';
+import { BitcoinBlocksTest } from '../test/BitcoinBlocksTest';
 import Layout from './Layout';
+
+const ButtonContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+`;
+
+interface LoginButtonProps {
+  $secondary?: boolean;
+}
+
+const LoginButton = styled.button<LoginButtonProps>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  border: none;
+  cursor: pointer;
+  background-color: ${(props) => (props.$secondary ? 'var(--background-modifier-accent)' : 'var(--brand-experiment)')};
+  color: ${(props) => (props.$secondary ? 'var(--text-normal)' : 'var(--white-500)')};
+  
+  &:hover:not(:disabled) {
+    background-color: ${(props) => (props.$secondary ? 'var(--background-modifier-hover)' : 'var(--brand-experiment-hover)')};
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  margin-top: 16px;
+  padding: 12px;
+  background-color: rgba(250, 124, 124, 0.1);
+  border: 1px solid var(--text-danger);
+  border-radius: 4px;
+  color: var(--text-danger);
+  font-size: 14px;
+`;
+
+const FooterLinks = styled.div`
+  margin-top: 32px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted);
+  
+  > div {
+    margin-bottom: 8px;
+  }
+`;
+
+const StyledLink = styled(Link)`
+  color: var(--text-link);
+  text-decoration: none;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+`;
 
 interface ExtendedProfile extends BaseSocialProfile {
   paymail?: string;
@@ -89,7 +158,7 @@ export const LoginPage: FC = () => {
         if (walletProfile?.displayName) {
           profile = walletProfile as ExtendedProfile;
         }
-      } catch (err) {
+      } catch (_err) {
         // Ignore error and try next method
       }
 
@@ -141,50 +210,52 @@ export const LoginPage: FC = () => {
   };
 
   return (
-    <Layout heading="Open Social Client">
-      <div className="flex flex-col gap-4 w-full">
-        <button
+    <Layout heading="Choose your login method">
+      <ButtonContainer>
+        <LoginButton
           type="button"
           onClick={handleHandcashLogin}
           disabled={isLoading}
-          className="btn btn-accent w-full gap-2"
         >
-          <HandcashIcon className="w-4 h-4" />
+          <HandcashIcon className="w-5 h-5" />
           Login with Handcash
-        </button>
-        <button
+        </LoginButton>
+        <LoginButton
           type="button"
           onClick={handleYoursLogin}
           disabled={!isReady || isLoading}
-          className="btn btn-accent w-full gap-2"
+          $secondary
         >
-          <YoursIcon size="1rem" />
+          <YoursIcon size="1.25rem" />
           {isLoading ? 'Connecting...' : 'Login with Yours Wallet'}
-        </button>
-      </div>
+        </LoginButton>
+      </ButtonContainer>
+      
+      {/* 🧪 TEST: BitcoinBlocks AuthButton */}
+      <BitcoinBlocksTest />
+      
       {error && (
-        <div className="alert alert-error mt-4 text-sm">
+        <ErrorMessage>
           <span>{error}</span>
-        </div>
+        </ErrorMessage>
       )}
-      <div className="mt-8 text-sm text-center space-y-2">
+      <FooterLinks>
         <div>
           Need an account?{' '}
-          <Link
+          <StyledLink
             to="https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
             target="_blank"
             rel="noopener noreferrer"
-            className="link link-hover"
           >
             Register
-          </Link>
+          </StyledLink>
         </div>
         <div>
-          <Link to="/channels/nitro" className="link link-hover">
+          <StyledLink to="/channels/nitro">
             Continue as guest (read only)
-          </Link>
+          </StyledLink>
         </div>
-      </div>
+      </FooterLinks>
     </Layout>
   );
 };

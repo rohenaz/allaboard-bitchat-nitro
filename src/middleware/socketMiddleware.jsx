@@ -1,8 +1,9 @@
 import { head, last } from 'lodash';
+import { listenToMessages } from '../api/bmap';
+import { API_BASE_URL } from '../config/env';
 import { receiveNewChannel } from '../reducers/channelsReducer';
 import { receiveNewMessage, receiveNewReaction } from '../reducers/chatReducer';
 import { receiveNewFriend } from '../reducers/memberListReducer';
-import { API_BASE_URL } from '../config/env';
 
 // Audio notification setup
 let audio;
@@ -15,7 +16,7 @@ try {
 
 const playNotification = () => {
   if (audio) {
-    audio.play().catch(error => {
+    audio.play().catch((error) => {
       console.error('Failed to play notification:', error);
     });
   }
@@ -36,24 +37,26 @@ const sockQuery = (verbose) => {
 
 const socketMiddleware = (store) => {
   let eventSource = null;
+  let dmListener = null;
 
   const setupEventSource = () => {
     if (eventSource) {
       eventSource.close();
     }
 
+    if (dmListener) {
+      dmListener.close();
+      dmListener = null;
+    }
+
     const sock_b64 = btoa(JSON.stringify(sockQuery(false)));
     const socket_url = `${API_BASE_URL}/s/$all/${sock_b64}`;
-    
-    console.log('Setting up EventSource connection to:', socket_url);
     eventSource = new EventSource(socket_url);
-    
+
     eventSource.onmessage = (e) => {
       const res = JSON.parse(e.data);
       const data = res.data[0];
       if (!data) return;
-
-      console.log('Socket received:', res);
       const channelId = last(window?.location?.pathname?.split('/')) || null;
       const { session } = store.getState();
       const { memberList } = store.getState();
@@ -61,15 +64,14 @@ const socketMiddleware = (store) => {
 
       switch (head(data.MAP).type) {
         case 'like':
-          console.log('dispatch new like', data);
           store.dispatch(receiveNewReaction(data));
           break;
 
         case 'message':
           if (head(data.MAP).context === 'channel') {
             // Get message content from either format
-            const content = head(data.B)?.Data?.utf8 || head(data.B)?.content || '';
-            
+            const content = head(data.B)?.content || '';
+
             store.dispatch(
               receiveNewChannel({
                 channel: head(data.MAP).channel,
@@ -105,7 +107,10 @@ const socketMiddleware = (store) => {
             }
           } else {
             // Public message
-            if (head(data.MAP).channel && head(data.MAP).channel === channelId) {
+            if (
+              head(data.MAP).channel &&
+              head(data.MAP).channel === channelId
+            ) {
               store.dispatch(receiveNewMessage(data));
               // Play sound for new messages in the current channel
               playNotification();
@@ -128,15 +133,42 @@ const socketMiddleware = (store) => {
       console.error('EventSource failed:', error);
     };
 
-    eventSource.onopen = () => {
-      console.log('EventSource connection opened');
-    };
+    eventSource.onopen = () => {};
+
+    // Also set up DM listener if user has a bapId
+    const currentUser = store.getState().session.user;
+    if (currentUser?.bapId) {
+      dmListener = listenToMessages(currentUser.bapId, (data) => {
+        // Transform DM to expected format
+        const message = {
+          tx: { h: data.txid },
+          MAP: [
+            {
+              paymail: data.from,
+              type: 'message',
+              context: 'messageID',
+              bapID: data.from,
+              encrypted: data.encrypted ? 'true' : undefined,
+            },
+          ],
+          B: [
+            {
+              encoding: 'utf-8',
+              content: data.content,
+            },
+          ],
+          timestamp: data.timestamp,
+          myBapId: currentUser.bapId,
+        };
+        store.dispatch(receiveNewMessage(message));
+        playNotification();
+      });
+    }
   };
 
   // Check for existing session and set up connection
   const state = store.getState();
   if (state.session.user) {
-    console.log('Found existing session, setting up EventSource');
     setupEventSource();
   }
 
@@ -146,15 +178,17 @@ const socketMiddleware = (store) => {
       (action.type === 'session/setYoursUser' && action.payload) ||
       (action.type === 'session/login/fulfilled' && action.payload)
     ) {
-      console.log('User logged in, setting up EventSource');
       setupEventSource();
     }
 
     if (action.type === 'session/logout') {
       if (eventSource) {
-        console.log('User logged out, closing EventSource');
         eventSource.close();
         eventSource = null;
+      }
+      if (dmListener) {
+        dmListener.close();
+        dmListener = null;
       }
       localStorage.clear();
       window.location.href = 'https://bitchatnitro.com';

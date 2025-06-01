@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-import OutsideClickHandler from 'react-outside-click-handler';
+import React, { useMemo, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { getBase64Url } from '../../../utils/file';
 
@@ -29,6 +28,24 @@ const Image = styled.img`
 
 const FilePreviewModal = ({ open, onClose, file }) => {
   const b64 = useMemo(() => getBase64Url(file), [file]);
+  const modalRef = useRef(null);
+
+  // Handle outside clicks
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open, onClose]);
 
   if (!b64) {
     return null;
@@ -49,13 +66,11 @@ const FilePreviewModal = ({ open, onClose, file }) => {
       }}
       className="top-0 left-0"
     >
-      <OutsideClickHandler onOutsideClick={onClose}>
-        <PopupContainer className="disable-select">
-          <PopupMessageContainer>
-            <Image src={b64} />
-          </PopupMessageContainer>
-        </PopupContainer>
-      </OutsideClickHandler>
+      <PopupContainer className="disable-select" ref={modalRef}>
+        <PopupMessageContainer>
+          <Image src={b64} />
+        </PopupMessageContainer>
+      </PopupContainer>
     </div>
   );
 };

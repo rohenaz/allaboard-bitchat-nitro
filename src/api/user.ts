@@ -7,6 +7,7 @@ export interface User {
   paymail?: string;
   bapId?: string;
   idKey?: string;
+  currentAddress?: string;
   status?: 'online' | 'offline' | 'away' | 'dnd';
   lastSeen?: string;
   createdAt?: string;
@@ -39,44 +40,67 @@ export interface FriendRequest {
 
 export interface IdentityResponse {
   idKey: string;
-  rootAddress: string;
-  currentAddress: string;
+  rootAddress?: string;
+  currentAddress?: string;
   addresses: Array<{
     address: string;
     txId: string;
     block: number;
   }>;
-  identity: string;
-  identityTxId: string;
+  identity: {
+    alternateName?: string;
+    description?: string;
+    homeLocation?: {
+      name?: string;
+    };
+    image?: string;
+    url?: string;
+    paymail?: string;
+  } | null;
+  identityTxId?: string;
   block: number;
   timestamp: number;
-  valid: boolean;
+  valid?: boolean;
 }
 
-function parseIdentity(identityStr: string): Identity {
+function parseIdentity(
+  identityData: string | IdentityResponse['identity'] | null,
+): Identity {
   try {
-    const identity = JSON.parse(identityStr);
+    if (!identityData) {
+      return {
+        name: '',
+        status: 'offline',
+      };
+    }
+
+    const identity =
+      typeof identityData === 'string'
+        ? JSON.parse(identityData)
+        : identityData;
+
     return {
-      name: identity.alternateName || '',
-      avatar: identity.image || identity.logo || '',
-      paymail: identity.paymail || '',
-      status: 'online'
+      name: identity?.alternateName || '',
+      avatar: identity?.image || identity?.logo || '',
+      paymail: identity?.paymail || '',
+      status: 'online',
     };
   } catch (e) {
+    // Keep error log for production debugging
     console.error('Failed to parse identity:', e);
     return {
       name: '',
-      status: 'offline'
+      status: 'offline',
     };
   }
 }
 
 export async function getUsers(query?: UserQuery): Promise<User[]> {
-  const response = await api.get<IdentityResponse[]>('/identities', {
+  const response = await api.get<IdentityResponse[]>('/social/identities', {
     params: query as Record<string, string>,
   });
 
-  return response.map(identity => {
+  return response.map((identity) => {
     const parsedIdentity = parseIdentity(identity.identity);
     return {
       id: identity.idKey,
@@ -84,10 +108,11 @@ export async function getUsers(query?: UserQuery): Promise<User[]> {
       avatar: parsedIdentity.avatar,
       paymail: parsedIdentity.paymail,
       idKey: identity.idKey,
+      currentAddress: identity.currentAddress,
       status: parsedIdentity.status,
       lastSeen: new Date(identity.timestamp * 1000).toISOString(),
       createdAt: new Date(identity.timestamp * 1000).toISOString(),
-      updatedAt: new Date(identity.timestamp * 1000).toISOString()
+      updatedAt: new Date(identity.timestamp * 1000).toISOString(),
     };
   });
 }

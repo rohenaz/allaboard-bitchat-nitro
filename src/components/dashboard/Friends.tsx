@@ -9,13 +9,6 @@ import type { AppDispatch, RootState } from '../../store';
 import Avatar from './Avatar';
 import { UserList } from './UserList';
 
-interface User {
-  _id: string;
-  paymail: string;
-  logo?: string;
-  alternateName?: string;
-}
-
 interface FriendRequest {
   _id: string;
   from: string;
@@ -37,7 +30,7 @@ export const Friends = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
 
   const memberList = useSelector((state: RootState) => state.memberList);
   const session = useSelector((state: RootState) => state.session);
@@ -80,7 +73,7 @@ export const Friends = () => {
     [fetchFriendRequests],
   );
 
-  const handleAddFriend = useCallback(
+  const _handleAddFriend = useCallback(
     async (userId: string) => {
       if (!session.user?.idKey) return;
 
@@ -146,16 +139,16 @@ export const Friends = () => {
               if (!user) return null;
 
               return (
-                <div key={id} className="flex items-center gap-4 p-4 bg-base-200 rounded-lg">
-                  <Avatar
-                    size="40px"
-                    paymail={user.paymail}
-                    icon={user.logo}
-                  />
+                <div
+                  key={id}
+                  className="flex items-center gap-4 p-4 bg-base-200 rounded-lg"
+                >
+                  <Avatar size="40px" paymail={user.paymail} icon={user.logo} />
                   <div>
                     <div className="font-medium">{user.paymail}</div>
                     <div className="flex gap-2 mt-2">
                       <button
+                        type="button"
                         className="btn btn-primary btn-sm"
                         onClick={() => handleStartChat(user.idKey)}
                       >
@@ -174,21 +167,23 @@ export const Friends = () => {
             <h3 className="text-lg font-bold mb-4">Friend Requests</h3>
             <div className="flex flex-wrap gap-4">
               {pendingUsers.map((user) => (
-                <div key={user._id} className="flex items-center gap-4 p-4 bg-base-200 rounded-lg">
-                  <Avatar
-                    size="40px"
-                    paymail={user.paymail}
-                  />
+                <div
+                  key={user._id}
+                  className="flex items-center gap-4 p-4 bg-base-200 rounded-lg"
+                >
+                  <Avatar size="40px" paymail={user.paymail} />
                   <div>
                     <div className="font-medium">{user.paymail}</div>
                     <div className="flex gap-2 mt-2">
                       <button
+                        type="button"
                         className="btn btn-primary btn-sm"
                         onClick={() => handleAcceptFriend(user._id)}
                       >
                         Accept
                       </button>
                       <button
+                        type="button"
                         className="btn btn-ghost btn-sm"
                         onClick={() => handleRejectFriend(user._id)}
                       >

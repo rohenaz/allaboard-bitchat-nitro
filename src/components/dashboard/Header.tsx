@@ -12,6 +12,7 @@ import { ImProfile } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { useHandcash } from '../../context/handcash';
 import { hideInDesktop } from '../../design/mixins';
 import { useActiveUser } from '../../hooks';
 import { toggleMemberList } from '../../reducers/memberListReducer';
@@ -21,78 +22,120 @@ import { toggleSettings } from '../../reducers/settingsReducer';
 import { toggleSidebar } from '../../reducers/sidebarReducer';
 import type { RootState } from '../../store';
 import ArrowTooltip from './ArrowTooltip';
-import At from './At';
-import Hashtag from './Hashtag';
+import { UserSearch } from './UserSearch';
 import { SettingsModal } from './modals/SettingsModal';
-import { useHandcash } from '../../context/handcash';
 
-const Container = styled.div.attrs({
-  className: 'bg-base-200 border-b border-base-300 h-12 flex-none px-4 flex items-center justify-between w-full'
-})``;
+const Container = styled.header`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  min-height: 48px;
+  background-color: var(--background-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 16px;
+  position: relative;
+  z-index: 1;
+`;
 
-const Heading = styled.div.attrs({
-  className: 'font-semibold text-sm md:text-base whitespace-nowrap text-ellipsis text-base-content'
-})``;
+const LeftSection = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+`;
 
-interface IconWrapperProps {
-  $isActive?: boolean;
-  $isHamburger?: boolean;
-  as?: string;
-  href?: string;
-  target?: string;
-}
+const MiddleSection = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  max-width: 400px;
+  padding: 0 16px;
+`;
 
-const IconWrapper = styled.button.attrs<IconWrapperProps>(props => ({
-  className: `flex items-center content-center mr-2 md:mr-3 text-base-content hover:bg-base-300 ${
-    props.$isActive ? 'text-base-content bg-base-300' : ''
-  }`
-}))<IconWrapperProps>`
-  background-color: transparent;
-  padding: 4px;
-  border-radius: 4px;
-  font-size: 20px;
-  
-  ${(p) => p.$isHamburger && hideInDesktop};
+const ChannelInfo = styled.div`
+  display: flex;
+  align-items: center;
+  min-width: 0;
+`;
+
+const ChannelName = styled.h1`
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--text-normal);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 interface IconButtonProps {
-  children: ReactElement | string;
-  href?: string;
-  isActive?: boolean;
-  isHamburger?: boolean;
-  target?: string;
-  onClick?: () => void;
+  $isActive?: boolean;
+  $isHamburger?: boolean;
 }
 
-const IconButton = ({
-  children,
-  href,
-  isActive,
-  isHamburger,
-  target,
-  onClick,
-}: IconButtonProps) => {
-  const tag = href ? 'a' : 'button';
-  const type = tag === 'button' ? 'button' : undefined;
+const IconButton = styled.button<IconButtonProps>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: ${({ $isActive }) => ($isActive ? 'var(--interactive-active)' : 'var(--interactive-normal)')};
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease-out;
+  font-size: 20px;
 
-  return (
-    <IconWrapper
-      as={tag}
-      type={type}
-      href={href}
-      target={target}
-      $isActive={isActive}
-      $isHamburger={isHamburger}
-      onClick={onClick}
-    >
-      {children}
-    </IconWrapper>
-  );
-};
+  &:hover {
+    color: var(--interactive-hover);
+    background-color: var(--background-modifier-hover);
+  }
 
-const ActionButtons = styled.div.attrs({
-  className: 'flex items-center gap-1'
-})``;
+  ${({ $isHamburger }) => $isHamburger && hideInDesktop};
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
+const HamburgerButton = styled(IconButton)`
+  margin-right: 16px;
+  
+  @media (min-width: 768px) {
+    display: none;
+  }
+`;
+
+const HashtagIcon = styled.span`
+  color: var(--channels-default);
+  font-size: 24px;
+  font-weight: 600;
+  margin-right: 8px;
+  &::before {
+    content: '#';
+  }
+`;
+
+const AtIcon = styled.span`
+  color: var(--channels-default);
+  font-size: 24px;
+  font-weight: 600;
+  margin-right: 8px;
+  &::before {
+    content: '@';
+  }
+`;
 
 interface HeaderProps {
   isFriendsPage?: boolean;
@@ -117,79 +160,93 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
     [authToken, activeUser],
   );
 
-  return (
-    <Container id="header" className="disable-select">
-      <div className="flex flex-1">
-        <div className="flex items-center justify-center">
-          <IconButton onClick={() => dispatch(toggleSidebar())} isHamburger>
-            <FaBars className="mr-2" />
-          </IconButton>
-          <div className="flex items-center relative">
-            {activeChannelId && <Hashtag className="mr-1" />}
-            {activeUserId && <At />}
+  const channelName = useMemo(() => {
+    if (isFriendsPage) return 'Friends';
+    if (!channels?.loading && activeChannelId) return activeChannelId;
+    if (profile?.paymail) return profile.paymail;
+    if (activeUser?.paymail) return activeUser.paymail;
+    if (activeUserId) return activeUserId;
+    return 'general';
+  }, [
+    isFriendsPage,
+    channels?.loading,
+    activeChannelId,
+    profile?.paymail,
+    activeUser?.paymail,
+    activeUserId,
+  ]);
 
-            <Heading>
-              {(isFriendsPage
-                ? 'Friends'
-                : !channels?.loading && activeChannelId) ||
-                profile?.paymail ||
-                activeUser?.paymail ||
-                activeUserId ||
-                'global chat'}
-            </Heading>
-          </div>
-        </div>
-      </div>
+  return (
+    <Container>
+      <LeftSection>
+        <HamburgerButton onClick={() => dispatch(toggleSidebar())}>
+          <FaBars />
+        </HamburgerButton>
+
+        <ChannelInfo>
+          {activeChannelId && <HashtagIcon />}
+          {activeUserId && <AtIcon />}
+          <ChannelName>{channelName}</ChannelName>
+        </ChannelInfo>
+      </LeftSection>
+
+      <MiddleSection>{isFriendsPage && <UserSearch />}</MiddleSection>
+
       <ActionButtons>
         <ArrowTooltip title="Settings">
           <IconButton onClick={() => dispatch(toggleSettings())}>
             <FaCog />
           </IconButton>
         </ArrowTooltip>
-        <ArrowTooltip title="GitHub Repo">
+
+        <ArrowTooltip title="GitHub Repository">
           <IconButton
+            as="a"
             href="https://github.com/rohenaz/allaboard-bitchat-nitro"
             target="_blank"
+            rel="noopener noreferrer"
           >
             <FaGithub />
           </IconButton>
         </ArrowTooltip>
+
         <ArrowTooltip
-          title={`${isMemberListOpen ? 'Hide' : 'Show'} Member list`}
+          title={`${isMemberListOpen ? 'Hide' : 'Show'} Member List`}
         >
           <IconButton
-            onClick={() => {
-              console.log('Toggling member list');
-              dispatch(toggleMemberList());
-            }}
-            isActive={isMemberListOpen}
+            $isActive={isMemberListOpen}
+            onClick={() => dispatch(toggleMemberList())}
           >
             <FaUserFriends />
           </IconButton>
         </ArrowTooltip>
+
         <ArrowTooltip title={`${isProfileOpen ? 'Hide' : 'Show'} Profile`}>
           <IconButton
+            $isActive={isProfileOpen}
             onClick={() => dispatch(toggleProfile())}
-            isActive={isProfileOpen}
           >
             <ImProfile />
           </IconButton>
         </ArrowTooltip>
+
         {!guest && (
-          <ArrowTooltip title="Logout">
+          <ArrowTooltip title="Sign Out">
             <IconButton onClick={() => dispatch(logout())}>
               <FaSignOutAlt />
             </IconButton>
           </ArrowTooltip>
         )}
+
         {guest && (
-          <ArrowTooltip title="Login">
+          <ArrowTooltip title="Sign In">
             <IconButton onClick={() => navigate('/login')}>
               <FaSignInAlt />
             </IconButton>
           </ArrowTooltip>
         )}
       </ActionButtons>
+
       <SettingsModal />
     </Container>
   );

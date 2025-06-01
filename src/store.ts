@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import type { Action, ThunkAction } from '@reduxjs/toolkit';
+import socketMiddleware from './middleware/socketMiddleware';
 import channelsReducer from './reducers/channelsReducer';
 import chatReducer from './reducers/chatReducer';
 import memberListReducer from './reducers/memberListReducer';
@@ -8,7 +9,6 @@ import serverReducer from './reducers/serverReducer';
 import sessionReducer from './reducers/sessionReducer';
 import settingsReducer from './reducers/settingsReducer';
 import sidebarReducer from './reducers/sidebarReducer';
-import socketMiddleware from './middleware/socketMiddleware';
 
 const store = configureStore({
   reducer: {

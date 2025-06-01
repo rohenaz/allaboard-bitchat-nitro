@@ -10,9 +10,6 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { useBitcoin } from '../../context/bitcoin';
-import { useHandcash } from '../../context/handcash';
-import { useYours } from '../../context/yours';
 import { fetchMessages, fetchMoreMessages } from '../../reducers/chatReducer';
 import type { AppDispatch, RootState } from '../../store';
 import Message from './Message';
@@ -24,9 +21,11 @@ const Container = styled.div`
   width: 100%;
   overflow: hidden;
   background-color: var(--background-primary);
+  flex: 1;
+  min-height: 0;
 `;
 
-const MessageList = styled.div`
+const MessagesContainer = styled.div`
   display: flex;
   flex-direction: column-reverse;
   flex: 1;
@@ -34,6 +33,7 @@ const MessageList = styled.div`
   overflow-x: hidden;
   padding: 1rem 0;
   height: 100%;
+  max-height: 100%;
   
   /* Custom scrollbar styles */
   &::-webkit-scrollbar {
@@ -65,18 +65,16 @@ const LoadingContainer = styled.div`
 `;
 
 const Messages: FC = () => {
-  const { authToken } = useHandcash();
-  const { connected } = useYours();
   const params = useParams();
   const dispatch = useDispatch<AppDispatch>();
-  const messageListRef = useRef<any>(null);
+  const messageListRef = useRef<HTMLDivElement>(null);
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const messages = useSelector((state: RootState) => state.chat.messages);
   const reactions = useSelector((state: RootState) => state.chat.reactions);
+  const currentUser = useSelector((state: RootState) => state.session.user);
 
-  const activeChannelId = useMemo(() => params.channel, [params.channel]);
   const activeUserId = useMemo(() => params.user, [params.user]);
 
   const channelName =
@@ -85,10 +83,17 @@ const Messages: FC = () => {
     last(window?.location?.pathname?.split('/'));
 
   const fetchMessageList = useCallback(() => {
-    if (channelName) {
-      dispatch(fetchMessages(channelName));
+    if (params.channel) {
+      dispatch(fetchMessages({ channelName: params.channel }));
+    } else if (params.user && currentUser?.bapId) {
+      dispatch(
+        fetchMessages({
+          userId: params.user,
+          currentUserId: currentUser.bapId,
+        }),
+      );
     }
-  }, [dispatch, channelName]);
+  }, [dispatch, params.channel, params.user, currentUser?.bapId]);
 
   useEffect(() => {
     fetchMessageList();
@@ -99,12 +104,18 @@ const Messages: FC = () => {
     if (shouldScrollToBottom && messageListRef.current) {
       messageListRef.current.scrollTop = 0;
     }
-  }, [shouldScrollToBottom, messages.data]);
+  }, [shouldScrollToBottom]);
 
   const handleScroll = useCallback(
-    (event: { currentTarget: { scrollTop: number; scrollHeight: number; clientHeight: number } }) => {
+    (event: {
+      currentTarget: {
+        scrollTop: number;
+        scrollHeight: number;
+        clientHeight: number;
+      };
+    }) => {
       const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-      
+
       // Check if we're at the bottom (which is actually scrollTop = 0 due to column-reverse)
       setShouldScrollToBottom(scrollTop === 0);
 
@@ -117,13 +128,30 @@ const Messages: FC = () => {
       ) {
         setIsLoadingMore(true);
         try {
-          dispatch(fetchMoreMessages(channelName));
+          if (params.channel) {
+            dispatch(fetchMoreMessages({ channelName: params.channel }));
+          } else if (params.user && currentUser?.bapId) {
+            dispatch(
+              fetchMoreMessages({
+                userId: params.user,
+                currentUserId: currentUser.bapId,
+              }),
+            );
+          }
         } finally {
           setIsLoadingMore(false);
         }
       }
     },
-    [dispatch, isLoadingMore, messages.hasMore, channelName],
+    [
+      dispatch,
+      isLoadingMore,
+      messages.hasMore,
+      channelName,
+      params.channel,
+      params.user,
+      currentUser?.bapId,
+    ],
   );
 
   if (messages.loading) {
@@ -136,15 +164,15 @@ const Messages: FC = () => {
 
   return (
     <Container>
-      <MessageList ref={messageListRef} onScroll={handleScroll}>
+      <MessagesContainer ref={messageListRef} onScroll={handleScroll}>
         {messages.data.map((message, index) => (
-          <Message 
-            key={`${message.tx.h}-${message.timestamp || index}`} 
-            message={message} 
-            reactions={reactions} 
+          <Message
+            key={`${message.tx?.h || index}-${message.timestamp || index}`}
+            message={message}
+            reactions={reactions}
           />
         ))}
-      </MessageList>
+      </MessagesContainer>
     </Container>
   );
 };

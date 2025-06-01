@@ -46,7 +46,8 @@
         "useKeyWithClickEvents": "warn",
         "useValidAnchor": "error",
         "noSvgWithoutTitle": "off",
-        "useButtonType": "warn"
+        "useButtonType": "warn",
+        "useSemanticElements": "off"
       }
     }
   },

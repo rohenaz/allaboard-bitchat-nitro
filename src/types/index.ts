@@ -31,9 +31,7 @@ export interface Message {
     emoji?: string;
   }[];
   B: {
-    Data: {
-      utf8: string;
-    };
+    content: string;
   }[];
   AIP: {
     bapId: string;

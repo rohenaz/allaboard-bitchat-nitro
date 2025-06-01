@@ -1,34 +1,147 @@
-import type { FC } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { toggleSettings } from '../../reducers/settingsReducer'
-import { logout } from '../../reducers/sessionReducer'
-import { useNavigate } from 'react-router-dom'
-import type { RootState } from '../../store'
+import type { FC } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+import { logout } from '../../reducers/sessionReducer';
+import { toggleSettings } from '../../reducers/settingsReducer';
+import type { RootState } from '../../store';
+import Avatar from './Avatar';
 
-const UserPanel: FC = () => {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const user = useSelector((state: RootState) => state.session.user)
+interface UserWithLogo {
+  paymail?: string;
+  wallet?: string;
+  authToken?: string;
+  bapId?: string;
+  idKey?: string;
+  address?: string;
+  logo?: string;
+}
 
-  const handleSignOut = async () => {
-    dispatch(logout())
-    navigate('/')
+const Container = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 52px;
+  min-height: 52px;
+  background-color: var(--background-secondary);
+  border-top: 1px solid var(--background-modifier-accent);
+  position: relative;
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease-out;
+
+  &:hover {
+    background-color: var(--background-modifier-hover);
+  }
+`;
+
+const UserDetails = styled.div`
+  margin-left: 8px;
+  flex: 1;
+  min-width: 0;
+`;
+
+const UserName = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const UserStatus = styled.div`
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const ActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--interactive-normal);
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+
+  &:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--interactive-hover);
   }
 
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0;
+`;
+
+const UserPanel: FC = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.session.user);
+
+  const _handleSignOut = async () => {
+    dispatch(logout());
+    navigate('/');
+  };
+
+  const handleSettingsClick = () => {
+    dispatch(toggleSettings());
+  };
+
   return (
-    <div className="bg-base-200 border-t border-base-300 p-2 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <button
-          className="btn btn-circle btn-ghost hover:bg-base-300"
-          onClick={() => dispatch(toggleSettings())}
-        >
+    <Container>
+      <UserInfo>
+        <Avatar
+          size="32px"
+          paymail={user?.paymail}
+          icon={(user as UserWithLogo)?.logo}
+        />
+        <UserDetails>
+          <UserName>{user?.paymail || 'Guest'}</UserName>
+          <UserStatus>
+            {user?.wallet === 'yours'
+              ? 'Yours Wallet'
+              : user?.wallet === 'handcash'
+                ? 'HandCash'
+                : user?.wallet
+                  ? user.wallet
+                  : 'Not connected'}
+          </UserStatus>
+        </UserDetails>
+      </UserInfo>
+
+      <ButtonContainer>
+        <ActionButton onClick={handleSettingsClick} title="User Settings">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="w-6 h-6"
           >
             <path
               strokeLinecap="round"
@@ -41,38 +154,10 @@ const UserPanel: FC = () => {
               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-        </button>
-      </div>
+        </ActionButton>
+      </ButtonContainer>
+    </Container>
+  );
+};
 
-      <div className="flex items-center gap-2">
-        <div className="text-right">
-          <div className="text-base-content font-medium">{user?.paymail}</div>
-          <div className="text-base-content/60 text-sm">
-            {user?.wallet || 'Guest'}
-          </div>
-        </div>
-        <button
-          className="btn btn-circle btn-ghost hover:bg-base-300"
-          onClick={handleSignOut}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-6 h-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-export default UserPanel
+export default UserPanel;

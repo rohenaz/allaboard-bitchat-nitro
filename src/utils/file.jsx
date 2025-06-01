@@ -91,11 +91,11 @@ export function validateFile(file) {
  * @returns {string|null} - The base64 URL of the file, or null if the file object is invalid.
  */
 export function getBase64Url(bFile) {
-  if (!bFile || !bFile.Data || !bFile['content-type']) {
+  if (!bFile || !bFile['content-type']) {
     return null;
   }
 
-  const b64Data = bFile.Data.utf8;
+  const b64Data = bFile.content;
   const contentType = bFile['content-type'];
 
   if (!b64Data || !contentType) {

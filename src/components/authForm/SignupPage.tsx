@@ -1,4 +1,4 @@
-import React, { type FC } from 'react';
+import type { FC } from 'react';
 
 export const SignupPage: FC = () => {
   return (
@@ -8,3 +8,5 @@ export const SignupPage: FC = () => {
     </div>
   );
 };
+
+export default SignupPage;

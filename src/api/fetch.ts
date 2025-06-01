@@ -7,6 +7,7 @@ type Event = globalThis.Event;
 interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
   requiresAuth?: boolean;
+  token?: string;
 }
 
 interface SSEOptions {
@@ -25,7 +26,7 @@ export async function apiFetch<T>(
   path: string,
   options: FetchOptions = {},
 ): Promise<T> {
-  const { params, requiresAuth = true, ...fetchOptions } = options;
+  const { params, requiresAuth = true, token, ...fetchOptions } = options;
 
   let url = `${API_BASE_URL}${path}`;
   if (params) {
@@ -33,13 +34,20 @@ export async function apiFetch<T>(
     url += `?${searchParams.toString()}`;
   }
 
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    ...options.headers,
+  };
+
+  // Add authentication header if token is provided
+  if (requiresAuth && token) {
+    headers['X-Auth-Token'] = token;
+  }
+
   try {
     const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        ...options.headers,
-      },
+      headers,
       mode: 'cors',
       credentials: 'include',
       ...fetchOptions,

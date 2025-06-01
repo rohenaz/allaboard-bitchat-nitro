@@ -6,6 +6,7 @@ import {
 import { find } from 'lodash';
 import moment from 'moment';
 import * as channelAPI from '../api/channel';
+import type { Channel } from '../api/channel';
 import { minutesPerUnit } from '../components/dashboard/modals/PinChannelModal';
 
 // Fix time calculations
@@ -14,13 +15,7 @@ const msPerMinute = 60000; // Correct value for milliseconds per minute
 
 export const pinPaymentAddress = '17EBFp7FLKioGiCF1SzyFwxzMVzis7cgez';
 
-export interface Channel {
-  channel: string;
-  creator?: string;
-  last_message?: string;
-  last_message_time?: number;
-  messages?: number;
-}
+export type { Channel };
 
 interface PinMap {
   channel: string;

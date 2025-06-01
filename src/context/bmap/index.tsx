@@ -1,13 +1,18 @@
-import React, { useContext, useMemo, useCallback } from 'react';
+import React, {
+  useContext,
+  useMemo,
+  useCallback,
+  type PropsWithChildren,
+} from 'react';
 import { API_BASE_URL } from '../../config/env';
 
 interface BmapContextType {
-  notifyIndexer: (rawTx: string) => Promise<any>;
+  notifyIndexer: (rawTx: string) => Promise<unknown>;
 }
 
 const BmapContext = React.createContext<BmapContextType | undefined>(undefined);
 
-const BmapProvider = (props) => {
+const BmapProvider = (props: PropsWithChildren) => {
   const notifyIndexer = useCallback((rawTx: string) => {
     return new Promise((resolve, reject) => {
       fetch(`${API_BASE_URL}/ingest`, {

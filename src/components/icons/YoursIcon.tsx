@@ -5,17 +5,17 @@ interface YoursIconProps {
   className?: string;
 }
 
-const YoursIcon: FC<YoursIconProps> = ({ size = "1em", className = "" }) => {
+const YoursIcon: FC<YoursIconProps> = ({ size = '1em', className = '' }) => {
   const sizeStyle = {
     width: typeof size === 'number' ? `${size}px` : size,
-    height: 'auto'
+    height: 'auto',
   };
 
   return (
-    <svg 
-      width="147" 
-      height="213" 
-      viewBox="0 0 147 213" 
+    <svg
+      width="147"
+      height="213"
+      viewBox="0 0 147 213"
       fill="currentColor"
       style={sizeStyle}
       className={className}
@@ -29,4 +29,4 @@ const YoursIcon: FC<YoursIconProps> = ({ size = "1em", className = "" }) => {
   );
 };
 
-export default YoursIcon; 
+export default YoursIcon;

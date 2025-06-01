@@ -100,4 +100,4 @@ const ConfirmationModal: FC<ConfirmationModalProps> = ({
   );
 };
 
-export default ConfirmationModal; 
+export default ConfirmationModal;

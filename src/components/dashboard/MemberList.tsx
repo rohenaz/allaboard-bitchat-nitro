@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -23,7 +23,6 @@ export const MemberList: FC = () => {
   const filteredUsers = memberList.allIds
     .map((id) => {
       const user = memberList.byId[id];
-      console.log('Filtering user:', { id, user, activeChannel });
       if (!user?.idKey) return null;
 
       // If no active channel, show all users
@@ -31,37 +30,35 @@ export const MemberList: FC = () => {
 
       // Check if user has sent messages in this channel
       const hasMessagesInChannel = chat.messages.data.some((msg) => {
-        const msgBapId = msg.MAP?.[0]?.bapID;
-        if (msgBapId === user.idKey) {
-          console.log('Message BAP ID:', { msg });
+        // Check if this user is the sender (AIP[0].address matches user's currentAddress)
+        const senderAddress = msg.AIP?.[0]?.address;
+        const isMessageSender =
+          senderAddress && user.currentAddress === senderAddress;
+
+        if (senderAddress) {
         }
-        return msgBapId === user.idKey;
-      });
-      console.log('User message check:', { 
-        user: user.paymail, 
-        idKey: user.idKey,
-        hasMessages: hasMessagesInChannel,
-        messageCount: chat.messages.data.length
+
+        return isMessageSender;
       });
 
       return hasMessagesInChannel ? user : null;
     })
     .filter((user): user is NonNullable<typeof user> => user !== null)
     .map((user) => ({
-      _id: user.idKey,
-      paymail: user.displayName || user.paymail || user.idKey,
-      logo: user.icon || user.logo || '',
-      alternateName: user.displayName || user.paymail || user.idKey,
+      id: user.idKey,
+      name: user.displayName || user.paymail || user.idKey,
+      avatar: user.icon || user.logo || '',
+      paymail: user.paymail || undefined,
+      bapId: user.idKey,
+      idKey: user.idKey,
+      status: 'online' as const,
     }));
 
   const fetchMemberList = useCallback(() => {
-    console.log('MemberList auth state:', { authToken, connected, hasUsers: memberList.allIds.length > 0, activeChannel });
     if ((authToken || connected) && !memberList.allIds.length) {
       if (activeChannel) {
-        console.log('Dispatching loadUsers() for channel');
         void dispatch(loadUsers());
       } else {
-        console.log('Dispatching loadFriends() for friends view');
         void dispatch(loadFriends());
       }
     }
@@ -71,17 +68,7 @@ export const MemberList: FC = () => {
     fetchMemberList();
   }, [fetchMemberList]);
 
-  console.log('MemberList state:', { 
-    loading: memberList.loading,
-    userCount: memberList.allIds.length,
-    filteredCount: filteredUsers.length,
-    isOpen,
-    activeChannel,
-    users: memberList.byId
-  });
-
   if (!isOpen) {
-    console.log('MemberList is not open, returning null');
     return null;
   }
 

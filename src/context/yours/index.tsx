@@ -4,9 +4,9 @@ import { useDispatch } from 'react-redux';
 import {
   type Addresses,
   type SocialProfile as BaseSocialProfile,
-  GetSignatures,
-  SendBsv,
-  SendBsvResponse,
+  type GetSignatures,
+  type SendBsv,
+  type SendBsvResponse,
   type SignatureResponse,
   type Utxo,
   useYoursWallet,
@@ -15,7 +15,7 @@ import { setYoursUser } from '../../reducers/sessionReducer';
 import { FetchStatus } from '../../utils/common';
 
 const wocApiUrl = 'https://api.whatsonchain.com/v1/bsv/main';
-const profileStorageKey = 'nitro__YoursProvider_profile';
+const _profileStorageKey = 'nitro__YoursProvider_profile';
 
 // Base types from yours-wallet-provider
 export type { Addresses, SignatureResponse, Utxo };
@@ -31,15 +31,12 @@ export interface WalletProfile {
 // Extend BaseSocialProfile to include paymail
 type ExtendedBaseSocialProfile = BaseSocialProfile & { paymail: string };
 
-export interface ExtendedProfile extends ExtendedBaseSocialProfile, WalletProfile {}
+export interface ExtendedProfile
+  extends ExtendedBaseSocialProfile,
+    WalletProfile {}
 
 interface BroadcastParams {
   rawtx: string;
-}
-
-interface SendBsvParams {
-  amount: number;
-  address: string;
 }
 
 interface YoursContextType {
@@ -51,7 +48,9 @@ interface YoursContextType {
   broadcast: (params: BroadcastParams) => Promise<string | undefined>;
   sendBsv: (params: SendBsv[]) => Promise<SendBsvResponse | undefined>;
   utxos: Utxo[] | undefined;
-  getSignatures: (params: GetSignatures) => Promise<SignatureResponse[] | undefined>;
+  getSignatures: (
+    params: GetSignatures,
+  ) => Promise<SignatureResponse[] | undefined>;
 }
 
 const YoursContext = React.createContext<YoursContextType | undefined>(
@@ -121,32 +120,20 @@ const AutoYoursProvider: React.FC<AutoYoursProviderProps> = (props) => {
   useEffect(() => {
     const fire = async () => {
       try {
-        console.log('AutoYoursProvider: Checking connection status...');
         const c = await isConnected();
-        console.log('AutoYoursProvider: Initial connection status:', c);
 
         if (!c && props.autoconnect) {
-          console.log(
-            'AutoYoursProvider: Not connected, attempting to connect...',
-          );
+          // Not connected, attempting to connect...
           await connect();
           setConnected(FetchStatus.Success);
         } else if (c) {
-          console.log(
-            'AutoYoursProvider: Already connected, getting profile...',
-          );
           setConnected(FetchStatus.Success);
           // If already connected, get profile and dispatch user info
           const profile = await getSocialProfile();
-          console.log('AutoYoursProvider: Got profile:', profile);
           const addresses = await getAddresses();
-          console.log('AutoYoursProvider: Got addresses:', addresses);
           if (profile?.displayName && addresses?.bsvAddress) {
             const yoursPaymail = `${profile.displayName}@yours.org`;
-            console.log('AutoYoursProvider: Dispatching user info:', {
-              paymail: yoursPaymail,
-              address: addresses.bsvAddress,
-            });
+            // Dispatch user info
             dispatch(
               setYoursUser({
                 paymail: yoursPaymail,
@@ -155,20 +142,17 @@ const AutoYoursProvider: React.FC<AutoYoursProviderProps> = (props) => {
             );
           }
         } else {
-          console.log(
-            'AutoYoursProvider: Not connected and autoconnect disabled',
-          );
+          // Not connected and autoconnect disabled
           setConnected(FetchStatus.Error);
         }
       } catch (e) {
+        // Keep error log for production debugging
         console.error('AutoYoursProvider: Error in auto-authentication:', e);
         setConnected(FetchStatus.Error);
       }
     };
     if (isReady && connected === FetchStatus.Loading) {
-      console.log(
-        'AutoYoursProvider: Wallet ready, starting auto-authentication...',
-      );
+      // Wallet ready, starting auto-authentication...
       fire();
     }
   }, [
@@ -185,54 +169,45 @@ const AutoYoursProvider: React.FC<AutoYoursProviderProps> = (props) => {
   useEffect(() => {
     const fire = async () => {
       if (!isReady) {
-        console.log('AutoYoursProvider: Wallet not ready yet');
+        // Wallet not ready yet
         return;
       }
 
       try {
-        console.log('AutoYoursProvider: Getting addresses...');
         const addresses = await getAddresses();
         if (!addresses) {
+          // Keep error log for production debugging
           console.error('AutoYoursProvider: No addresses returned from wallet');
           return;
         }
-        console.log('AutoYoursProvider: Got addresses:', addresses);
 
-        console.log('AutoYoursProvider: Getting UTXOs...');
         const u = await getUtxos(addresses.bsvAddress, true);
-        console.log('AutoYoursProvider: Got UTXOs:', u);
         setUtxos(u);
 
-        console.log('AutoYoursProvider: Getting social profile...');
         const baseProfile = await getSocialProfile();
         if (!baseProfile) {
+          // Keep error log for production debugging
           console.error('AutoYoursProvider: No profile returned from wallet');
           return;
         }
-        console.log('AutoYoursProvider: Got social profile:', baseProfile);
 
         const profile: ExtendedProfile = {
           ...baseProfile,
           addresses,
           utxos: u,
-          paymail: `${baseProfile.displayName}@yours.org`
+          paymail: `${baseProfile.displayName}@yours.org`,
         };
 
-        console.log('AutoYoursProvider: Getting balance...');
         const balance = await getBalance();
         if (balance) {
           profile.balance = balance.satoshis;
         }
-        console.log('AutoYoursProvider: Got balance:', balance);
 
         setPandaProfile(profile);
 
         // Dispatch user info to session reducer
         if (profile.paymail && addresses.bsvAddress) {
-          console.log('AutoYoursProvider: Dispatching user info:', {
-            paymail: profile.paymail,
-            address: addresses.bsvAddress,
-          });
+          // Dispatch user info
           dispatch(
             setYoursUser({
               paymail: profile.paymail,
@@ -241,19 +216,17 @@ const AutoYoursProvider: React.FC<AutoYoursProviderProps> = (props) => {
           );
         }
       } catch (error) {
+        // Keep error log for production debugging
         console.error('AutoYoursProvider: Error loading profile:', error);
       }
     };
     if (connected === FetchStatus.Success && !utxos && isReady) {
-      console.log(
-        'AutoYoursProvider: Connection successful, loading profile...',
-      );
+      // Connection successful, loading profile...
       fire();
     }
   }, [
     connected,
     getSocialProfile,
-    setPandaProfile,
     getAddresses,
     utxos,
     getBalance,

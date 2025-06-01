@@ -62,7 +62,8 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
         setProfile(publicProfile);
         return publicProfile;
       } catch (e) {
-        console.error(e);
+        // Keep error log for production debugging
+        console.error('Failed to get Handcash profile:', e);
         return undefined;
       }
     }
@@ -126,7 +127,8 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
                 });
               })
               .catch((e) => {
-                console.error(e);
+                // Keep error log for production debugging
+                console.error('Failed to decrypt with Handcash:', e);
                 setDecryptStatus(FetchStatus.Error);
                 reject(e);
               });
@@ -136,7 +138,7 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
         }
       });
     },
-    [decryptStatus, authToken],
+    [authToken],
   );
 
   const value = useMemo(

@@ -18,6 +18,16 @@ export const Dashboard = React.lazy(() =>
   })),
 );
 
+export const Friends = React.lazy(
+  () => import('../components/dashboard/Friends'),
+);
+
+export const UserSearch = React.lazy(() =>
+  import('../components/dashboard/UserSearch').then((module) => ({
+    default: module.UserSearch,
+  })),
+);
+
 // Modals
 export const ImportIDModal = React.lazy(
   () => import('../components/dashboard/modals/ImportIDModal'),

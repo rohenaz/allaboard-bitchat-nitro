@@ -1,9 +1,10 @@
+import type { UnknownAction } from '@reduxjs/toolkit';
 import { BAP } from 'bsv-bap';
 import { head } from 'lodash';
 import {
+  type Dispatch,
   type FC,
   type ReactNode,
-  type Dispatch,
   type SetStateAction,
   createContext,
   useCallback,
@@ -14,7 +15,6 @@ import {
 } from 'react';
 import type { ChangeEvent } from 'react';
 import { useDispatch } from 'react-redux';
-import type { UnknownAction } from '@reduxjs/toolkit';
 import { useYoursWallet } from 'yours-wallet-provider';
 import { login } from '../../reducers/sessionReducer';
 import { FetchStatus } from '../../utils/common';
@@ -48,15 +48,15 @@ interface BapProfile {
 type BapIdentities = Record<string, string>;
 
 const BapContext = createContext<BapContextValue | undefined>(undefined);
-const profileStorageKey = 'nitro__BapProvider_profile';
+const _profileStorageKey = 'nitro__BapProvider_profile';
 const identityStorageKey = 'bitchat-nitro._bapid';
-export const BapProvider: FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const [identity, setIdentity] = useLocalStorage<string>(identityStorageKey);
-  const [decIdentity, setDecIdentity] = useState<DecryptedIdentity | null>(null);
-  const [bapProfile, setBapProfile] = useState<BapProfile | null>(null);
-  const [bapProfileStatus, setBapProfileStatus] = useState<FetchStatus>(
+export const BapProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  const [identity, _setIdentity] = useLocalStorage<string>(identityStorageKey);
+  const [decIdentity, setDecIdentity] = useState<DecryptedIdentity | null>(
+    null,
+  );
+  const [bapProfile, _setBapProfile] = useState<BapProfile | null>(null);
+  const [bapProfileStatus, _setBapProfileStatus] = useState<FetchStatus>(
     FetchStatus.Loading,
   );
   const [loadIdentityStatus, setLoadIdentityStatus] = useState<FetchStatus>(
@@ -74,45 +74,40 @@ export const BapProvider: FC<{ children: ReactNode }> = ({
       try {
         // Check if we're using Handcash for decryption
         if (authToken && identity && typeof hcDecrypt === 'function') {
-          console.log('Decrypting identity with Handcash');
-          id = await hcDecrypt(identity) as DecryptedIdentity;
+          id = (await hcDecrypt(identity)) as DecryptedIdentity;
         } else if (await isConnected()) {
-          console.log('Using Yours wallet for identity');
           // For Yours wallet, the identity is stored unencrypted
-          id = identity ? JSON.parse(identity) as DecryptedIdentity : undefined;
+          id = identity
+            ? (JSON.parse(identity) as DecryptedIdentity)
+            : undefined;
         } else {
-          console.log('Using raw identity (no wallet)');
-          id = identity ? JSON.parse(identity) as DecryptedIdentity : undefined;
+          id = identity
+            ? (JSON.parse(identity) as DecryptedIdentity)
+            : undefined;
         }
 
         if (!id) {
-          console.log('No identity found');
           return;
         }
-
-        console.log('Creating BAP instance from identity');
         const bapId = new BAP(id.xprv);
         if (id.ids) {
-          console.log('Importing IDs:', id.ids);
           const identities: BapIdentities = {};
-          id.ids.forEach((i) => {
+          for (const i of id.ids) {
             identities[i.idKey] = i.idKey;
-          });
-          bapId.importIds(identities as any);
+          }
+          bapId.importIds(identities as BapIdentities);
         }
         const bid = head(bapId.listIds());
         if (bid) {
-          console.log('Found BAP ID:', bid);
           const updatedId = { ...id, bapId: bid };
           setDecIdentity(updatedId);
           // Instead of setting BAP ID directly, update the session with the current wallet and BAP ID
           if (authToken) {
-            dispatch(login({ wallet: 'handcash', authToken, bapId: bid }) as any);
+            dispatch(login({ wallet: 'handcash', authToken, bapId: bid }));
           } else {
-            dispatch(login({ wallet: 'yours', bapId: bid }) as any);
+            dispatch(login({ wallet: 'yours', bapId: bid }));
           }
         } else {
-          console.log('No BAP ID found in identity');
         }
       } catch (error) {
         console.error('Failed to process identity:', error);
@@ -145,13 +140,11 @@ export const BapProvider: FC<{ children: ReactNode }> = ({
 
       if (bapId && decIdentity.ids) {
         const identities: BapIdentities = {};
-        decIdentity.ids.forEach((i) => {
+        for (const i of decIdentity.ids) {
           identities[i.idKey] = i.idKey;
-        });
-        debugger;
-        bapId.importIds(identities as any);
+        }
+        bapId.importIds(identities as BapIdentities);
       } else {
-        console.log('No IDs to import');
         return false;
       }
 
@@ -159,7 +152,6 @@ export const BapProvider: FC<{ children: ReactNode }> = ({
       const idy = bapId.getId(ids[0]);
 
       if (!idy) {
-        console.log('No valid ID found');
         return false;
       }
       return true;
@@ -190,7 +182,8 @@ export const BapProvider: FC<{ children: ReactNode }> = ({
               throw new Error('Invalid identity file');
             }
 
-            // Store the identity file in localStorage            setIdentity(text);
+            // Store the identity file in localStorage
+            _setIdentity(text);
             setLoadIdentityStatus(FetchStatus.Success);
           } catch (error) {
             console.error('Failed to process identity file:', error);
@@ -203,7 +196,7 @@ export const BapProvider: FC<{ children: ReactNode }> = ({
         setLoadIdentityStatus(FetchStatus.Error);
       }
     },
-    [isValidIdentity],
+    [isValidIdentity, _setIdentity],
   );
 
   const value = useMemo(

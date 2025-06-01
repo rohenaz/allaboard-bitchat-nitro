@@ -9,7 +9,7 @@ export interface Channel {
 }
 
 export const getChannels = async (): Promise<Channel[]> => {
-  return api.get<Channel[]>('/channels');
+  return api.get<Channel[]>('/social/channels');
 };
 
 export const getFriends = async (idKey: string) => {
@@ -28,7 +28,7 @@ export const getFriends = async (idKey: string) => {
 
   const queryFriendsB64 = (idKey: string) =>
     btoa(JSON.stringify(queryFriends(idKey)));
-  return api.get(`q/friend/${queryFriendsB64(idKey)}?d=friends`);
+  return api.get(`/social/q/friend/${queryFriendsB64(idKey)}?d=friends`);
 };
 
 export interface Message {
@@ -55,11 +55,13 @@ export interface Message {
     encrypted?: string;
     bapID?: string;
   }>;
+  AIP?: Array<{
+    bapId?: string;
+    address?: string;
+  }>;
   B?: Array<{
     encoding: string;
-    Data: {
-      utf8: string;
-    };
+    content?: string;
   }>;
 }
 
@@ -83,7 +85,7 @@ export interface MessageQuery {
 export const getMessages = async (
   channelName: string,
 ): Promise<MessageResponse> => {
-  return api.get<MessageResponse>(`/channels/${channelName}/messages`);
+  return api.get<MessageResponse>(`/social/channels/${channelName}/messages`);
 };
 
 export interface CreateChannelData {
@@ -102,45 +104,47 @@ export interface Reaction {
 }
 
 export async function getPinnedChannels(): Promise<Channel[]> {
-  return api.get<Channel[]>('/channels/pinned');
+  return api.get<Channel[]>('/social/channels/pinned');
 }
 
 export async function getChannel(id: string): Promise<Channel> {
-  return api.get<Channel>(`/channels/${id}`);
+  return api.get<Channel>(`/social/channels/${id}`);
 }
 
 export async function createChannel(data: CreateChannelData): Promise<Channel> {
-  return api.post<Channel>('/channels', data);
+  return api.post<Channel>('/social/channels', data);
 }
 
 export async function updateChannel(
   id: string,
   data: Partial<Channel>,
 ): Promise<Channel> {
-  return api.put<Channel>(`/channels/${id}`, data);
+  return api.put<Channel>(`/social/channels/${id}`, data);
 }
 
 export async function deleteChannel(id: string): Promise<void> {
-  return api.delete(`/channels/${id}`);
+  return api.delete(`/social/channels/${id}`);
 }
 
 export async function sendMessage(
   channelId: string,
   content: string,
 ): Promise<Message> {
-  return api.post<Message>(`/channels/${channelId}/messages`, { content });
+  return api.post<Message>(`/social/channels/${channelId}/messages`, {
+    content,
+  });
 }
 
 export async function getReactions(messageId: string): Promise<Reaction[]> {
-  return api.get<Reaction[]>(`/messages/${messageId}/reactions`);
+  return api.get<Reaction[]>(`/social/messages/${messageId}/reactions`);
 }
 
 export async function getDiscordReactions(
   messageId: string,
 ): Promise<Reaction[]> {
-  return api.get<Reaction[]>(`/messages/${messageId}/discord-reactions`);
+  return api.get<Reaction[]>(`/social/messages/${messageId}/discord-reactions`);
 }
 
 export async function getLikes(messageId: string): Promise<Reaction[]> {
-  return api.get<Reaction[]>(`/messages/${messageId}/likes`);
+  return api.get<Reaction[]>(`/social/messages/${messageId}/likes`);
 }

@@ -3,7 +3,13 @@
 
 import { last } from 'lodash';
 import moment from 'moment';
-import type { ChangeEvent, FormEvent, KeyboardEvent, ReactNode, RefObject } from 'react';
+import type {
+  ChangeEvent,
+  FormEvent,
+  KeyboardEvent,
+  ReactNode,
+  RefObject,
+} from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { HiPlusCircle } from 'react-icons/hi';
 import { IoMdClose } from 'react-icons/io';
@@ -34,11 +40,6 @@ type Profile = {
   avatar?: string;
 };
 
-interface SendButtonProps {
-  $hasContent: boolean;
-  $hasFiles: boolean;
-}
-
 interface DecIdentity {
   xprv: string;
   bapId?: string;
@@ -59,9 +60,7 @@ interface TypingUser {
 interface BmapTx {
   B: Array<{
     encoding: string;
-    Data: {
-      utf8: string;
-    };
+    content: string;
   }>;
   MAP: Array<{
     app?: string;
@@ -83,16 +82,10 @@ interface BmapTx {
   };
 }
 
-interface FormProps {
-  children: ReactNode;
-  onSubmit: (e: FormEvent<HTMLFormElement>) => void;
-  autoComplete?: string;
-}
-
 interface TextAreaProps {
   $hasContent?: boolean;
   $hasFiles?: boolean;
-  ref?: RefObject<HTMLTextAreaElement>;
+  ref?: RefObject<HTMLTextAreaElement | null>;
   name?: string;
   placeholder?: string;
   value?: string;
@@ -102,38 +95,19 @@ interface TextAreaProps {
 }
 
 const Container = styled.div`
-  background-color: var(--b1);
   padding: 16px;
-  border-top: 1px solid color-mix(in srgb, var(--p) 10%, transparent);
-  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  position: relative;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      var(--p),
-      transparent
-    );
-    opacity: 0.5;
-  }
+  background-color: var(--background-primary);
 `;
 
 const Form = styled.form`
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   position: relative;
-  width: 100%;
-  max-width: 1200px;
+  background-color: var(--background-modifier-accent);
+  border-radius: 8px;
+  overflow: hidden;
 `;
 
 const AttachmentBar = styled.div`
@@ -141,8 +115,7 @@ const AttachmentBar = styled.div`
   flex-wrap: wrap;
   gap: 8px;
   width: 100%;
-  max-width: 1200px;
-  padding: 8px;
+  padding: 8px 0;
   margin-bottom: 8px;
 `;
 
@@ -214,14 +187,11 @@ const PlusButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  position: absolute;
-  left: 12px;
-  height: 100%;
+  padding: 10px;
   cursor: pointer;
   background: transparent;
   border: 0;
-  padding: 0;
-  z-index: 1;
+  transition: color 0.15s ease;
 
   &:hover {
     color: var(--p);
@@ -307,20 +277,7 @@ const SendButton = styled.button<{ $hasContent: boolean; $hasFiles: boolean }>`
   }
 `;
 
-const CloseButton = styled.button`
-  cursor: pointer;
-  padding: 4px;
-  color: var(--bc);
-  transition: all 0.2s ease;
-  background: none;
-  border: none;
-  border-radius: 4px;
-
-  &:hover {
-    color: var(--er);
-    background-color: color-mix(in srgb, var(--er) 10%, transparent);
-  }
-`;
+// CloseButton component removed - was unused
 
 const TypingStatus = styled.div`
   position: absolute;
@@ -353,17 +310,11 @@ const WriteArea = () => {
   const loadingMembers = useSelector(
     (state: RootState) => state.memberList.loading,
   );
-  const loadingPins = useSelector(
-    (state: RootState) => state.channels.pins.loading,
-  );
   const loadingChannels = useSelector(
     (state: RootState) => state.channels.loading,
   );
   const loadingMessages = useSelector(
     (state: RootState) => state.chat.messages.loading,
-  );
-  const loadingFriendRequests = useSelector(
-    (state: RootState) => state.memberList.friendRequests.loading,
   );
   const session = useSelector((state: RootState) => state.session);
   const typingUser = useSelector(
@@ -383,27 +334,17 @@ const WriteArea = () => {
   const isAuthenticated = useMemo(() => {
     // Check if we have a valid Handcash connection
     const hasHandcash = Boolean(authToken);
-    
+
     // Check if we have a valid Yours wallet connection
-    const hasYours = Boolean(pandaProfile && connected === FetchStatus.Success.toLowerCase());
-    console.log('Yours auth debug:', { 
-      pandaProfile, 
-      connected, 
-      expectedStatus: FetchStatus.Success.toLowerCase(),
-      hasYours 
-    });
-    
+    const hasYours = Boolean(pandaProfile && connected === FetchStatus.Success);
+    // Remove debug console.log
+
     // Check if we have a valid BAP connection
     const hasBap = Boolean(activeUser && decIdentity);
-    
+
     const result = hasHandcash || hasYours || hasBap;
-    console.log('Auth state:', { hasHandcash, hasYours, hasBap, result });
     return result;
   }, [authToken, pandaProfile, connected, activeUser, decIdentity]);
-
-  const guest = useMemo(() => {
-    return !isAuthenticated;
-  }, [isAuthenticated]);
 
   const self = useMemo(() => {
     return activeUser && session.user?.bapId === activeUser._id;
@@ -414,139 +355,174 @@ const WriteArea = () => {
     if (activeChannelId) {
       return !isAuthenticated; // Require wallet connection for posting
     }
-    
+
     // In DM view, check friendship status
     if (activeUserId) {
       // Allow self-messages
       if (self) return false;
-      
+
       // Check friendship status for DMs
-      const hasFriendship = activeUser && 
+      const hasFriendship =
+        activeUser &&
         friendRequests.incoming.allIds.includes(activeUser._id) &&
         friendRequests.outgoing.allIds.includes(activeUser._id);
-      
+
       return !hasFriendship;
     }
-    
+
     // In global chat, require authentication
     return !isAuthenticated;
-  }, [isAuthenticated, activeChannelId, activeUserId, activeUser, self, friendRequests]);
+  }, [
+    isAuthenticated,
+    activeChannelId,
+    activeUserId,
+    activeUser,
+    self,
+    friendRequests,
+  ]);
 
   const handlePlusClick = useCallback(() => {
     if (postStatus === FetchStatus.Loading) return;
     fileInputRef.current?.click();
   }, [postStatus]);
 
-  const handleFileChange = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+  const handleFileChange = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
 
-    const newPendingFiles = await Promise.all(
-      files.map(async (file) => {
-        const data = await toB64(file);
-        return {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          data: data.split(',')[1],
-        };
-      })
-    );
+      const newPendingFiles = await Promise.all(
+        files.map(async (file) => {
+          const data = await toB64(file);
+          return {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            data: data.split(',')[1],
+          };
+        }),
+      );
 
-    setPendingFiles(prev => [...prev, ...newPendingFiles]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, [setPendingFiles]);
-
-  const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log('Form submitted, auth state:', { authToken, connected, pandaProfile, activeUser });
-    
-    if (!isAuthenticated) {
-      console.log('Cannot post. Not authenticated');
-      return;
-    }
-
-    const form = e.currentTarget;
-    const formElement = form.elements.namedItem('msg_content') as HTMLTextAreaElement | null;
-    const content = formElement?.value || '';
-    const hasContent = content !== '' || pendingFiles.length > 0;
-    console.log('Content check:', { content, hasContent, pendingFiles });
-
-    // Allow posting if we have content and are authenticated
-    if (hasContent) {
-      try {
-        // Get the paymail from any available source
-        let paymail = 'anonymous@yours.org'; // Default paymail
-        
-        const handcashProfile = profile as Profile | undefined;
-        const yoursProfile = pandaProfile as Profile | undefined;
-        
-        if (authToken && handcashProfile?.paymail) {
-          paymail = handcashProfile.paymail; // Use Handcash paymail
-        } else if (yoursProfile?.paymail) {
-          paymail = yoursProfile.paymail; // Use Yours paymail
-        } else if (activeUser?.paymail) {
-          paymail = activeUser.paymail; // Use BAP paymail
-        }
-
-        const channel = channelName || '';
-        console.log('Attempting to post message:', { paymail, channel, activeUserId, content });
-
-        if (!channel) {
-          console.error('Channel name is required');
-          return;
-        }
-
-        // Don't clear the message until we know the post was successful
-        const result = await postMessage(
-          paymail,
-          content,
-          channel,
-          activeUserId || '',
-          decIdentity as DecIdentity,
-        );
-        console.log('Post message result:', result);
-
-        // Only clear after successful post
-        setMessageContent('');
-        form.reset();
-      } catch (error) {
-        console.error('Failed to send message:', error);
-        const errorMessage: BmapTx = {
-          B: [
-            {
-              encoding: 'utf8',
-              Data: { utf8: 'Error: Failed to send' },
-            },
-          ],
-          MAP: [
-            {
-              app: 'bitchatnitro.com',
-              type: 'message',
-              paymail: 'system@bitchatnitro.com',
-            },
-          ],
-          timestamp: moment().unix(),
-          blk: { t: moment().unix() },
-          tx: { h: 'error' },
-        };
-        dispatch(receiveNewMessage(errorMessage));
+      setPendingFiles((prev) => [...prev, ...newPendingFiles]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
-    }
-  }, [isAuthenticated, authToken, connected, pandaProfile, activeUser, profile, channelName, activeUserId, pendingFiles, postMessage, decIdentity, dispatch]);
+    },
+    [setPendingFiles],
+  );
 
-  const handleKeyPress = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  const handleSubmit = useCallback(
+    async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const form = e.currentTarget.form;
-      if (form) {
-        const submitEvent = new Event('submit', { cancelable: true, bubbles: true });
-        form.dispatchEvent(submitEvent);
+      // Remove debug console.log
+
+      if (!isAuthenticated) {
+        // User is not authenticated
+        return;
       }
-    }
-  }, []);
+
+      const form = e.currentTarget;
+      const formElement = form.elements.namedItem(
+        'msg_content',
+      ) as HTMLTextAreaElement | null;
+      const content = formElement?.value || '';
+      const hasContent = content !== '' || pendingFiles.length > 0;
+      // Remove debug console.log
+
+      // Allow posting if we have content and are authenticated
+      if (hasContent) {
+        try {
+          // Get the paymail from any available source
+          let paymail = 'anonymous@yours.org'; // Default paymail
+
+          const handcashProfile = profile as Profile | undefined;
+          const yoursProfile = pandaProfile as Profile | undefined;
+
+          if (authToken && handcashProfile?.paymail) {
+            paymail = handcashProfile.paymail; // Use Handcash paymail
+          } else if (yoursProfile?.paymail) {
+            paymail = yoursProfile.paymail; // Use Yours paymail
+          } else if (activeUser?.paymail) {
+            paymail = activeUser.paymail; // Use BAP paymail
+          }
+
+          const channel = channelName || '';
+          // Remove debug console.log
+
+          if (!channel) {
+            // Keep error log for production debugging
+            console.error('Channel name is required');
+            return;
+          }
+
+          // Don't clear the message until we know the post was successful
+          await postMessage(
+            paymail,
+            content,
+            channel,
+            activeUserId || '',
+            decIdentity as DecIdentity,
+          );
+
+          // Only clear after successful post
+          setMessageContent('');
+          form.reset();
+        } catch (error) {
+          // Keep error log for production debugging
+          console.error('Failed to send message:', error);
+          const errorMessage: BmapTx = {
+            B: [
+              {
+                encoding: 'utf8',
+                content: 'Error: Failed to send',
+              },
+            ],
+            MAP: [
+              {
+                app: 'bitchatnitro.com',
+                type: 'message',
+                paymail: 'system@bitchatnitro.com',
+              },
+            ],
+            timestamp: moment().unix(),
+            blk: { t: moment().unix() },
+            tx: { h: 'error' },
+          };
+          dispatch(receiveNewMessage(errorMessage));
+        }
+      }
+    },
+    [
+      isAuthenticated,
+      authToken,
+      pandaProfile,
+      activeUser,
+      profile,
+      channelName,
+      activeUserId,
+      pendingFiles,
+      postMessage,
+      decIdentity,
+      dispatch,
+    ],
+  );
+
+  const handleKeyPress = useCallback(
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const form = e.currentTarget.form;
+        if (form) {
+          const submitEvent = new Event('submit', {
+            cancelable: true,
+            bubbles: true,
+          });
+          form.dispatchEvent(submitEvent);
+        }
+      }
+    },
+    [],
+  );
 
   return (
     <Container>
@@ -555,8 +531,8 @@ const WriteArea = () => {
           {pendingFiles.map((file, idx) => (
             <AttachmentItem key={file.name}>
               <AttachmentThumbnail>
-                <FileRenderer 
-                  type={file.type.split('/')[0] as MediaType} 
+                <FileRenderer
+                  type={file.type.split('/')[0] as MediaType}
                   data={`data:${file.type};base64,${file.data}`}
                 />
               </AttachmentThumbnail>
@@ -599,20 +575,20 @@ const WriteArea = () => {
           name="msg_content"
           placeholder={
             activeUserId
-              ? (!activeUser?.idKey && activeUser)
+              ? !activeUser?.idKey && activeUser
                 ? 'DMs Disabled'
                 : activeUser && loadingMembers
-                ? 'Loading members...'
-                : `Message @${activeUserId}`
+                  ? 'Loading members...'
+                  : `Message @${activeUserId}`
               : activeChannelId
-              ? loadingChannels
-                ? 'Loading channels...'
-                : `Message #${activeChannelId}`
-              : loadingMessages
-              ? 'Loading messages...'
-              : postStatus === FetchStatus.Loading
-              ? 'Posting...'
-              : 'Message in global chat'
+                ? loadingChannels
+                  ? 'Loading channels...'
+                  : `Message #${activeChannelId}`
+                : loadingMessages
+                  ? 'Loading messages...'
+                  : postStatus === FetchStatus.Loading
+                    ? 'Posting...'
+                    : 'Message in global chat'
           }
           value={messageContent}
           onChange={(e) => setMessageContent(e.target.value)}

@@ -73,8 +73,9 @@ export const login = createAsyncThunk(
         dispatch(loadFriends());
       }
       return { wallet, authToken, bapId };
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data || 'Login failed');
+    } catch (err) {
+      const error = err as { response?: { data?: string } };
+      return rejectWithValue(error.response?.data || 'Login failed');
     }
   },
 );
@@ -83,7 +84,7 @@ const sessionSlice = createSlice({
   name: 'session',
   initialState,
   reducers: {
-    connectSocket(state, action) {},
+    connectSocket(_state, _action) {},
     loginGuest(state) {
       state.isAuthenticated = true;
       state.loading = false;

@@ -20,6 +20,22 @@ export interface Signer {
   currentAddress?: string;
 }
 
+// Raw signer from API
+interface RawSigner {
+  idKey: string;
+  currentAddress?: string;
+  identity?:
+    | string
+    | {
+        paymail?: string;
+        email?: string;
+        alternateName?: string;
+        name?: string;
+        image?: string;
+        logo?: string;
+      };
+}
+
 // Define FriendRequest interface
 export interface FriendRequest {
   tx: {
@@ -67,7 +83,7 @@ const initialState: MemberListState = {
   onlineUsers: [],
   byId: {},
   allIds: [],
-  isOpen: false,
+  isOpen: true,
   loading: true,
   signers: {
     byId: {},
@@ -80,37 +96,23 @@ const initialState: MemberListState = {
   },
 };
 
-// Define response types
-interface GetUsersResponse {
-  message: string;
-  signers: Signer[];
-}
-
 // loadUsers thunk
 export const loadUsers = createAsyncThunk(
   'memberList/loadUsers',
-  async (_, { dispatch, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      console.log('loadUsers thunk starting');
       const response = await userAPI.getUsers();
-      console.log('loadUsers thunk got response:', response);
       if (Array.isArray(response)) {
         return response;
       }
-      console.log('loadUsers thunk returning empty array - response not an array');
       return [];
-    } catch (err: any) {
+    } catch (err) {
       console.error('loadUsers thunk error:', err);
-      return rejectWithValue(err.response);
+      const error = err as { response?: unknown };
+      return rejectWithValue(error.response);
     }
   },
 );
-
-// Define loadFriends return type
-interface LoadFriendsResponse {
-  friend: FriendRequest[];
-  signers: Signer[];
-}
 
 export const loadFriends = createAsyncThunk<
   { friend: FriendRequest[]; signers: Signer[]; bapId: string },
@@ -126,16 +128,17 @@ export const loadFriends = createAsyncThunk<
   try {
     const users = await userAPI.getFriends(bapId);
     // Convert User[] to LoadFriendsResponse format
-    const signers = users.map(user => ({
+    const signers = users.map((user) => ({
       idKey: user.idKey || '',
       paymail: user.paymail,
       logo: user.avatar,
       displayName: user.name,
-      isFriend: true
+      isFriend: true,
     }));
     return { friend: [], signers, bapId };
-  } catch (error: any) {
-    return rejectWithValue(error.message || 'Failed to load friends');
+  } catch (error) {
+    const err = error as Error;
+    return rejectWithValue(err.message || 'Failed to load friends');
   }
 });
 
@@ -181,23 +184,48 @@ const memberListSlice = createSlice({
       state.onlineUsers = action.payload;
     },
     toggleMemberList(state) {
-      console.log('Handling toggleMemberList, current isOpen:', state.isOpen);
       state.isOpen = !state.isOpen;
-      console.log('New isOpen value:', state.isOpen);
     },
-    ingestSigners(state, action: PayloadAction<Signer[]>) {
-      action.payload.forEach((signer) => {
+    ingestSigners(state, action: PayloadAction<RawSigner[]>) {
+      for (const signer of action.payload) {
+        let parsedSigner: Signer;
+
+        // Handle signers from messages endpoint which have identity as JSON string
+        if (typeof signer.identity === 'string') {
+          try {
+            const identity = JSON.parse(signer.identity);
+            parsedSigner = {
+              idKey: signer.idKey,
+              paymail: identity.paymail || identity.email,
+              displayName: identity.alternateName || identity.name,
+              logo: identity.image || identity.logo,
+              icon: identity.image || identity.logo,
+              currentAddress: signer.currentAddress,
+              isFriend: false,
+            };
+          } catch (e) {
+            console.error('Failed to parse signer identity:', e);
+            parsedSigner = {
+              idKey: signer.idKey,
+              currentAddress: signer.currentAddress,
+            };
+          }
+        } else {
+          // Handle signers that are already in the expected format
+          parsedSigner = signer;
+        }
+
         // Add to main users list
-        if (!state.allIds.includes(signer.idKey)) {
-          state.byId[signer.idKey] = signer;
-          state.allIds.push(signer.idKey);
+        if (!state.allIds.includes(parsedSigner.idKey)) {
+          state.byId[parsedSigner.idKey] = parsedSigner;
+          state.allIds.push(parsedSigner.idKey);
         }
         // Add to signers list
-        if (!state.signers.allIds.includes(signer.idKey)) {
-          state.signers.allIds.push(signer.idKey);
-          state.signers.byId[signer.idKey] = signer;
+        if (!state.signers.allIds.includes(parsedSigner.idKey)) {
+          state.signers.allIds.push(parsedSigner.idKey);
+          state.signers.byId[parsedSigner.idKey] = parsedSigner;
         }
-      });
+      }
     },
   },
   extraReducers: (builder) => {
@@ -207,28 +235,25 @@ const memberListSlice = createSlice({
       })
       .addCase(loadUsers.fulfilled, (state, action) => {
         state.loading = false;
-        console.log('load users fulfilled, payload:', action.payload);
         if (!Array.isArray(action.payload)) {
           console.error('Expected array of users but got:', action.payload);
           return;
         }
         for (const user of action.payload) {
-          console.log('Processing user:', user);
-          if (!state.allIds.includes(user.idKey)) {
+          if (user.idKey && !state.allIds.includes(user.idKey)) {
             state.byId[user.idKey] = {
-              ...user,
-              // Support both old and new field names
-              paymail: user.paymail || user.displayName,
-              logo: user.logo || user.icon,
+              idKey: user.idKey,
+              paymail: user.paymail,
+              logo: user.avatar,
+              displayName: user.name,
+              icon: user.avatar,
+              currentAddress: user.currentAddress,
+              walletType: undefined,
+              isFriend: false,
             };
             state.allIds.push(user.idKey);
-            console.log('Added user to state:', user.idKey);
           }
         }
-        console.log('Final state:', { 
-          userCount: state.allIds.length, 
-          users: state.byId 
-        });
       })
       .addCase(loadUsers.rejected, (state, action) => {
         state.loading = false;
@@ -247,14 +272,14 @@ const memberListSlice = createSlice({
           '7182af3be9c258068df78adc68ee7a628721a5e6aa0dda2a0e21dc160bf20bbe',
         ];
 
-        signers.forEach((s) => {
+        for (const s of signers) {
           if (!state.signers.allIds.includes(s.idKey)) {
             state.signers.allIds.push(s.idKey);
             state.signers.byId[s.idKey] = s;
           }
-        });
+        }
 
-        friend.forEach((f) => {
+        for (const f of friend) {
           if (brokenTxHashes.includes(f.tx.h)) return;
 
           const requesterAddress = head(f.AIP)?.address;
@@ -292,7 +317,7 @@ const memberListSlice = createSlice({
               state.byId[userId].isFriend = true;
             }
           }
-        });
+        }
       })
       .addCase(loadFriends.rejected, (state, action) => {
         state.friendRequests.loading = false;

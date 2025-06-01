@@ -35,9 +35,9 @@ const MessageFiles: React.FC<MessageFilesProps> = ({ files }) => {
   return (
     <>
       <Container>
-        {files.map((file) => (
+        {files.map((file, index) => (
           <MessageFile
-            key={file.txid || file.name || file.url}
+            key={file.txid || file.url || `file-${index}`}
             file={file}
             onClick={() => setSelectedFile(file)}
           />

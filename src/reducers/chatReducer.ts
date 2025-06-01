@@ -4,6 +4,7 @@ import {
   createSlice,
 } from '@reduxjs/toolkit';
 import { head } from 'lodash';
+import * as bmapAPI from '../api/bmap';
 import * as channelAPI from '../api/channel';
 import type { Message, MessageResponse } from '../api/channel';
 import { ingestSigners } from './memberListReducer';
@@ -13,11 +14,13 @@ const audio = new Audio('https://bitchatnitro.com/audio/notify.mp3');
 audio.volume = 0.25;
 
 // Types
-interface BmapTx {
-  tx: {
+export interface BmapTx {
+  tx?: {
     h: string;
   };
+  _id?: string;
   MAP: Array<{
+    cmd?: string;
     app?: string;
     type?: string;
     paymail?: string;
@@ -27,16 +30,32 @@ interface BmapTx {
     encrypted?: string;
     bapID?: string;
     tx?: string;
+    emoji?: string;
+  }>;
+  AIP?: Array<{
+    bapId?: string;
+    address?: string;
+    signature?: string;
   }>;
   B?: Array<{
-    encoding: string;
-    Data: { utf8: string };
+    content?: string;
     'content-type'?: string;
+    encoding?: string;
   }>;
   timestamp?: number;
   blk?: {
+    i?: number;
     t: number;
+    h?: string;
   };
+  in?: Array<{
+    e: {
+      a: string;
+      h: string;
+      i: number;
+    };
+  }>;
+  lock?: number;
   myBapId?: string;
 }
 
@@ -56,22 +75,46 @@ interface ChatState {
 }
 
 // Thunks
+interface FetchMessagesParams {
+  channelName?: string;
+  userId?: string;
+  currentUserId?: string;
+}
+
 export const fetchMessages = createAsyncThunk<
   BmapTx[],
-  string,
+  FetchMessagesParams,
   { rejectValue: string }
->('chat/fetchMessages', async (channelName, { dispatch, rejectWithValue }) => {
+>('chat/fetchMessages', async (params, { dispatch, rejectWithValue }) => {
   try {
-    console.log('🔍 Fetching messages for channel:', channelName);
-    const response = await channelAPI.getMessages(channelName);
-    console.log('📨 Raw message response:', response);
+    const { channelName, userId, currentUserId } = params;
+    let response: MessageResponse;
+
+    if (userId && currentUserId) {
+      const dmMessages = await bmapAPI.getConversation(currentUserId, userId);
+      // Transform DM response to match MessageResponse format
+      response = {
+        results: dmMessages.map((dm) => ({
+          txid: dm.txid,
+          content: dm.content,
+          timestamp: dm.timestamp,
+          paymail: dm.from,
+          type: 'message',
+          context: 'messageID',
+          encrypted: dm.encrypted ? 'true' : undefined,
+          bapID: dm.from,
+        })),
+        signers: [],
+      };
+    } else if (channelName) {
+      response = await channelAPI.getMessages(channelName);
+    } else {
+      throw new Error('Either channelName or userId must be provided');
+    }
 
     // Extract messages and signers from response
     const messages = response.results || [];
     const signers = response.signers || [];
-    console.log(
-      `✅ Fetched ${messages.length} messages and ${signers.length} signers`,
-    );
 
     // Ingest signers if present
     if (signers.length > 0) {
@@ -79,38 +122,37 @@ export const fetchMessages = createAsyncThunk<
     }
 
     // Transform messages to expected format if needed
-    const transformedMessages = messages.map(
-      (msg: Message): BmapTx => {
-        // Handle both content formats
-        const content = msg.content || msg.B?.[0]?.Data?.utf8 || msg.B?.[0]?.content || '';
-        const contentType = msg['content-type'] || msg.B?.[0]?.['content-type'] || 'text/plain';
-        
-        return {
-          tx: { h: msg.txid || msg.tx?.h || '' },
-          MAP: [
-            {
-              paymail: msg.paymail || msg.MAP?.[0]?.paymail,
-              type: msg.type || msg.MAP?.[0]?.type || 'message',
-              context: msg.context || msg.MAP?.[0]?.context || 'channel',
-              channel: msg.channel || msg.MAP?.[0]?.channel,
-              messageID: msg.messageID || msg.MAP?.[0]?.messageID,
-              encrypted: msg.encrypted || msg.MAP?.[0]?.encrypted,
-              bapID: msg.bapID || msg.MAP?.[0]?.bapID,
-            },
-          ],
-          B: [
-            {
-              encoding: 'utf8',
-              Data: { utf8: content },
-              'content-type': contentType,
-            },
-          ],
-          timestamp: msg.timestamp || msg.createdAt || msg.blk?.t,
-          blk: msg.blk,
-          myBapId: msg.myBapId,
-        };
-      },
-    );
+    const transformedMessages = messages.map((msg: Message): BmapTx => {
+      // Handle both content formats
+      const content = msg.content || msg.B?.[0]?.content || '';
+      const contentType = 'text/plain';
+
+      return {
+        tx: { h: msg.txid || msg.tx?.h || '' },
+        MAP: [
+          {
+            paymail: msg.paymail || msg.MAP?.[0]?.paymail,
+            type: msg.type || msg.MAP?.[0]?.type || 'message',
+            context: msg.context || msg.MAP?.[0]?.context || 'channel',
+            channel: msg.channel || msg.MAP?.[0]?.channel,
+            messageID: msg.messageID || msg.MAP?.[0]?.messageID,
+            encrypted: msg.encrypted || msg.MAP?.[0]?.encrypted,
+            bapID: msg.bapID || msg.MAP?.[0]?.bapID,
+          },
+        ],
+        B: [
+          {
+            encoding: 'utf-8',
+            content: content,
+            'content-type': contentType,
+          },
+        ],
+        timestamp: msg.timestamp || msg.createdAt || msg.blk?.t,
+        blk: msg.blk,
+        myBapId: msg.myBapId,
+        AIP: msg.AIP,
+      };
+    });
 
     // Sort messages by timestamp in descending order (newest first)
     return transformedMessages.sort((a: BmapTx, b: BmapTx) => {
@@ -128,14 +170,38 @@ export const fetchMessages = createAsyncThunk<
 
 export const fetchMoreMessages = createAsyncThunk(
   'chat/fetchMoreMessages',
-  async (channelName: string, { rejectWithValue }) => {
+  async (params: FetchMessagesParams, { rejectWithValue }) => {
     try {
-      const response = await channelAPI.getMessages(channelName);
+      const { channelName, userId, currentUserId } = params;
+      let response: MessageResponse;
+
+      if (userId && currentUserId) {
+        // Fetch more DM messages
+        const dmMessages = await bmapAPI.getConversation(currentUserId, userId);
+        response = {
+          results: dmMessages.map((dm) => ({
+            txid: dm.txid,
+            content: dm.content,
+            timestamp: dm.timestamp,
+            paymail: dm.from,
+            type: 'message',
+            context: 'messageID',
+            encrypted: dm.encrypted ? 'true' : undefined,
+            bapID: dm.from,
+          })),
+          signers: [],
+        };
+      } else if (channelName) {
+        response = await channelAPI.getMessages(channelName);
+      } else {
+        throw new Error('Either channelName or userId must be provided');
+      }
+
       const messages = response?.results || [];
 
       // Transform and sort messages
       const transformedMessages = messages
-        .map((msg: any) => ({
+        .map((msg: Message) => ({
           tx: { h: msg.txid },
           MAP: [
             {
@@ -150,12 +216,13 @@ export const fetchMoreMessages = createAsyncThunk(
           ],
           B: [
             {
-              encoding: 'utf8',
-              Data: { utf8: msg.content },
+              encoding: 'utf-8',
+              content: msg.content || '',
             },
           ],
           timestamp: msg.timestamp,
           myBapId: msg.myBapId,
+          AIP: msg.AIP,
         }))
         .sort((a, b) => {
           const timestampA = a.timestamp || 0;
@@ -236,17 +303,10 @@ const chatSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchMessages.pending, (state) => {
-        console.log('⏳ Messages fetch pending...');
         state.messages.loading = true;
         state.messages.error = null;
       })
       .addCase(fetchMessages.fulfilled, (state, action) => {
-        console.log('✅ Messages fetch succeeded');
-        console.log('📊 Message state update:', {
-          messageCount: action.payload.length,
-          firstMessage: action.payload[0],
-          lastMessage: action.payload[action.payload.length - 1],
-        });
         state.messages.loading = false;
         state.messages.data = action.payload;
         state.messages.hasMore = action.payload.length === 100;
