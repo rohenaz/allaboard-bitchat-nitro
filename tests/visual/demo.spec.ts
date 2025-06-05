@@ -21,8 +21,6 @@ test.describe('🎯 Automated UI Testing Demo', () => {
   });
 
   test('🔍 UI Component Discovery & Validation', async ({ page }) => {
-    console.log('🚀 Discovering UI components...');
-
     // Automatically discover and test UI components
     const components = await page.evaluate(() => {
       const selectors = [
@@ -67,18 +65,12 @@ test.describe('🎯 Automated UI Testing Demo', () => {
       }
       return discovered;
     });
-
-    console.log('📋 Component Discovery Results:');
     for (const component of components) {
-      console.log(`  ${component.selector}: ${component.count} found`);
       for (const example of component.examples) {
-        const idPart = example.id ? `#${example.id}` : '';
-        const classPart = example.className
+        const _idPart = example.id ? `#${example.id}` : '';
+        const _classPart = example.className
           ? `.${example.className.split(' ')[0]}`
           : '';
-        console.log(
-          `    - ${example.tag}${idPart}${classPart}: "${example.textContent}"`,
-        );
       }
     }
 
@@ -98,8 +90,6 @@ test.describe('🎯 Automated UI Testing Demo', () => {
   });
 
   test('⚡ Interactive Element Testing', async ({ page }) => {
-    console.log('🎮 Testing interactive elements...');
-
     // Find and test all clickable elements
     const clickableElements = await page.evaluate(() => {
       const elements = document.querySelectorAll('button, a, [role="button"]');
@@ -115,13 +105,10 @@ test.describe('🎯 Automated UI Testing Demo', () => {
         .filter((el) => el.visible && !el.disabled);
     });
 
-    console.log(`🔗 Found ${clickableElements.length} interactive elements`);
-
     // Test first few interactive elements
     const testLimit = Math.min(3, clickableElements.length);
     for (let i = 0; i < testLimit; i++) {
       const element = clickableElements[i];
-      console.log(`  Testing: ${element.tag} - "${element.text}"`);
 
       try {
         const locator = page.locator(
@@ -134,7 +121,6 @@ test.describe('🎯 Automated UI Testing Demo', () => {
           // Check if any modals appeared
           const modalCount = await page.locator('[role="dialog"]').count();
           if (modalCount > 0) {
-            console.log('    ✅ Modal opened successfully');
             await expect(page).toHaveScreenshot(`modal-test-${i}.png`);
 
             // Close modal
@@ -142,17 +128,13 @@ test.describe('🎯 Automated UI Testing Demo', () => {
             await page.waitForTimeout(200);
           }
         }
-      } catch (error) {
-        console.log(`    ⚠️ Element not interactable: ${error}`);
-      }
+      } catch (_error) {}
     }
 
     expect(clickableElements.length).toBeGreaterThan(0);
   });
 
   test('🎨 Dark Theme Validation', async ({ page }) => {
-    console.log('🌙 Validating dark theme implementation...');
-
     const themeAnalysis = await page.evaluate(() => {
       const rootStyle = getComputedStyle(document.documentElement);
       const bodyStyle = getComputedStyle(document.body);
@@ -187,18 +169,6 @@ test.describe('🎯 Automated UI Testing Demo', () => {
       };
     });
 
-    console.log('🎨 Theme Analysis:');
-    console.log(
-      `  Background: ${themeAnalysis.computedStyles.backgroundColor}`,
-    );
-    console.log(`  Text Color: ${themeAnalysis.computedStyles.color}`);
-    console.log(
-      `  CSS Variables: ${Object.keys(themeAnalysis.cssVariables).length} found`,
-    );
-    console.log(
-      `  Dark Theme: ${themeAnalysis.isDarkTheme ? '✅ Detected' : '❌ Not detected'}`,
-    );
-
     // Key dark theme variables should exist
     const requiredVars = [
       '--background-primary',
@@ -209,7 +179,6 @@ test.describe('🎯 Automated UI Testing Demo', () => {
 
     for (const varName of requiredVars) {
       expect(themeAnalysis.cssVariables[varName]).toBeTruthy();
-      console.log(`  ${varName}: ${themeAnalysis.cssVariables[varName]}`);
     }
 
     await expect(page).toHaveScreenshot('dark-theme-validation.png', {
@@ -218,8 +187,6 @@ test.describe('🎯 Automated UI Testing Demo', () => {
   });
 
   test('📱 Responsive Layout Testing', async ({ page }) => {
-    console.log('📱 Testing responsive behavior...');
-
     const viewports = [
       { name: 'Mobile', width: 375, height: 667 },
       { name: 'Tablet', width: 768, height: 1024 },
@@ -227,15 +194,11 @@ test.describe('🎯 Automated UI Testing Demo', () => {
     ];
 
     for (const viewport of viewports) {
-      console.log(
-        `  Testing ${viewport.name} (${viewport.width}x${viewport.height})`,
-      );
-
       await page.setViewportSize(viewport);
       await page.waitForTimeout(300);
 
       // Check layout metrics
-      const layoutMetrics = await page.evaluate(() => {
+      const _layoutMetrics = await page.evaluate(() => {
         const sidebar = document.querySelector('aside');
         const main = document.querySelector('main');
 
@@ -249,11 +212,6 @@ test.describe('🎯 Automated UI Testing Demo', () => {
         };
       });
 
-      console.log(
-        `    Sidebar: ${layoutMetrics.sidebarVisible ? 'Visible' : 'Hidden'} (${layoutMetrics.sidebarWidth}px)`,
-      );
-      console.log(`    Main: ${layoutMetrics.mainWidth}px`);
-
       await expect(page).toHaveScreenshot(
         `responsive-${viewport.name.toLowerCase()}.png`,
         {
@@ -264,19 +222,15 @@ test.describe('🎯 Automated UI Testing Demo', () => {
   });
 
   test('🚨 Error Handling & Recovery', async ({ page }) => {
-    console.log('🚨 Testing error handling...');
-
     const errors: Array<{ type: string; message: string }> = [];
 
     page.on('pageerror', (error) => {
       errors.push({ type: 'page', message: error.message });
-      console.log(`  📍 Page Error: ${error.message}`);
     });
 
     page.on('console', (msg) => {
       if (msg.type() === 'error') {
         errors.push({ type: 'console', message: msg.text() });
-        console.log(`  🔍 Console Error: ${msg.text()}`);
       }
     });
 
@@ -302,15 +256,9 @@ test.describe('🎯 Automated UI Testing Demo', () => {
           if (element) {
             (element as HTMLElement).click();
           }
-        } catch (e) {
-          console.log('Handled non-existent element gracefully');
-        }
+        } catch (_e) {}
       });
-    } catch (error) {
-      console.log(`  ⚠️ Caught error during testing: ${error}`);
-    }
-
-    console.log(`🔍 Total errors captured: ${errors.length}`);
+    } catch (_error) {}
 
     // Even with errors, the app should still be functional
     const isPageFunctional = await page.evaluate(() => {

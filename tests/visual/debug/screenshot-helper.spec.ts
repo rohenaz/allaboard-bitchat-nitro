@@ -46,9 +46,7 @@ test.describe('Debug Screenshot Helpers', () => {
         await expect(page).toHaveScreenshot('debug-settings-modal.png', {
           fullPage: true,
         });
-      } catch (e) {
-        console.log('Settings modal not found');
-      }
+      } catch (_e) {}
 
       // Screenshot 3: Try to open DM modal
       try {
@@ -67,9 +65,7 @@ test.describe('Debug Screenshot Helpers', () => {
             fullPage: true,
           });
         }
-      } catch (e) {
-        console.log('DM modal not found');
-      }
+      } catch (_e) {}
     });
 
     test('Component debugging - element inspection', async ({ page }) => {
@@ -82,7 +78,7 @@ test.describe('Debug Screenshot Helpers', () => {
       await page.waitForLoadState('networkidle');
 
       // Debug: Log all interactive elements
-      const interactiveElements = await page.evaluate(() => {
+      const _interactiveElements = await page.evaluate(() => {
         const elements = document.querySelectorAll(
           'button, a, input, [role="button"]',
         );
@@ -97,11 +93,6 @@ test.describe('Debug Screenshot Helpers', () => {
           }))
           .filter((el) => el.textContent || el.ariaLabel || el.title);
       });
-
-      console.log(
-        '🔍 Interactive Elements Found:',
-        JSON.stringify(interactiveElements, null, 2),
-      );
 
       // Screenshot with element highlighting
       await page.addStyleTag({
@@ -129,7 +120,7 @@ test.describe('Debug Screenshot Helpers', () => {
       await page.waitForLoadState('networkidle');
 
       // Extract and log CSS variables
-      const cssVariables = await page.evaluate(() => {
+      const _cssVariables = await page.evaluate(() => {
         const computedStyle = getComputedStyle(document.documentElement);
         const variables: Record<string, string> = {};
 
@@ -142,8 +133,6 @@ test.describe('Debug Screenshot Helpers', () => {
         }
         return variables;
       });
-
-      console.log('🎨 CSS Variables:', JSON.stringify(cssVariables, null, 2));
 
       // Test dark theme application
       const darkThemeTest = await page.evaluate(() => {
@@ -161,7 +150,6 @@ test.describe('Debug Screenshot Helpers', () => {
       });
 
       expect(darkThemeTest.isDark).toBeTruthy();
-      console.log('🌙 Dark Theme Test:', darkThemeTest);
     });
 
     test('Error state capture', async ({ page }) => {
@@ -170,13 +158,11 @@ test.describe('Debug Screenshot Helpers', () => {
 
       page.on('pageerror', (error) => {
         errors.push(error.message);
-        console.log('❌ Page Error:', error.message);
       });
 
       page.on('console', (msg) => {
         if (msg.type() === 'error') {
           errors.push(msg.text());
-          console.log('🔴 Console Error:', msg.text());
         }
       });
 
@@ -198,17 +184,13 @@ test.describe('Debug Screenshot Helpers', () => {
 
         // Navigate to invalid route
         await page.goto('/invalid-route', { timeout: 5000 }).catch(() => {});
-      } catch (e) {
-        console.log('Expected error during testing:', e);
-      }
+      } catch (_e) {}
 
       if (errors.length > 0) {
         await expect(page).toHaveScreenshot('debug-error-state.png', {
           fullPage: true,
         });
       }
-
-      console.log(`🐛 Total errors captured: ${errors.length}`);
     });
   });
 

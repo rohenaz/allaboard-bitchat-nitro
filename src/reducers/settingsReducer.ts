@@ -1,9 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-export const SETTINGS_OPTIONS = Object.freeze({
+export const SETTINGS_OPTIONS = {
   HIDE: 'HIDE',
   SHOW: 'SHOW',
-}) as const;
+} as const;
 
 type SettingsOption = (typeof SETTINGS_OPTIONS)[keyof typeof SETTINGS_OPTIONS];
 
@@ -54,12 +54,34 @@ const settingsSlice = createSlice({
       );
     },
     toggleSettings(state) {
+      // Add debugging to trace calls
+      if (typeof window !== 'undefined') {
+        // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
+        console.log(
+          '🔧 toggleSettings called, current:',
+          state.isOpen,
+          '-> will be:',
+          !state.isOpen,
+        );
+        // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
+        console.trace('Call stack:');
+      }
       state.isOpen = !state.isOpen;
+    },
+    openSettings(state) {
+      state.isOpen = true;
+    },
+    closeSettings(state) {
+      state.isOpen = false;
     },
   },
 });
 
-export const { toggleSettings, toggleHideUnverifiedMessages } =
-  settingsSlice.actions;
+export const {
+  toggleSettings,
+  toggleHideUnverifiedMessages,
+  closeSettings,
+  openSettings,
+} = settingsSlice.actions;
 
 export default settingsSlice.reducer;

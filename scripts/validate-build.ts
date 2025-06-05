@@ -24,10 +24,9 @@ class BuildValidator {
     options?: { timeout?: number },
   ): Promise<ValidationResult> {
     const stepStart = Date.now();
-    console.log(chalk.blue(`🔄 ${step}...`));
 
     try {
-      const { stdout, stderr } = await execAsync(command, {
+      const { stdout } = await execAsync(command, {
         timeout: options?.timeout || 60000,
         cwd: process.cwd(),
       });
@@ -39,8 +38,6 @@ class BuildValidator {
         duration,
         output: stdout.trim(),
       };
-
-      console.log(chalk.green(`✅ ${step} (${duration}ms)`));
       this.results.push(result);
       return result;
     } catch (error: unknown) {
@@ -55,17 +52,12 @@ class BuildValidator {
         error: errorMessage,
       };
 
-      console.log(chalk.red(`❌ ${step} (${duration}ms)`));
-      console.log(chalk.red(`   Error: ${errorMessage}`));
-
       this.results.push(result);
       return result;
     }
   }
 
   async validateBuild() {
-    console.log(chalk.cyan('🚀 Starting Build Validation Pipeline\n'));
-
     // 1. Lint check
     await this.runStep('TypeScript & Linting', 'bun lint');
 
@@ -98,41 +90,24 @@ class BuildValidator {
   }
 
   printSummary() {
-    const totalDuration = Date.now() - this.startTime;
-    const successCount = this.results.filter((r) => r.success).length;
+    const _totalDuration = Date.now() - this.startTime;
+    const _successCount = this.results.filter((r) => r.success).length;
     const failureCount = this.results.filter((r) => !r.success).length;
 
-    console.log(`\n${chalk.cyan('📊 Build Validation Summary')}`);
-    console.log(chalk.cyan('━'.repeat(50)));
-
     for (const result of this.results) {
-      const icon = result.success ? '✅' : '❌';
-      const color = result.success ? chalk.green : chalk.red;
-      const duration = `${result.duration}ms`;
-      console.log(
-        color(`${icon} ${result.step.padEnd(25)} ${duration.padStart(8)}`),
-      );
+      const _icon = result.success ? '✅' : '❌';
+      const _color = result.success ? chalk.green : chalk.red;
+      const _duration = `${result.duration}ms`;
     }
 
-    console.log(`\n${chalk.cyan('━'.repeat(50))}`);
-    console.log(chalk.white(`Total Duration: ${totalDuration}ms`));
-    console.log(chalk.green(`Successful: ${successCount}`));
-
     if (failureCount > 0) {
-      console.log(chalk.red(`Failed: ${failureCount}`));
-      console.log(
-        `\n${chalk.yellow('⚠️  Build validation completed with errors')}`,
-      );
       process.exit(1);
     } else {
-      console.log(`\n${chalk.green('🎉 All validations passed!')}`);
       process.exit(0);
     }
   }
 
   async validateQuick() {
-    console.log(chalk.cyan('⚡ Quick Validation (lint + build only)\n'));
-
     await this.runStep('Linting', 'bun lint');
     await this.runStep('Build', 'bun run build');
 
@@ -140,10 +115,6 @@ class BuildValidator {
   }
 
   async validateVisual() {
-    console.log(chalk.cyan('👁️  Visual Testing Only\n'));
-
-    // Start dev server and run visual tests
-    console.log(chalk.blue('🔄 Starting dev server...'));
     const devProcess = exec('bun run dev');
 
     // Wait for server to start

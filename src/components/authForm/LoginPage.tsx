@@ -12,7 +12,7 @@ import { loadChannels } from '../../reducers/channelsReducer';
 import { setYoursUser } from '../../reducers/sessionReducer';
 import HandcashIcon from '../icons/HandcashIcon';
 import YoursIcon from '../icons/YoursIcon';
-import { BitcoinBlocksTest } from '../test/BitcoinBlocksTest';
+
 import Layout from './Layout';
 
 const ButtonContainer = styled.div`
@@ -230,10 +230,7 @@ export const LoginPage: FC = () => {
           {isLoading ? 'Connecting...' : 'Login with Yours Wallet'}
         </LoginButton>
       </ButtonContainer>
-      
-      {/* 🧪 TEST: BitcoinBlocks AuthButton */}
-      <BitcoinBlocksTest />
-      
+
       {error && (
         <ErrorMessage>
           <span>{error}</span>

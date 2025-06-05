@@ -5,6 +5,7 @@ import { type FC, type MouseEvent, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled, { keyframes } from 'styled-components';
 import {
+  closeSettings,
   toggleHideUnverifiedMessages,
   toggleSettings,
 } from '../../../reducers/settingsReducer';
@@ -173,9 +174,23 @@ export const SettingsModal: FC = () => {
 
   // Handle modal open/close
   useEffect(() => {
+    // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
+    console.log(
+      '🎭 SettingsModal useEffect triggered, isOpen:',
+      isOpen,
+      'dialogRef.current:',
+      !!dialogRef.current,
+      'dialog.open:',
+      dialogRef.current?.open,
+    );
+
     if (isOpen && dialogRef.current && !dialogRef.current.open) {
+      // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
+      console.log('🎭 Opening modal via showModal()');
       dialogRef.current.showModal();
     } else if (!isOpen && dialogRef.current?.open) {
+      // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
+      console.log('🎭 Closing modal via close()');
       dialogRef.current.close();
     }
   }, [isOpen]);

@@ -124,3 +124,46 @@ VITE_HANDCASH_API_URL=https://api.bitchatnitro.com
 - Dockerfile available for containerization
 - Caddy server configuration for production
 - Railway deployment configuration included
+
+## BigBlocks Integration (v0.0.12)
+
+### Overview
+BigBlocks is integrated as an enhancement to BitChat's authentication system, providing 96 production-ready Bitcoin UI components while preserving BitChat's existing Discord-like interface.
+
+### Integration Strategy
+- **Hybrid Approach**: BigBlocks backend with BitChat UI preserved
+- **Gradual Migration**: Can switch features incrementally without breaking existing flows
+- **Enhanced Features**: Backup import, advanced signup flows, social components available
+
+### Components Available
+- **Authentication**: AuthButton, LoginForm, SignupFlow, AuthFlowOrchestrator
+- **Social**: PostButton, LikeButton, FollowButton, SocialFeed
+- **Wallet**: WalletOverview, SendBSVButton, TokenBalance
+- **Profile**: ProfileCard, ProfileEditor, BitcoinAvatar
+- **Market**: MarketTable, CreateListingButton, BuyListingButton
+- **BAP Identity**: Encryption, signing, key rotation components
+
+### Current Integration
+- **Test Component**: `src/components/test/BitcoinBlocksTest.tsx`
+  - Basic integration demo (BigBlocks backend + BitChat UI)
+  - Advanced features demo (full BigBlocks components)
+- **Custom Hook**: `src/hooks/useBitchatAuth.ts`
+  - Bridges BigBlocks auth with BitChat Redux state
+  - Preserves existing wallet integrations
+  - Adds backup import and enhanced signup capabilities
+
+### Dependencies Added
+- `bigblocks@0.0.12` - Main component library
+- `js-1sat-ord@0.1.82` - Ordinals support
+- `@tanstack/react-query@5.79.0` - Data fetching
+- `lucide-react@0.511.0` - Icons
+
+### Configuration
+- Vite config updated to externalize Next.js modules
+- BigBlocks config file: `bigblocks.config.json`
+- Integration preserves all existing styling and theming
+
+### Next Steps
+- Backend API integration for BigBlocks auth endpoints
+- Gradual replacement of auth flows with enhanced versions
+- Optional integration of social and wallet components
