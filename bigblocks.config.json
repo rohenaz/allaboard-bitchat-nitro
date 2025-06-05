@@ -1,0 +1,6 @@
+{
+  "componentsDir": "./components/bigblocks",
+  "typescript": true,
+  "radixThemes": false,
+  "initialized": true
+}

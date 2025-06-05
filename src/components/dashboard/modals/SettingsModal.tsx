@@ -1,7 +1,13 @@
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 
-import { type FC, type MouseEvent, useEffect, useRef } from 'react';
+import {
+  type FC,
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled, { keyframes } from 'styled-components';
 import {
@@ -172,32 +178,33 @@ export const SettingsModal: FC = () => {
   );
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // Handle modal open/close
-  useEffect(() => {
-    // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
-    console.log(
-      '🎭 SettingsModal useEffect triggered, isOpen:',
-      isOpen,
-      'dialogRef.current:',
-      !!dialogRef.current,
-      'dialog.open:',
-      dialogRef.current?.open,
-    );
+  // // Handle modal open/close
+  // useEffect(() => {
+  //   // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
+  //   console.log(
+  //     '🎭 SettingsModal useEffect triggered, isOpen:',
+  //     isOpen,
+  //     'dialogRef.current:',
+  //     !!dialogRef.current,
+  //     'dialog.open:',
+  //     dialogRef.current?.open,
+  //   );
 
-    if (isOpen && dialogRef.current && !dialogRef.current.open) {
-      // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
-      console.log('🎭 Opening modal via showModal()');
-      dialogRef.current.showModal();
-    } else if (!isOpen && dialogRef.current?.open) {
-      // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
-      console.log('🎭 Closing modal via close()');
-      dialogRef.current.close();
-    }
-  }, [isOpen]);
+  //   if (isOpen && dialogRef.current && !dialogRef.current.open) {
+  //     // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
+  //     console.log('🎭 Opening modal via showModal()');
+  //     debugger
+  //     dialogRef.current.showModal();
+  //   } else if (!isOpen && dialogRef.current?.open) {
+  //     // biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
+  //     console.log('🎭 Closing modal via close()');
+  //     dialogRef.current.close();
+  //   }
+  // }, [isOpen]);
 
-  const handleClose = () => {
-    dispatch(toggleSettings());
-  };
+  const handleClose = useCallback(() => {
+    dispatch(closeSettings());
+  }, [dispatch]);
 
   // Handle click outside
   const handleClickOutside = (e: MouseEvent) => {
@@ -206,6 +213,8 @@ export const SettingsModal: FC = () => {
       handleClose();
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <ModalBackdrop
@@ -216,6 +225,7 @@ export const SettingsModal: FC = () => {
           handleClose();
         }
       }}
+      open
     >
       <ModalContainer
         onClick={(e) => e.stopPropagation()}

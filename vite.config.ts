@@ -37,6 +37,7 @@ export default defineConfig({
       'bigblocks/nextjs': 'bigblocks',
       'bigblocks/express': 'bigblocks',
       'bigblocks/astro': 'bigblocks',
+      'use-sync-external-store/shim': 'use-sync-external-store/shim/index.js',
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
@@ -61,6 +62,7 @@ export default defineConfig({
       '@bsv/sdk',
       'bsv-bap',
       'buffer',
+      'use-sync-external-store',
     ],
     exclude: [
       'bigblocks',

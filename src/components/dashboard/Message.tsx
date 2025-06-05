@@ -1,5 +1,3 @@
-import EmojiPicker, { Theme } from 'emoji-picker-react';
-import type { EmojiClickData } from 'emoji-picker-react';
 import { head, tail } from 'lodash';
 import type { FC } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -11,6 +9,7 @@ import { useBitcoin } from '../../context/bitcoin';
 import type { BmapTx } from '../../reducers/chatReducer';
 import type { RootState } from '../../store';
 import { isValidEmail } from '../../utils/validation';
+import { EmojiPicker } from '../ui/EmojiPicker';
 import Avatar from './Avatar';
 import MessageFiles from './MessageFiles';
 
@@ -226,12 +225,9 @@ const Message: FC<MessageProps> = ({ message, reactions }) => {
     };
   }, [showEmojiPicker]);
 
-  const handleEmojiClick = async (
-    emojiData: EmojiClickData,
-    messageId: string,
-  ) => {
+  const handleEmojiClick = async (emoji: string, messageId: string) => {
     if (!session.user?.paymail) return;
-    await likeMessage(session.user.paymail, 'tx', messageId, emojiData.emoji);
+    await likeMessage(session.user.paymail, 'tx', messageId, emoji);
     setShowEmojiPicker(false);
   };
 
@@ -329,11 +325,9 @@ const Message: FC<MessageProps> = ({ message, reactions }) => {
           {showEmojiPicker && (
             <EmojiPickerContainer ref={emojiPickerRef}>
               <EmojiPicker
-                onEmojiClick={(emojiData) =>
-                  message.tx?.h && handleEmojiClick(emojiData, message.tx.h)
+                onEmojiSelect={(emoji) =>
+                  message.tx?.h && handleEmojiClick(emoji, message.tx.h)
                 }
-                autoFocusSearch={false}
-                theme={Theme.DARK}
               />
             </EmojiPickerContainer>
           )}
