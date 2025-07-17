@@ -2,5 +2,15 @@
 
 root * /srv
 encode gzip
+
+# Handle static assets first
+@static {
+	path /images/* /audio/* /js/* /assets/*
+}
+route @static {
+	file_server
+}
+
+# Handle all other routes with SPA fallback
 file_server
 try_files {path} /index.html

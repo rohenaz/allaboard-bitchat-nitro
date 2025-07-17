@@ -63,6 +63,8 @@ export default defineConfig({
       'bsv-bap',
       'buffer',
       'use-sync-external-store',
+      'classnames',
+      'react-qrcode-logo',
     ],
     exclude: [
       'bigblocks',

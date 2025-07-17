@@ -10,7 +10,7 @@ import { useYours } from '../../context/yours';
 import { useAppDispatch } from '../../hooks';
 import { sigmaAuth } from '../../lib/sigma-auth';
 import { loadChannels } from '../../reducers/channelsReducer';
-import { setYoursUser } from '../../reducers/sessionReducer';
+import { setYoursUser, setSigmaUser } from '../../reducers/sessionReducer';
 import HandcashIcon from '../icons/HandcashIcon';
 import YoursIcon from '../icons/YoursIcon';
 import { BitcoinBlocksTest } from '../test/BitcoinBlocksTest';
@@ -103,6 +103,47 @@ export const LoginPage: FC = () => {
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [pandaAuth, setPandaAuth] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  // Check for existing sigma-auth session on component mount
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      try {
+        // Check if user is already authenticated via sigma-auth
+        if (sigmaAuth.isAuthenticated()) {
+          const currentUser = sigmaAuth.getCurrentUser();
+          if (currentUser) {
+            console.log('Found existing sigma-auth session, logging in user');
+            
+            // Update Redux state with existing session
+            dispatch(
+              setSigmaUser({
+                paymail: currentUser.paymail,
+                address: currentUser.address,
+                displayName: currentUser.displayName || 'Bitcoin User',
+                avatar: currentUser.avatar || '',
+                publicKey: currentUser.publicKey,
+                sub: currentUser.sub,
+              }),
+            );
+
+            // Load channels and redirect
+            await dispatch(loadChannels());
+            navigate('/channels/nitro');
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking existing session:', error);
+        // Clear any corrupted session data
+        sigmaAuth.clearSession();
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+
+    checkExistingSession();
+  }, [dispatch, navigate]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -128,7 +169,16 @@ export const LoginPage: FC = () => {
   };
 
   const handleSigmaLogin = () => {
-    sigmaAuth.authorize();
+    try {
+      setError('');
+      setIsLoading(true);
+      console.log('Initiating sigma-auth login...');
+      sigmaAuth.authorize();
+    } catch (error) {
+      console.error('Error initiating sigma-auth login:', error);
+      setError('Failed to start authentication. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   const handleYoursLogin = async () => {
@@ -213,6 +263,24 @@ export const LoginPage: FC = () => {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking existing session
+  if (checkingSession) {
+    return (
+      <Layout heading="Checking authentication...">
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '3px solid var(--background-modifier-accent)',
+            borderTop: '3px solid var(--brand-experiment)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout heading="Choose your login method">

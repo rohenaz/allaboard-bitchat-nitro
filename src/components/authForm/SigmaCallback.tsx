@@ -52,30 +52,48 @@ export const SigmaCallback: FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
+        const state = urlParams.get('state');
         const errorParam = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
 
+        // Handle OAuth error responses
         if (errorParam) {
-          setError(`Authentication error: ${errorParam}`);
+          let errorMessage = `Authentication error: ${errorParam}`;
+          if (errorDescription) {
+            errorMessage += ` - ${errorDescription}`;
+          }
+          setError(errorMessage);
           setIsLoading(false);
           return;
         }
 
+        // Validate required parameters
         if (!code) {
-          setError('No authorization code received');
+          setError('No authorization code received from authentication provider');
           setIsLoading(false);
           return;
         }
 
-        // Exchange code for user information
-        const userInfo = await sigmaAuth.handleCallback(code);
+        console.log('Processing OAuth callback with code:', code.substring(0, 8) + '...');
 
-        // Update session state
+        // Exchange code for user information with state validation
+        const userInfo = await sigmaAuth.handleCallback(code, state || undefined);
+
+        console.log('User authenticated successfully:', {
+          sub: userInfo.sub,
+          address: userInfo.address,
+          displayName: userInfo.displayName,
+        });
+
+        // Update session state in Redux
         dispatch(
           setSigmaUser({
             paymail: userInfo.paymail,
@@ -88,18 +106,52 @@ export const SigmaCallback: FC = () => {
         );
 
         // Load channels and redirect to main app
+        console.log('Loading channels...');
         await dispatch(loadChannels());
+        
+        console.log('Redirecting to main app...');
         navigate('/channels/nitro');
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Authentication failed';
-        setError(errorMessage);
+        console.error('OAuth callback error:', err);
+        
+        const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+        
+        // Handle specific error types
+        if (errorMessage.includes('Invalid or expired state')) {
+          setError('Security validation failed. Please try signing in again.');
+        } else if (errorMessage.includes('Network')) {
+          setError('Network error. Please check your connection and try again.');
+        } else if (errorMessage.includes('Token exchange failed')) {
+          setError('Failed to complete authentication. Please try again.');
+        } else {
+          setError(errorMessage);
+        }
+        
         setIsLoading(false);
       }
     };
 
     handleCallback();
   }, [dispatch, navigate]);
+
+  const handleRetry = () => {
+    if (retryCount < maxRetries) {
+      setRetryCount(prev => prev + 1);
+      setError('');
+      setIsLoading(true);
+      
+      // Retry the callback handling
+      window.location.reload();
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleBackToLogin = () => {
+    // Clear any stored auth state
+    sigmaAuth.clearSession();
+    navigate('/login');
+  };
 
   if (isLoading) {
     return (
@@ -117,21 +169,38 @@ export const SigmaCallback: FC = () => {
       <Layout heading="Authentication Error">
         <ErrorMessage>{error}</ErrorMessage>
         <LoadingContainer>
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: 'var(--brand-experiment)',
-              color: 'var(--white-500)',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              marginTop: '16px',
-            }}
-          >
-            Back to Login
-          </button>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+            {retryCount < maxRetries && (
+              <button
+                type="button"
+                onClick={handleRetry}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'var(--brand-experiment)',
+                  color: 'var(--white-500)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                Retry ({retryCount + 1}/{maxRetries})
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleBackToLogin}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: 'var(--background-modifier-accent)',
+                color: 'var(--text-normal)',
+                border: '1px solid var(--background-modifier-accent)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Back to Login
+            </button>
+          </div>
         </LoadingContainer>
       </Layout>
     );
