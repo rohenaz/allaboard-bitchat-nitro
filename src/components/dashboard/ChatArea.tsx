@@ -8,6 +8,8 @@ const Container = styled.main`
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  min-height: 0;
+  height: 100%;
   background-color: var(--background-primary);
   position: relative;
 `;

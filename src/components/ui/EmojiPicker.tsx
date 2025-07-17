@@ -11,7 +11,6 @@ const StyledEmojiPicker = styled.div`
     background-color: var(--background-secondary);
     border-radius: 8px;
     border: 1px solid var(--background-modifier-border);
-    isolation: isolate;
   }
 
   .frimousse-search {
@@ -36,6 +35,7 @@ const StyledEmojiPicker = styled.div`
     position: relative;
     flex: 1;
     outline: none;
+    overflow: hidden;
   }
 
   .frimousse-loading,
@@ -52,6 +52,8 @@ const StyledEmojiPicker = styled.div`
   .frimousse-list {
     user-select: none;
     padding-bottom: 6px;
+    overflow-y: auto;
+    height: 100%;
   }
 
   .frimousse-category-header {

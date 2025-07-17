@@ -25,6 +25,8 @@ const Container = styled.div`
 const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  height: 100vh;
   background-color: var(--background-primary);
 `;
 

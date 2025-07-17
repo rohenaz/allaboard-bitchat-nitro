@@ -196,6 +196,7 @@ const EmojiPickerContainer = styled.div`
   border: 1px solid var(--border-glass);
   box-shadow: var(--elevation-high);
   animation: fadeIn 0.2s ease-out;
+  pointer-events: auto;
 `;
 
 const Message: FC<MessageProps> = ({ message, reactions }) => {

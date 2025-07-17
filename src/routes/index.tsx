@@ -56,6 +56,10 @@ const router = createBrowserRouter([
     element: withProviders(<LazyComponents.SignupPage />),
   },
   {
+    path: '/auth/sigma/callback',
+    element: withProviders(<LazyComponents.SigmaCallback />),
+  },
+  {
     path: '/channels',
     element: withProviders(<LazyComponents.Dashboard isFriendsPage={false} />),
   },

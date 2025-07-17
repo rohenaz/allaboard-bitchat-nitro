@@ -17,6 +17,12 @@ export const SignupPage = React.lazy(
   () => import('../components/authForm/SignupPage'),
 );
 
+export const SigmaCallback = React.lazy(() =>
+  import('../components/authForm/SigmaCallback').then((module) => ({
+    default: module.SigmaCallback,
+  })),
+);
+
 // Dashboard components
 export const Dashboard = React.lazy(() =>
   import('../components/dashboard/Dashboard').then((module) => ({

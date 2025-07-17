@@ -125,7 +125,7 @@ VITE_HANDCASH_API_URL=https://api.bitchatnitro.com
 - Caddy server configuration for production
 - Railway deployment configuration included
 
-## BigBlocks Integration (v0.0.12)
+## BigBlocks Integration (v0.0.21)
 
 ### Overview
 BigBlocks is integrated as an enhancement to BitChat's authentication system, providing 96 production-ready Bitcoin UI components while preserving BitChat's existing Discord-like interface.
@@ -135,13 +135,15 @@ BigBlocks is integrated as an enhancement to BitChat's authentication system, pr
 - **Gradual Migration**: Can switch features incrementally without breaking existing flows
 - **Enhanced Features**: Backup import, advanced signup flows, social components available
 
-### Components Available
+### Components Available (v0.0.21 - 96 total)
 - **Authentication**: AuthButton, LoginForm, SignupFlow, AuthFlowOrchestrator
 - **Social**: PostButton, LikeButton, FollowButton, SocialFeed
-- **Wallet**: WalletOverview, SendBSVButton, TokenBalance
-- **Profile**: ProfileCard, ProfileEditor, BitcoinAvatar
+- **Wallet**: WalletOverview, SendBSVButton, TokenBalance, HandCashConnector, YoursWalletConnector
+- **Profile**: ProfileCard, ProfileEditor, BitcoinAvatar, ProfilePopover
 - **Market**: MarketTable, CreateListingButton, BuyListingButton
 - **BAP Identity**: Encryption, signing, key rotation components
+- **Icons**: HandCashIcon, YoursWalletIcon (added in v0.0.19)
+- **Renamed Components**: Now supports both `Bitcoin*` and `BigBlocks*` prefixes for backwards compatibility
 
 ### Current Integration
 - **Test Component**: `src/components/test/BitcoinBlocksTest.tsx`
@@ -153,7 +155,7 @@ BigBlocks is integrated as an enhancement to BitChat's authentication system, pr
   - Adds backup import and enhanced signup capabilities
 
 ### Dependencies Added
-- `bigblocks@0.0.12` - Main component library
+- `bigblocks@0.0.21` - Main component library (latest version)
 - `js-1sat-ord@0.1.82` - Ordinals support
 - `@tanstack/react-query@5.79.0` - Data fetching
 - `lucide-react@0.511.0` - Icons

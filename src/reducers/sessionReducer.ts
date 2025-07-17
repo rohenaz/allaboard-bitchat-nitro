@@ -61,6 +61,15 @@ interface YoursUserPayload {
   address: string;
 }
 
+interface SigmaUserPayload {
+  paymail: string;
+  address: string;
+  displayName: string;
+  avatar: string;
+  publicKey?: string;
+  sub: string;
+}
+
 export const login = createAsyncThunk(
   'session/login',
   async (
@@ -102,6 +111,18 @@ const sessionSlice = createSlice({
         wallet: 'yours',
         paymail: action.payload.paymail,
         address: action.payload.address,
+      };
+      saveSessionToStorage(state.user);
+    },
+    setSigmaUser(state, action: PayloadAction<SigmaUserPayload>) {
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null;
+      state.user = {
+        wallet: 'sigma',
+        paymail: action.payload.paymail,
+        address: action.payload.address,
+        bapId: action.payload.sub,
       };
       saveSessionToStorage(state.user);
     },
@@ -160,6 +181,7 @@ export const {
   logout,
   setBapId,
   setError,
+  setSigmaUser,
   setYoursUser,
 } = sessionSlice.actions;
 

@@ -17,23 +17,21 @@ import Message from './Message';
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   overflow: hidden;
   background-color: var(--background-primary);
-  flex: 1;
-  min-height: 0;
 `;
 
 const MessagesContainer = styled.div`
   display: flex;
   flex-direction: column-reverse;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 1rem 0;
-  height: 100%;
-  max-height: 100%;
   
   /* Custom scrollbar styles */
   &::-webkit-scrollbar {
