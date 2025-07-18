@@ -243,10 +243,46 @@ class SigmaAuth {
   }
 
   /**
-   * Fetch user information using access token
+   * Create fallback user info from JWT access token
+   */
+  private createFallbackUserInfo(accessToken: string): SigmaUserInfo {
+    try {
+      // Parse JWT to get basic user data
+      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      
+      // Extract data from JWT claims
+      const sub = payload.sub || `bitcoin:${Date.now()}`;
+      const publicKey = payload.pubkey || payload.public_key || payload.identityKey;
+      const address = payload.bitcoin_address || payload.address;
+      
+      return {
+        sub,
+        paymail: address || `guest@${Date.now()}.btc`,
+        address: address || '',
+        displayName: '', // Will be handled as guest user
+        avatar: '',
+        publicKey,
+      };
+    } catch (error) {
+      console.warn('Failed to parse JWT for fallback user info:', error);
+      // Create minimal fallback if JWT parsing fails
+      const timestamp = Date.now();
+      return {
+        sub: `guest:${timestamp}`,
+        paymail: `guest@${timestamp}.btc`,
+        address: '',
+        displayName: '',
+        avatar: '',
+        publicKey: '',
+      };
+    }
+  }
+
+  /**
+   * Fetch user information using access token (with fallback)
    */
   async getUserInfo(accessToken: string): Promise<SigmaUserInfo> {
-    return this.retryRequest(async () => {
+    try {
       const userInfoUrl = `${this.config.issuerUrl}/userinfo`;
 
       const response = await fetch(userInfoUrl, {
@@ -256,20 +292,15 @@ class SigmaAuth {
       });
 
       if (!response.ok) {
-        let errorMessage = `Failed to fetch user info: ${response.statusText}`;
-        try {
-          const errorData = await response.json();
-          if (errorData.error) {
-            errorMessage += ` - ${errorData.error}`;
-          }
-        } catch (parseError) {
-          // Ignore parse errors, use original message
-        }
-        throw new Error(errorMessage);
+        console.warn(`UserInfo fetch failed: ${response.statusText} - using fallback`);
+        return this.createFallbackUserInfo(accessToken);
       }
 
       return response.json();
-    }, 'User info fetch');
+    } catch (error) {
+      console.warn('UserInfo fetch error - using fallback:', error);
+      return this.createFallbackUserInfo(accessToken);
+    }
   }
 
   /**
@@ -283,9 +314,13 @@ class SigmaAuth {
       }
 
       const tokenResponse = await this.exchangeCodeForToken(code);
+      console.log('Token exchange successful, fetching user info...');
+      
+      // getUserInfo now has built-in fallback, so it will never throw
       const userInfo = await this.getUserInfo(tokenResponse.access_token);
+      console.log('User info obtained:', { sub: userInfo.sub, address: userInfo.address });
 
-      // Store session for future use
+      // Store session for future use - this will always succeed now
       const session: SigmaSession = {
         accessToken: tokenResponse.access_token,
         userInfo,
@@ -299,8 +334,13 @@ class SigmaAuth {
       return userInfo;
     } catch (error) {
       console.error('OAuth callback error:', error);
-      // Clean up any stored state on error
-      this.clearSession();
+      // Only clear session if there's a real OAuth error (not userinfo failure)
+      if (error instanceof Error && (
+        error.message.includes('Invalid or expired state') ||
+        error.message.includes('Token exchange failed')
+      )) {
+        this.clearSession();
+      }
       throw error;
     }
   }
