@@ -49,7 +49,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: withProviders(<LazyComponents.BigBlocksLoginPage />),
+    element: withProviders(<LazyComponents.LoginPage />),
   },
   {
     path: '/signup',

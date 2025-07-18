@@ -13,7 +13,6 @@ import { loadChannels } from '../../reducers/channelsReducer';
 import { setYoursUser, setSigmaUser } from '../../reducers/sessionReducer';
 import HandcashIcon from '../icons/HandcashIcon';
 import YoursIcon from '../icons/YoursIcon';
-import { BitcoinBlocksTest } from '../test/BitcoinBlocksTest';
 import Layout from './Layout';
 
 const ButtonContainer = styled.div`
@@ -115,12 +114,18 @@ export const LoginPage: FC = () => {
           if (currentUser) {
             console.log('Found existing sigma-auth session, logging in user');
             
+            // Determine if user has a BAP profile or is a guest
+            const hasProfile = Boolean(currentUser.displayName && currentUser.displayName !== '');
+            const displayName = hasProfile 
+              ? currentUser.displayName 
+              : `Guest (${currentUser.address.slice(0, 8)}...)`;
+
             // Update Redux state with existing session
             dispatch(
               setSigmaUser({
                 paymail: currentUser.paymail,
                 address: currentUser.address,
-                displayName: currentUser.displayName || 'Bitcoin User',
+                displayName: displayName,
                 avatar: currentUser.avatar || '',
                 publicKey: currentUser.publicKey,
                 sub: currentUser.sub,
@@ -315,8 +320,6 @@ export const LoginPage: FC = () => {
         </LoginButton>
       </ButtonContainer>
 
-      {/* 🧪 TEST: BigBlocks Integration Test */}
-      <BitcoinBlocksTest />
 
       {error && (
         <ErrorMessage>

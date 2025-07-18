@@ -3,6 +3,15 @@
 root * /srv
 encode gzip
 
+# Set proper MIME types for SVG files
+@svg {
+	path *.svg
+}
+route @svg {
+	header Content-Type image/svg+xml
+	file_server
+}
+
 # Handle static assets first
 @static {
 	path /images/* /audio/* /js/* /assets/*

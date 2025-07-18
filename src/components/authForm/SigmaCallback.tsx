@@ -93,12 +93,20 @@ export const SigmaCallback: FC = () => {
           displayName: userInfo.displayName,
         });
 
+        // Determine if user has a BAP profile or is a guest
+        const hasProfile = Boolean(userInfo.displayName && userInfo.displayName !== '');
+        const displayName = hasProfile 
+          ? userInfo.displayName 
+          : `Guest (${userInfo.address.slice(0, 8)}...)`;
+
+        console.log(`User login type: ${hasProfile ? 'BAP Profile' : 'Guest'}, Display name: ${displayName}`);
+
         // Update session state in Redux
         dispatch(
           setSigmaUser({
             paymail: userInfo.paymail,
             address: userInfo.address,
-            displayName: userInfo.displayName || 'Bitcoin User',
+            displayName: displayName,
             avatar: userInfo.avatar || '',
             publicKey: userInfo.publicKey,
             sub: userInfo.sub,
