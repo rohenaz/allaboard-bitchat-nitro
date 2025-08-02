@@ -52,8 +52,6 @@ export const SigmaCallback: FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 3;
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -138,18 +136,6 @@ export const SigmaCallback: FC = () => {
     handleCallback();
   }, [dispatch, navigate]);
 
-  const handleRetry = () => {
-    if (retryCount < maxRetries) {
-      setRetryCount((prev) => prev + 1);
-      setError('');
-      setIsLoading(true);
-
-      // Retry the callback handling
-      window.location.reload();
-    } else {
-      navigate('/login');
-    }
-  };
 
   const handleBackToLogin = () => {
     // Clear any stored auth state
@@ -174,22 +160,6 @@ export const SigmaCallback: FC = () => {
         <ErrorMessage>{error}</ErrorMessage>
         <LoadingContainer>
           <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-            {retryCount < maxRetries && (
-              <button
-                type="button"
-                onClick={handleRetry}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: 'var(--brand-experiment)',
-                  color: 'var(--white-500)',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                Retry ({retryCount + 1}/{maxRetries})
-              </button>
-            )}
             <button
               type="button"
               onClick={handleBackToLogin}
