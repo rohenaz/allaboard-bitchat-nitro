@@ -12,6 +12,8 @@ interface SessionUser {
   bapId?: string;
   idKey?: string;
   address?: string;
+  public_key?: string;
+  bapIdKey?: string;
 }
 
 interface SessionState {
@@ -66,7 +68,8 @@ interface SigmaUserPayload {
   address: string;
   displayName: string;
   avatar: string;
-  publicKey?: string;
+  public_key: string;
+  bapIdKey?: string;
   sub: string;
 }
 
@@ -123,6 +126,8 @@ const sessionSlice = createSlice({
         paymail: action.payload.paymail,
         address: action.payload.address,
         bapId: action.payload.sub,
+        public_key: action.payload.public_key,
+        bapIdKey: action.payload.bapIdKey,
       };
       saveSessionToStorage(state.user);
     },

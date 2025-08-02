@@ -1,6 +1,7 @@
 import { head, last } from 'lodash';
 import { listenToMessages } from '../api/bmap';
 import { API_BASE_URL } from '../config/env';
+import { authClient } from '../lib/auth';
 import { receiveNewChannel } from '../reducers/channelsReducer';
 import { receiveNewMessage, receiveNewReaction } from '../reducers/chatReducer';
 import { receiveNewFriend } from '../reducers/memberListReducer';
@@ -39,7 +40,7 @@ const socketMiddleware = (store) => {
   let eventSource = null;
   let dmListener = null;
 
-  const setupEventSource = () => {
+  const setupEventSource = async () => {
     if (eventSource) {
       eventSource.close();
     }
@@ -49,9 +50,18 @@ const socketMiddleware = (store) => {
       dmListener = null;
     }
 
+    // Get current session for SSE auth
+    const { data } = await authClient.getSession();
+
     const sock_b64 = btoa(JSON.stringify(sockQuery(false)));
-    const socket_url = `${API_BASE_URL}/s/$all/${sock_b64}`;
-    eventSource = new EventSource(socket_url);
+    let socket_url = `${API_BASE_URL}/s/$all/${sock_b64}`;
+
+    // Add token as query param for SSE (since headers not supported)
+    if (data?.session?.token) {
+      socket_url += `?token=${data.session.token}`;
+    }
+
+    eventSource = new EventSource(socket_url, { withCredentials: true });
 
     eventSource.onmessage = (e) => {
       const res = JSON.parse(e.data);

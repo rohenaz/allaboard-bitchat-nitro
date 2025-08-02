@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config/env';
+import { authClient } from '../lib/auth';
 
 type RequestInit = globalThis.RequestInit;
 type HeadersInit = globalThis.HeadersInit;
@@ -40,9 +41,19 @@ export async function apiFetch<T>(
     ...options.headers,
   };
 
-  // Add authentication header if token is provided
-  if (requiresAuth && token) {
-    headers['X-Auth-Token'] = token;
+  // Add authentication header
+  if (requiresAuth) {
+    // Get session from better-auth
+    const { data } = await authClient.getSession();
+
+    if (data?.session?.token) {
+      // Use Bearer token from better-auth
+      headers.Authorization = `Bearer ${data.session.token}`;
+    } else if (token) {
+      // Fallback to provided token
+      headers['X-Auth-Token'] = token;
+    }
+    // Better-auth also sets httpOnly cookies automatically
   }
 
   try {

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAppDispatch } from '../../hooks';
-import { sigmaAuth } from '../../lib/sigma-auth';
+import { sigmaAuth } from '../../lib/auth';
 import { loadChannels } from '../../reducers/channelsReducer';
 import { setSigmaUser } from '../../reducers/sessionReducer';
 import Layout from './Layout';
@@ -77,29 +77,26 @@ export const SigmaCallback: FC = () => {
 
         // Validate required parameters
         if (!code) {
-          setError('No authorization code received from authentication provider');
+          setError(
+            'No authorization code received from authentication provider',
+          );
           setIsLoading(false);
           return;
         }
 
-        console.log('Processing OAuth callback with code:', code.substring(0, 8) + '...');
-
         // Exchange code for user information with state validation
-        const userInfo = await sigmaAuth.handleCallback(code, state || undefined);
-
-        console.log('User authenticated successfully:', {
-          sub: userInfo.sub,
-          address: userInfo.address,
-          displayName: userInfo.displayName,
-        });
+        const userInfo = await sigmaAuth.handleCallback(
+          code,
+          state || undefined,
+        );
 
         // Determine if user has a BAP profile or is a guest
-        const hasProfile = Boolean(userInfo.displayName && userInfo.displayName !== '');
-        const displayName = hasProfile 
-          ? userInfo.displayName 
+        const hasProfile = Boolean(
+          userInfo.displayName && userInfo.displayName !== '',
+        );
+        const displayName = hasProfile
+          ? userInfo.displayName
           : `Guest (${userInfo.address.slice(0, 8)}...)`;
-
-        console.log(`User login type: ${hasProfile ? 'BAP Profile' : 'Guest'}, Display name: ${displayName}`);
 
         // Update session state in Redux
         dispatch(
@@ -108,33 +105,32 @@ export const SigmaCallback: FC = () => {
             address: userInfo.address,
             displayName: displayName,
             avatar: userInfo.avatar || '',
-            publicKey: userInfo.publicKey,
+            public_key: userInfo.public_key,
+            bapIdKey: userInfo.bapIdKey,
             sub: userInfo.sub,
           }),
         );
-
-        // Load channels and redirect to main app
-        console.log('Loading channels...');
         await dispatch(loadChannels());
-        
-        console.log('Redirecting to main app...');
         navigate('/channels/nitro');
       } catch (err) {
         console.error('OAuth callback error:', err);
-        
-        const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
-        
+
+        const errorMessage =
+          err instanceof Error ? err.message : 'Authentication failed';
+
         // Handle specific error types
         if (errorMessage.includes('Invalid or expired state')) {
           setError('Security validation failed. Please try signing in again.');
         } else if (errorMessage.includes('Network')) {
-          setError('Network error. Please check your connection and try again.');
+          setError(
+            'Network error. Please check your connection and try again.',
+          );
         } else if (errorMessage.includes('Token exchange failed')) {
           setError('Failed to complete authentication. Please try again.');
         } else {
           setError(errorMessage);
         }
-        
+
         setIsLoading(false);
       }
     };
@@ -144,10 +140,10 @@ export const SigmaCallback: FC = () => {
 
   const handleRetry = () => {
     if (retryCount < maxRetries) {
-      setRetryCount(prev => prev + 1);
+      setRetryCount((prev) => prev + 1);
       setError('');
       setIsLoading(true);
-      
+
       // Retry the callback handling
       window.location.reload();
     } else {

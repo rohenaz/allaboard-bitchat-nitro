@@ -8,9 +8,9 @@ import { HANDCASH_API_URL } from '../../config/env';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { useAppDispatch } from '../../hooks';
-import { sigmaAuth } from '../../lib/sigma-auth';
+import { sigmaAuth } from '../../lib/auth';
 import { loadChannels } from '../../reducers/channelsReducer';
-import { setYoursUser, setSigmaUser } from '../../reducers/sessionReducer';
+import { setSigmaUser, setYoursUser } from '../../reducers/sessionReducer';
 import HandcashIcon from '../icons/HandcashIcon';
 import YoursIcon from '../icons/YoursIcon';
 import Layout from './Layout';
@@ -112,12 +112,12 @@ export const LoginPage: FC = () => {
         if (sigmaAuth.isAuthenticated()) {
           const currentUser = sigmaAuth.getCurrentUser();
           if (currentUser) {
-            console.log('Found existing sigma-auth session, logging in user');
-            
             // Determine if user has a BAP profile or is a guest
-            const hasProfile = Boolean(currentUser.displayName && currentUser.displayName !== '');
-            const displayName = hasProfile 
-              ? currentUser.displayName 
+            const hasProfile = Boolean(
+              currentUser.displayName && currentUser.displayName !== '',
+            );
+            const displayName = hasProfile
+              ? currentUser.displayName
               : `Guest (${currentUser.address.slice(0, 8)}...)`;
 
             // Update Redux state with existing session
@@ -177,7 +177,6 @@ export const LoginPage: FC = () => {
     try {
       setError('');
       setIsLoading(true);
-      console.log('Initiating sigma-auth login...');
       sigmaAuth.authorize();
     } catch (error) {
       console.error('Error initiating sigma-auth login:', error);
@@ -273,15 +272,19 @@ export const LoginPage: FC = () => {
   if (checkingSession) {
     return (
       <Layout heading="Checking authentication...">
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '3px solid var(--background-modifier-accent)',
-            borderTop: '3px solid var(--brand-experiment)',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }} />
+        <div
+          style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}
+        >
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              border: '3px solid var(--background-modifier-accent)',
+              borderTop: '3px solid var(--brand-experiment)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
         </div>
       </Layout>
     );
@@ -319,7 +322,6 @@ export const LoginPage: FC = () => {
           {isLoading ? 'Connecting...' : 'Login with Yours Wallet'}
         </LoginButton>
       </ButtonContainer>
-
 
       {error && (
         <ErrorMessage>
