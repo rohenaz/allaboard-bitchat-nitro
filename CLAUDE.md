@@ -90,6 +90,8 @@ Required in `.env`:
 VITE_API_URL=http://localhost:3055
 VITE_HANDCASH_APP_ID=<your-app-id>
 VITE_HANDCASH_API_URL=https://api.bitchatnitro.com
+VITE_SIGMA_CLIENT_ID=bitchat-nitro
+VITE_SIGMA_AUTH_URL=https://auth.sigmaidentity.com
 ```
 
 ### Key Patterns
@@ -169,3 +171,32 @@ BigBlocks is integrated as an enhancement to BitChat's authentication system, pr
 - Backend API integration for BigBlocks auth endpoints
 - Gradual replacement of auth flows with enhanced versions
 - Optional integration of social and wallet components
+
+## Better-Auth Integration with Sigma Identity
+
+### Overview
+BitChat uses better-auth framework with the genericOAuth plugin to authenticate users via Sigma Identity (external auth server). This replaces the custom OAuth implementation with a standardized approach.
+
+### Architecture
+- **External Auth Server**: https://auth.sigmaidentity.com handles all authentication
+- **Client Plugin**: Uses better-auth's genericOAuthClient for OAuth 2.0 flow
+- **Minimal Client Code**: Auth server handles everything, client just redirects
+
+### Key Files
+- `src/lib/auth.ts` - Better-auth client configuration
+  - Points to external Sigma auth server (not local API)
+  - Uses `oauth2` method for generic OAuth providers
+  - Maintains compatibility with existing sigmaAuth function signatures
+
+### Authentication Flow
+1. User clicks "Sign in with Bitcoin" 
+2. Client redirects to Sigma auth server OAuth endpoint
+3. User authenticates with Bitcoin wallet on auth server
+4. Auth server redirects back with authorization code
+5. Better-auth client automatically exchanges code for session
+6. Session stored and user authenticated
+
+### Configuration
+- `VITE_SIGMA_AUTH_URL` - URL of the Sigma auth server
+- `VITE_SIGMA_CLIENT_ID` - OAuth client ID registered with Sigma
+- No backend auth routes needed - auth server handles everything

@@ -109,9 +109,10 @@ export const LoginPage: FC = () => {
     const checkExistingSession = async () => {
       try {
         // Check if user is already authenticated via sigma-auth
-        if (sigmaAuth.isAuthenticated()) {
-          const currentUser = sigmaAuth.getCurrentUser();
-          if (currentUser) {
+        const isAuthenticated = await sigmaAuth.isAuthenticated();
+        if (isAuthenticated) {
+          const currentUser = await sigmaAuth.getCurrentUser();
+          if (currentUser?.address) {
             // Determine if user has a BAP profile or is a guest
             const hasProfile = Boolean(
               currentUser.displayName && currentUser.displayName !== '',
@@ -141,7 +142,7 @@ export const LoginPage: FC = () => {
       } catch (error) {
         console.error('Error checking existing session:', error);
         // Clear any corrupted session data
-        sigmaAuth.clearSession();
+        await sigmaAuth.clearSession();
       } finally {
         setCheckingSession(false);
       }

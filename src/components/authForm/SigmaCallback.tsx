@@ -136,7 +136,6 @@ export const SigmaCallback: FC = () => {
     handleCallback();
   }, [dispatch, navigate]);
 
-
   const handleBackToLogin = () => {
     // Clear any stored auth state
     sigmaAuth.clearSession();

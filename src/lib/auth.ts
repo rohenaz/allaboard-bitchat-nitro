@@ -2,15 +2,18 @@ import { createAuthClient } from 'better-auth/client';
 import { genericOAuthClient } from 'better-auth/client/plugins';
 
 // Better-auth client configuration
+// This points to the external Sigma auth server, not our local API
 export const authClient = createAuthClient({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3055',
+  baseURL:
+    import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com',
   plugins: [genericOAuthClient()],
 });
 
 // Direct replacements for existing sigmaAuth functions
 export const sigmaAuth = {
   authorize: () => {
-    return authClient.signIn.oauth({
+    // Use oauth2 method for generic OAuth providers
+    return authClient.signIn.oauth2({
       providerId: 'sigma',
       callbackURL: `${window.location.origin}/auth/sigma/callback`,
     });
