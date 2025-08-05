@@ -72,6 +72,7 @@ export const sigmaAuth = {
 
     // Exchange authorization code for token
     const clientId = import.meta.env.VITE_SIGMA_CLIENT_ID || 'bitchat-nitro';
+    const clientSecret = import.meta.env.VITE_SIGMA_CLIENT_SECRET;
     const authUrl = import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
 
@@ -84,6 +85,7 @@ export const sigmaAuth = {
         grant_type: 'authorization_code',
         code: code,
         client_id: clientId,
+        client_secret: clientSecret,
         redirect_uri: redirectUri,
       }),
     });
