@@ -24,8 +24,10 @@ export const Dashboard = React.lazy(() =>
   })),
 );
 
-export const Friends = React.lazy(
-  () => import('../components/dashboard/Friends'),
+export const Friends = React.lazy(() =>
+  import('../components/dashboard/Friends').then((module) => ({
+    default: module.Friends,
+  })),
 );
 
 export const UserSearch = React.lazy(() =>

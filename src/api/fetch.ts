@@ -1,5 +1,4 @@
 import { API_BASE_URL } from '../config/env';
-import { authClient } from '../lib/auth';
 
 type RequestInit = globalThis.RequestInit;
 type HeadersInit = globalThis.HeadersInit;
@@ -35,25 +34,23 @@ export async function apiFetch<T>(
     url += `?${searchParams.toString()}`;
   }
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
 
   // Add authentication header
   if (requiresAuth) {
-    // Get session from better-auth
-    const { data } = await authClient.getSession();
+    // Get stored access token
+    const accessToken = localStorage.getItem('sigma_access_token');
 
-    if (data?.session?.token) {
-      // Use Bearer token from better-auth
-      headers.Authorization = `Bearer ${data.session.token}`;
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
     } else if (token) {
       // Fallback to provided token
       headers['X-Auth-Token'] = token;
     }
-    // Better-auth also sets httpOnly cookies automatically
   }
 
   try {
@@ -112,13 +109,18 @@ export function connectSSE(path: string, options: SSEOptions = {}) {
 export const api = {
   async get<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const { requiresAuth = true, params } = options;
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
 
-    if (requiresAuth && options.token) {
-      headers.Authorization = `Bearer ${options.token}`;
+    if (requiresAuth) {
+      const accessToken = localStorage.getItem('sigma_access_token');
+      if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      } else if (options.token) {
+        headers.Authorization = `Bearer ${options.token}`;
+      }
     }
 
     const queryString = params ? `?${new URLSearchParams(params)}` : '';

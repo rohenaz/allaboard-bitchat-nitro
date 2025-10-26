@@ -26,7 +26,7 @@ export const sigmaClient = () => {
   return {
     id: 'sigma',
     $InferServerPlugin: {} as SigmaServerPlugin,
-    getActions: ($fetch) => {
+    getActions: (_$fetch) => {
       return {
         signIn: {
           sigma: (options?: {

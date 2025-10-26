@@ -128,7 +128,8 @@ export const LoginPage: FC = () => {
                 address: currentUser.address,
                 displayName: displayName,
                 avatar: currentUser.avatar || '',
-                publicKey: currentUser.publicKey,
+                public_key: currentUser.publicKey || currentUser.public_key,
+                bapIdKey: currentUser.bapIdKey,
                 sub: currentUser.sub,
               }),
             );
