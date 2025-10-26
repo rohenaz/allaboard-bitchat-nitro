@@ -7,12 +7,6 @@ export const LoginPage = React.lazy(() =>
   })),
 );
 
-export const BigBlocksLoginPage = React.lazy(() =>
-  import('../components/authForm/BigBlocksLoginPage').then((module) => ({
-    default: module.BigBlocksLoginPage,
-  })),
-);
-
 export const SignupPage = React.lazy(
   () => import('../components/authForm/SignupPage'),
 );

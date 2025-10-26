@@ -2,7 +2,6 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import macrosPlugin from 'vite-plugin-babel-macros';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
   plugins: [
@@ -21,60 +20,19 @@ export default defineConfig({
       },
     }),
     macrosPlugin(),
-    nodePolyfills({
-      globals: {
-        Buffer: true,
-        global: true,
-        process: true,
-      },
-      protocolImports: true,
-      include: ['buffer', 'process', 'stream', 'util', 'crypto', 'events'],
-    }),
   ],
   resolve: {
     alias: {
-      stream: 'vite-compatible-readable-stream',
       '@': path.resolve(__dirname, './src'),
-      'use-sync-external-store/shim': 'use-sync-external-store/shim/index.js',
-      'unenv/node/process': 'process/browser',
-      'unenv/node/buffer': 'buffer/',
-      'unenv/polyfill/globalthis': path.resolve(__dirname, './src/polyfills/globalthis.ts'),
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-    global: 'globalThis',
   },
   optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react-router-dom',
-      'react-redux',
-      '@reduxjs/toolkit',
-      '@mui/material',
-      'styled-components',
-      '@bsv/sdk',
-      'bsv-bap',
-      'buffer',
-      'use-sync-external-store',
-      'classnames',
-      'react-qrcode-logo',
-    ],
-    exclude: [
-      'bigblocks',
-      'bigblocks/nextjs',
-      'bigblocks/express',
-      'bigblocks/astro',
-      'next',
-      'next/server',
-      'express',
-    ],
     esbuildOptions: {
       target: 'esnext',
-      jsx: 'automatic',
-      platform: 'browser',
     },
   },
   build: {
@@ -83,7 +41,6 @@ export default defineConfig({
     sourcemap: true,
     chunkSizeWarningLimit: 500,
     rollupOptions: {
-      external: ['next', 'next/server', 'next/request', 'express'],
       output: {
         manualChunks(id) {
           // Core dependencies
