@@ -20,7 +20,7 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <YoursProvider>
-        <AutoYoursProvider autoconnect={true}>
+        <AutoYoursProvider autoconnect={false}>
           <HandcashProvider>
             <BmapProvider>
               <BapProvider>
