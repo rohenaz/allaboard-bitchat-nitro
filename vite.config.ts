@@ -35,9 +35,6 @@ export default defineConfig({
     alias: {
       stream: 'vite-compatible-readable-stream',
       '@': path.resolve(__dirname, './src'),
-      'bigblocks/nextjs': 'bigblocks',
-      'bigblocks/express': 'bigblocks',
-      'bigblocks/astro': 'bigblocks',
       'use-sync-external-store/shim': 'use-sync-external-store/shim/index.js',
       'unenv/node/process': 'process/browser',
       'unenv/node/buffer': 'buffer/',
