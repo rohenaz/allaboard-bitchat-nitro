@@ -25,11 +25,48 @@ bun run preview
 bun start
 
 # Code quality
-bun run lint         # Check for issues
-bun run lint:fix     # Auto-fix issues
-bun run format       # Check formatting
-bun run format:fix   # Auto-format code
+bun run lint              # Check for issues
+bun run lint:fix          # Auto-fix issues
+bun run lint:unsafe       # Apply unsafe fixes
+bun run format            # Check formatting
+bun run format:fix        # Auto-format code
+
+# Testing
+bun test                  # Run all Playwright tests
+bun run test:ui           # Run tests with UI
+bun run test:debug        # Run tests in debug mode
+bun run test:report       # Show test report
+bun run test:visual       # Run visual regression tests
+bun run test:visual:update # Update visual snapshots
+
+# Build validation
+bun run validate          # Full build validation
+bun run validate:quick    # Quick validation
+bun run validate:visual   # Visual validation
 ```
+
+## Development Workflow
+
+### Package Manager
+**CRITICAL**: Always use `bun` instead of `npm` or `yarn` for all commands.
+
+### Last Known Good State
+Reference commit: `f765eefcf95e090b13fa36cce2f5c36ea2c7bba7`
+
+When debugging issues, compare against this commit:
+```bash
+# View file from last known good state
+git show f765eefcf95e090b13fa36cce2f5c36ea2c7bba7:path/to/file
+
+# List changed files
+git diff --name-only f765eefcf95e090b13fa36cce2f5c36ea2c7bba7
+
+# View specific changes
+git diff f765eefcf95e090b13fa36cce2f5c36ea2c7bba7 path/to/file
+```
+
+### Before Pushing
+Always run a local build before pushing to ensure nothing is broken.
 
 ## Architecture Overview
 
@@ -86,13 +123,22 @@ Key integrations:
 
 ### Environment Variables
 Required in `.env`:
-```
+```bash
 VITE_API_URL=http://localhost:3055
 VITE_HANDCASH_APP_ID=<your-app-id>
 VITE_HANDCASH_API_URL=https://api.bitchatnitro.com
 VITE_SIGMA_CLIENT_ID=bitchat-nitro
 VITE_SIGMA_AUTH_URL=https://auth.sigmaidentity.com
+BITCHAT_MEMBER_WIF=<your-member-wif>
 ```
+
+**Note on OAuth Authentication:**
+- Sigma Auth uses Bitcoin signature-based authentication (no client_secret needed)
+- `BITCHAT_MEMBER_WIF` is the private key used to sign OAuth token requests
+- Token requests are signed with the member key and verified via `X-Auth-Token` header
+
+**Note**: HandCash OAuth returns with URL format: `https://bitchatnitro.com/?authToken=<token>`
+The app extracts the token from the URL and uses it to login.
 
 ### Key Patterns
 
@@ -117,10 +163,17 @@ VITE_SIGMA_AUTH_URL=https://auth.sigmaidentity.com
    - Persisted theme preference
 
 ### Testing & Quality
-- Biome configuration in `biome.json`
-- Formatting: 2 spaces, single quotes, trailing commas
-- Linting: ESLint-like rules with TypeScript support
-- No dedicated test framework configured yet
+- **Test Framework**: Playwright for E2E and visual regression testing
+- **Test Organization**:
+  - `tests/e2e/` - End-to-end tests (OAuth flow, session management, homepage, styling)
+  - `tests/visual/` - Visual regression tests with snapshot comparison
+  - `tests/visual/components/` - Component-specific visual tests
+- **Biome Configuration** (`biome.json`):
+  - Formatting: 2 spaces, single quotes, trailing commas, semicolons always
+  - Line width: 80 characters
+  - Linting: ESLint-like rules with TypeScript support
+  - Import organization enabled
+  - A11y warnings for accessibility
 
 ### Deployment
 - Dockerfile available for containerization
@@ -197,6 +250,31 @@ BitChat uses better-auth framework with the genericOAuth plugin to authenticate 
 6. Session stored and user authenticated
 
 ### Configuration
+Required environment variables:
 - `VITE_SIGMA_AUTH_URL` - URL of the Sigma auth server
 - `VITE_SIGMA_CLIENT_ID` - OAuth client ID registered with Sigma
+- `BITCHAT_MEMBER_WIF` - Member private key for signing token requests (Bitcoin signature-based auth)
 - No backend auth routes needed - auth server handles everything
+
+## Code Style & Patterns
+
+### Import Rules
+- Use `type` imports when only using as a type: `import type { FC } from 'react'`
+- Never import entire React namespace: avoid `import * as React from 'react'`
+- Don't import React just for types - import specific types like `FC` directly
+- Use for loops instead of `forEach`
+
+### Data Fetching
+- **Outside components**: Use regular `fetch` (never axios)
+- **Inside components**: Use TanStack Query
+- Centralized fetch utility available at `src/api/fetch.ts`
+
+### Bitcoin Libraries
+- Use `@bsv/sdk` instead of older `bsv` package
+- Use `bsv-bap` for BAP (Bitcoin Attestation Protocol) functionality
+
+### Environment Variables
+**CRITICAL**: Never trim environment variables. If a variable is wrong, fail immediately rather than falling back to other names or hardcoded values.
+
+### Commit Messages
+Do not include AI-generated tags in commit messages.

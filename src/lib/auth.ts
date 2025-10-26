@@ -1,5 +1,7 @@
 import { createAuthClient } from 'better-auth/client';
 import { genericOAuthClient } from 'better-auth/client/plugins';
+import { getAuthToken } from 'bitcoin-auth';
+import { PrivateKey } from '@bsv/sdk';
 
 // Better-auth client configuration
 // This points to the external Sigma auth server, not our local API
@@ -8,6 +10,25 @@ export const authClient = createAuthClient({
     import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com',
   plugins: [genericOAuthClient()],
 });
+
+// Get member key for signing OAuth requests
+function getMemberKey(): PrivateKey {
+  const wif = import.meta.env.BITCHAT_MEMBER_WIF;
+  if (!wif) {
+    throw new Error('BITCHAT_MEMBER_WIF environment variable is not set');
+  }
+  return PrivateKey.fromWif(wif);
+}
+
+// Generate Bitcoin signature for OAuth token request
+function signTokenRequest(): string {
+  const privateKey = getMemberKey();
+  const authToken = getAuthToken({
+    privateKeyWif: privateKey.toWif(),
+    requestPath: '/api/oauth/token',
+  });
+  return authToken;
+}
 
 // Direct replacements for existing sigmaAuth functions
 export const sigmaAuth = {
@@ -70,24 +91,26 @@ export const sigmaAuth = {
     }
     sessionStorage.removeItem('oauth_state');
 
-    // Exchange authorization code for token
-    const clientId = import.meta.env.VITE_SIGMA_CLIENT_ID || 'bitchat-nitro';
-    const clientSecret = import.meta.env.VITE_SIGMA_CLIENT_SECRET;
+    // Exchange authorization code for token with Bitcoin signature
     const authUrl = import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
+
+    // Generate Bitcoin signature for token request
+    const authToken = signTokenRequest();
+
+    // Create form data for OAuth token request
+    const formData = new URLSearchParams();
+    formData.append('grant_type', 'authorization_code');
+    formData.append('code', code);
+    formData.append('redirect_uri', redirectUri);
 
     const tokenResponse = await fetch(`${authUrl}/api/oauth/token`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Auth-Token': authToken,
       },
-      body: JSON.stringify({
-        grant_type: 'authorization_code',
-        code: code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-      }),
+      body: formData,
     });
 
     if (!tokenResponse.ok) {
