@@ -29,7 +29,7 @@ export async function apiFetch<T>(
   path: string,
   options: FetchOptions = {},
 ): Promise<T> {
-  const { params, requiresAuth = true, token, useSigmaAuth = true, ...fetchOptions } = options;
+  const { params, requiresAuth = false, token, useSigmaAuth = false, ...fetchOptions } = options;
 
   let url = `${API_BASE_URL}${path}`;
   if (params) {

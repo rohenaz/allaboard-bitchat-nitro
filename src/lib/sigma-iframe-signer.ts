@@ -8,7 +8,7 @@
  * only changing HOW signatures are obtained.
  */
 
-const SIGMA_AUTH_URL = import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
+import { SIGMA_AUTH_URL } from '../config/env';
 
 interface SignatureRequest {
   requestId: string;
@@ -224,7 +224,8 @@ class SigmaIframeSigner {
       return;
     }
 
-    const API_URL = import.meta.env.VITE_API_URL || 'https://api.sigmaidentity.com';
+    // Use BMAP API for registration
+    const API_URL = import.meta.env.VITE_API_URL || 'https://bmap-api-production.up.railway.app';
 
     const startTime = performance.now();
     console.log('[Sigma Iframe] Starting pubkey registration:', signingPubkey);

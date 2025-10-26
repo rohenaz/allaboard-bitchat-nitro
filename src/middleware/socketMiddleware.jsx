@@ -1,7 +1,6 @@
 import { head, last } from 'lodash';
 import { listenToMessages } from '../api/bmap';
 import { API_BASE_URL } from '../config/env';
-import { authClient } from '../lib/auth';
 import { receiveNewChannel } from '../reducers/channelsReducer';
 import { receiveNewMessage, receiveNewReaction } from '../reducers/chatReducer';
 import { receiveNewFriend } from '../reducers/memberListReducer';
@@ -50,15 +49,16 @@ const socketMiddleware = (store) => {
       dmListener = null;
     }
 
-    // Get current session for SSE auth
-    const { data } = await authClient.getSession();
+    // Get current user from Redux state
+    const currentUser = store.getState().session.user;
 
     const sock_b64 = btoa(JSON.stringify(sockQuery(false)));
     let socket_url = `${API_BASE_URL}/s/$all/${sock_b64}`;
 
-    // Add token as query param for SSE (since headers not supported)
-    if (data?.session?.token) {
-      socket_url += `?token=${data.session.token}`;
+    // Add token from localStorage for SSE auth (since headers not supported)
+    const accessToken = localStorage.getItem('sigma_access_token');
+    if (accessToken) {
+      socket_url += `?token=${accessToken}`;
     }
 
     eventSource = new EventSource(socket_url, { withCredentials: true });
@@ -145,9 +145,9 @@ const socketMiddleware = (store) => {
 
     eventSource.onopen = () => {};
 
-    // Also set up DM listener if user has a bapId
-    const currentUser = store.getState().session.user;
+    // Also set up DM listener if user has a bapId (use member BAP ID, not OAuth user ID)
     if (currentUser?.bapId) {
+      console.log('[SocketMiddleware] Setting up DM listener for BAP ID:', currentUser.bapId);
       dmListener = listenToMessages(currentUser.bapId, (data) => {
         // Transform DM to expected format
         const message = {

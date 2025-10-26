@@ -1,23 +1,34 @@
-import { createAuthClient } from 'better-auth/react';
-import { sigmaClient } from './sigma-client-plugin';
+/**
+ * Sigma OAuth Authentication
+ *
+ * Pure OAuth2 flow - no better-auth client needed since we're frontend-only
+ * All auth happens on auth.sigmaidentity.com
+ */
 
-// Create the Better Auth client with sigma plugin
-// NOTE: We don't set baseURL because our sigma plugin handles the OAuth redirect manually
-// The plugin redirects to auth.sigmaidentity.com/api/oauth/authorize
-export const authClient = createAuthClient({
-  plugins: [sigmaClient()],
-});
-
-// Export hooks for React components
-export const { useSession } = authClient;
+import { SIGMA_AUTH_URL } from '../config/env';
 
 // Direct replacements for existing sigmaAuth functions
 export const sigmaAuth = {
   authorize: () => {
-    // Use the better-auth sigma plugin to initiate OAuth flow
-    // This will redirect to auth.sigmaidentity.com/api/oauth/authorize
-    // The auth server handles all signing with its member key
-    authClient.signIn.sigma();
+    // Direct OAuth2 authorization flow to Sigma
+    const clientId = import.meta.env.VITE_SIGMA_CLIENT_ID || 'bitchat-nitro';
+    const redirectUri = `${window.location.origin}/auth/sigma/callback`;
+
+    // Generate state for CSRF protection
+    const state = Math.random().toString(36).substring(7);
+    sessionStorage.setItem('oauth_state', state);
+
+    // Build OAuth authorization URL
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      state: state,
+      scope: 'openid profile email',
+    });
+
+    // Redirect to OAuth authorization endpoint
+    window.location.href = `${SIGMA_AUTH_URL}/api/oauth/authorize?${params.toString()}`;
   },
 
   isAuthenticated: async (): Promise<boolean> => {
@@ -52,18 +63,22 @@ export const sigmaAuth = {
     }
     sessionStorage.removeItem('oauth_state');
 
-    // Exchange the authorization code for a token via our API (which will sign the request)
-    const apiUrl = import.meta.env.VITE_NITRO_API_URL || 'https://api.bitchatnitro.com';
+    // Exchange the authorization code for a token via Sigma API
+    const clientId = import.meta.env.VITE_SIGMA_CLIENT_ID || 'bitchat-nitro';
+    const clientSecret = import.meta.env.VITE_SIGMA_CLIENT_SECRET;
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
 
-    const tokenResponse = await fetch(`${apiUrl}/oauth/exchange`, {
+    const tokenResponse = await fetch(`${SIGMA_AUTH_URL}/api/oauth/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        grant_type: 'authorization_code',
         code,
-        redirectUri,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
       }),
     });
 
@@ -75,9 +90,7 @@ export const sigmaAuth = {
     const tokenData = await tokenResponse.json();
 
     // Fetch user info using the access token
-    const authUrl = import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
-
-    const userInfoResponse = await fetch(`${authUrl}/api/oauth/userinfo`, {
+    const userInfoResponse = await fetch(`${SIGMA_AUTH_URL}/api/oauth/userinfo`, {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
       },
@@ -88,6 +101,7 @@ export const sigmaAuth = {
     }
 
     const userInfoData = await userInfoResponse.json();
+    console.log('[Sigma Auth] Userinfo response:', userInfoData);
 
     // Store the access token for future API calls
     if (tokenData.access_token) {
@@ -95,17 +109,21 @@ export const sigmaAuth = {
     }
 
     // Build user info in expected format
+    // Note: bapIdKey should be the member BAP ID (derived from client's BAP ID + user's identity)
     const userInfo = {
       sub: userInfoData.sub,
-      public_key: userInfoData.pubkey,
-      address: userInfoData.bitcoin_address || userInfoData.name,
-      bapIdKey: userInfoData.bapIdKey,
+      public_key: userInfoData.pubkey || userInfoData.public_key,
+      address: userInfoData.bitcoin_address || userInfoData.address || userInfoData.name,
+      bapIdKey: userInfoData.bapIdKey || userInfoData.member_bap_id || userInfoData.signingPubkey,
       avatar: userInfoData.avatar || userInfoData.image,
-      displayName: userInfoData.name,
+      displayName: userInfoData.name || userInfoData.displayName,
       name: userInfoData.name,
-      paymail: userInfoData.email,
-      publicKey: userInfoData.pubkey,
+      paymail: userInfoData.email || userInfoData.paymail,
+      publicKey: userInfoData.pubkey || userInfoData.public_key,
     };
+
+    console.log('[Sigma Auth] Mapped user info:', userInfo);
+    console.log('[Sigma Auth] Member BAP ID:', userInfo.bapIdKey);
 
     // Store user info for future retrieval
     localStorage.setItem('sigma_user_info', JSON.stringify(userInfo));
