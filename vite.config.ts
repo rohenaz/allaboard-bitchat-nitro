@@ -28,6 +28,7 @@ export default defineConfig({
         process: true,
       },
       protocolImports: true,
+      include: ['buffer', 'process', 'stream', 'util', 'crypto', 'events'],
     }),
   ],
   resolve: {
@@ -38,17 +39,15 @@ export default defineConfig({
       'bigblocks/express': 'bigblocks',
       'bigblocks/astro': 'bigblocks',
       'use-sync-external-store/shim': 'use-sync-external-store/shim/index.js',
+      'unenv/node/process': 'process/browser',
+      'unenv/node/buffer': 'buffer/',
+      'unenv/polyfill/globalthis': path.resolve(__dirname, './src/polyfills/globalthis.ts'),
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
   define: {
-    'process.env': {
-      ...process.env,
-      NODE_ENV: process.env.NODE_ENV || 'development',
-      NODE_VERSION: process.versions.node || '18.0.0',
-    },
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     global: 'globalThis',
-    Buffer: ['buffer', 'Buffer'],
   },
   optimizeDeps: {
     include: [
