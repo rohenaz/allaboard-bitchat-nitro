@@ -221,10 +221,12 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
           </IconButton>
         </ArrowTooltip>
 
-        <ArrowTooltip title={`${isProfileOpen ? 'Hide' : 'Show'} Profile`}>
+        <ArrowTooltip title="Manage Profile on Sigma">
           <IconButton
-            $isActive={isProfileOpen}
-            onClick={() => dispatch(toggleProfile())}
+            as="a"
+            href="https://auth.sigmaidentity.com/profile"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             <ImProfile />
           </IconButton>

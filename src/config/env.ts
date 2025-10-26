@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'https://bmap-api-production.up.railway.app';
+  import.meta.env.VITE_API_URL || 'https://api.sigmaidentity.com';
 
 export const HANDCASH_APP_ID = import.meta.env.VITE_HANDCASH_APP_ID;
 

@@ -7,7 +7,6 @@ import { Friends } from './Friends';
 import Header from './Header';
 import { MemberList } from './MemberList';
 import ServerList from './ServerList';
-import ImportIDModal from './modals/ImportIDModal';
 
 interface DashboardProps {
   isFriendsPage: boolean;
@@ -56,7 +55,6 @@ export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
         {renderMainContent()}
       </ContentWrapper>
       <MemberList />
-      <ImportIDModal />
     </Container>
   );
 };
