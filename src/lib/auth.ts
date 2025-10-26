@@ -63,22 +63,19 @@ export const sigmaAuth = {
     }
     sessionStorage.removeItem('oauth_state');
 
-    // Exchange the authorization code for a token via Sigma API
-    const clientId = import.meta.env.VITE_SIGMA_CLIENT_ID || 'bitchat-nitro';
-    const clientSecret = import.meta.env.VITE_SIGMA_CLIENT_SECRET;
+    // Exchange the authorization code for a token via backend proxy
+    // The backend signs the request with BITCHAT_MEMBER_WIF to prove client identity
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://api.bitchatnitro.com';
 
-    const tokenResponse = await fetch(`${SIGMA_AUTH_URL}/api/oauth/token`, {
+    const tokenResponse = await fetch(`${apiUrl}/oauth/exchange`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        grant_type: 'authorization_code',
         code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
+        redirectUri,
       }),
     });
 
