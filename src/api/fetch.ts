@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config/env';
+import { requestSigmaSignature } from '../lib/sigma-iframe-signer';
 
 type RequestInit = globalThis.RequestInit;
 type HeadersInit = globalThis.HeadersInit;
@@ -8,6 +9,7 @@ interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
   requiresAuth?: boolean;
   token?: string;
+  useSigmaAuth?: boolean; // Use Sigma iframe signing instead of Bearer token
 }
 
 interface SSEOptions {
@@ -20,13 +22,14 @@ interface RequestOptions {
   requiresAuth?: boolean;
   params?: Record<string, string>;
   token?: string;
+  useSigmaAuth?: boolean;
 }
 
 export async function apiFetch<T>(
   path: string,
   options: FetchOptions = {},
 ): Promise<T> {
-  const { params, requiresAuth = true, token, ...fetchOptions } = options;
+  const { params, requiresAuth = true, token, useSigmaAuth = true, ...fetchOptions } = options;
 
   let url = `${API_BASE_URL}${path}`;
   if (params) {
@@ -42,14 +45,29 @@ export async function apiFetch<T>(
 
   // Add authentication header
   if (requiresAuth) {
-    // Get stored access token
-    const accessToken = localStorage.getItem('sigma_access_token');
-
-    if (accessToken) {
-      headers.Authorization = `Bearer ${accessToken}`;
+    if (useSigmaAuth) {
+      // Use Sigma iframe signing (Bitcoin signature-based auth)
+      try {
+        const requestBody = options.body ? String(options.body) : undefined;
+        const authToken = await requestSigmaSignature(
+          path,
+          requestBody,
+          'brc77'
+        );
+        headers['X-Auth-Token'] = authToken;
+      } catch (error) {
+        console.error('[Bitchat] Sigma signing failed:', error);
+        throw new Error('Failed to sign request with Sigma');
+      }
     } else if (token) {
       // Fallback to provided token
       headers['X-Auth-Token'] = token;
+    } else {
+      // Legacy: Try stored access token
+      const accessToken = localStorage.getItem('sigma_access_token');
+      if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      }
     }
   }
 
@@ -108,18 +126,30 @@ export function connectSSE(path: string, options: SSEOptions = {}) {
 
 export const api = {
   async get<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const { requiresAuth = true, params } = options;
+    const { requiresAuth = true, params, useSigmaAuth = true } = options;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     };
 
     if (requiresAuth) {
-      const accessToken = localStorage.getItem('sigma_access_token');
-      if (accessToken) {
-        headers.Authorization = `Bearer ${accessToken}`;
+      if (useSigmaAuth) {
+        // Use Sigma iframe signing
+        try {
+          const authToken = await requestSigmaSignature(path, undefined, 'brc77');
+          headers['X-Auth-Token'] = authToken;
+        } catch (error) {
+          console.error('[Bitchat] Sigma signing failed:', error);
+          throw new Error('Failed to sign request with Sigma');
+        }
       } else if (options.token) {
-        headers.Authorization = `Bearer ${options.token}`;
+        headers['X-Auth-Token'] = options.token;
+      } else {
+        // Legacy: Try stored access token
+        const accessToken = localStorage.getItem('sigma_access_token');
+        if (accessToken) {
+          headers.Authorization = `Bearer ${accessToken}`;
+        }
       }
     }
 

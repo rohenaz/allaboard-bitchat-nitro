@@ -9,12 +9,18 @@ import { BmapProvider } from './context/bmap';
 import { HandcashProvider } from './context/handcash';
 import { AutoYoursProvider } from './context/yours';
 import './index.css';
+import { initSigmaIframeSigner } from './lib/sigma-iframe-signer';
 import store from './store';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
 const root = createRoot(rootElement);
+
+// Initialize Sigma iframe signer for authentication
+initSigmaIframeSigner().catch(error => {
+  console.error('[Bitchat] Failed to initialize Sigma iframe signer:', error);
+});
 
 root.render(
   <React.StrictMode>
