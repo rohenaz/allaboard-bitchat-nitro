@@ -1,86 +1,47 @@
-import { createAuthClient } from 'better-auth/client';
-import { genericOAuthClient } from 'better-auth/client/plugins';
-import { getAuthToken } from 'bitcoin-auth';
-import { PrivateKey } from '@bsv/sdk';
+import { createAuthClient } from 'better-auth/react';
+import { sigmaClient } from './sigma-client-plugin';
 
-// Better-auth client configuration
-// This points to the external Sigma auth server, not our local API
+// Create the Better Auth client with sigma plugin
+// NOTE: We don't set baseURL because our sigma plugin handles the OAuth redirect manually
+// The plugin redirects to auth.sigmaidentity.com/api/oauth/authorize
 export const authClient = createAuthClient({
-  baseURL:
-    import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com',
-  plugins: [genericOAuthClient()],
+  plugins: [sigmaClient()],
 });
 
-// Get member key for signing OAuth requests
-function getMemberKey(): PrivateKey {
-  const wif = import.meta.env.BITCHAT_MEMBER_WIF;
-  if (!wif) {
-    throw new Error('BITCHAT_MEMBER_WIF environment variable is not set');
-  }
-  return PrivateKey.fromWif(wif);
-}
-
-// Generate Bitcoin signature for OAuth token request
-function signTokenRequest(): string {
-  const privateKey = getMemberKey();
-  const authToken = getAuthToken({
-    privateKeyWif: privateKey.toWif(),
-    requestPath: '/api/oauth/token',
-  });
-  return authToken;
-}
+// Export hooks for React components
+export const { useSession } = authClient;
 
 // Direct replacements for existing sigmaAuth functions
 export const sigmaAuth = {
   authorize: () => {
-    // For OAuth flow, we need to redirect to the auth server
-    // The genericOAuth plugin expects a redirect, not an API call
-    const clientId = import.meta.env.VITE_SIGMA_CLIENT_ID || 'bitchat-nitro';
-    const authUrl = import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
-    const redirectUri = `${window.location.origin}/auth/sigma/callback`;
-    
-    // Generate state for CSRF protection
-    const state = Math.random().toString(36).substring(7);
-    sessionStorage.setItem('oauth_state', state);
-    
-    // Build OAuth authorization URL
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      state: state,
-      scope: 'read',
-    });
-    
-    // Redirect to OAuth authorization endpoint
-    window.location.href = `${authUrl}/api/oauth/authorize?${params.toString()}`;
+    // Use the better-auth sigma plugin to initiate OAuth flow
+    // This will redirect to auth.sigmaidentity.com/api/oauth/authorize
+    // The auth server handles all signing with its member key
+    authClient.signIn.sigma();
   },
 
   isAuthenticated: async (): Promise<boolean> => {
-    const { data } = await authClient.getSession();
-    return !!data?.user;
+    const token = localStorage.getItem('sigma_access_token');
+    const userInfo = localStorage.getItem('sigma_user_info');
+    return !!(token && userInfo);
   },
 
   getCurrentUser: async () => {
-    const { data } = await authClient.getSession();
-    if (!data?.user) return null;
+    const userInfoStr = localStorage.getItem('sigma_user_info');
+    if (!userInfoStr) return null;
 
-    // Map better-auth user to existing SigmaUserInfo format
-    return {
-      sub: data.user.id,
-      public_key: data.user.publicKey,
-      address: data.user.bitcoinAddress,
-      bapIdKey: data.user.bapIdKey,
-      avatar: data.user.image,
-      displayName: data.user.name,
-      name: data.user.name,
-      paymail: data.user.paymail || data.user.email,
-      publicKey: data.user.publicKey,
-    };
+    try {
+      return JSON.parse(userInfoStr);
+    } catch {
+      return null;
+    }
   },
 
   logout: async () => {
-    await authClient.signOut();
+    // Clear stored tokens and user info
+    localStorage.removeItem('sigma_access_token');
+    localStorage.removeItem('sigma_user_info');
+    sessionStorage.removeItem('oauth_state');
   },
 
   handleCallback: async (code: string, state?: string) => {
@@ -91,76 +52,73 @@ export const sigmaAuth = {
     }
     sessionStorage.removeItem('oauth_state');
 
-    // Exchange authorization code for token with Bitcoin signature
+    // Exchange the authorization code for a token by calling the auth server
     const authUrl = import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
-
-    // Generate Bitcoin signature for token request
-    const authToken = signTokenRequest();
-
-    // Create form data for OAuth token request
-    const formData = new URLSearchParams();
-    formData.append('grant_type', 'authorization_code');
-    formData.append('code', code);
-    formData.append('redirect_uri', redirectUri);
 
     const tokenResponse = await fetch(`${authUrl}/api/oauth/token`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-Auth-Token': authToken,
+        'Content-Type': 'application/json',
       },
-      body: formData,
+      body: JSON.stringify({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+      }),
     });
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to exchange authorization code for token');
+      const errorData = await tokenResponse.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Token exchange failed');
     }
 
     const tokenData = await tokenResponse.json();
 
-    // Get user info
-    const userInfoResponse = await fetch(`${authUrl}/api/oauth/userinfo`, {
-      headers: {
-        Authorization: `Bearer ${tokenData.access_token}`,
-      },
-    });
-
-    if (!userInfoResponse.ok) {
-      throw new Error('Failed to fetch user information');
+    if (!tokenData.user) {
+      throw new Error('No user data in token response');
     }
 
-    const userInfo = await userInfoResponse.json();
-
-    // Store the session token if provided
-    if (tokenData.session_token) {
-      // Store in a way that better-auth can use
-      localStorage.setItem('better-auth.session', JSON.stringify({
-        token: tokenData.session_token,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-      }));
+    // Store the access token for future API calls
+    if (tokenData.access_token) {
+      localStorage.setItem('sigma_access_token', tokenData.access_token);
     }
 
-    return {
-      sub: userInfo.sub,
-      public_key: userInfo.public_key,
-      address: userInfo.address,
-      bapIdKey: userInfo.bapIdKey,
-      avatar: userInfo.avatar,
-      displayName: userInfo.displayName || userInfo.name,
-      name: userInfo.name,
-      paymail: userInfo.paymail,
-      publicKey: userInfo.public_key,
+    // Build user info in expected format
+    const userInfo = {
+      sub: tokenData.user.id || tokenData.user.sub,
+      public_key: tokenData.user.publicKey || tokenData.user.public_key,
+      address: tokenData.user.address || tokenData.user.bitcoinAddress,
+      bapIdKey: tokenData.user.bapIdKey,
+      avatar: tokenData.user.avatar || tokenData.user.image,
+      displayName: tokenData.user.displayName || tokenData.user.name,
+      name: tokenData.user.name,
+      paymail: tokenData.user.paymail || tokenData.user.email,
+      publicKey: tokenData.user.publicKey || tokenData.user.public_key,
     };
+
+    // Store user info for future retrieval
+    localStorage.setItem('sigma_user_info', JSON.stringify(userInfo));
+
+    return userInfo;
   },
 
   getStoredSession: async () => {
-    const { data } = await authClient.getSession();
-    return data?.session || null;
+    const token = localStorage.getItem('sigma_access_token');
+    const userInfo = localStorage.getItem('sigma_user_info');
+
+    if (!token || !userInfo) return null;
+
+    return {
+      token,
+      user: JSON.parse(userInfo),
+    };
   },
 
   clearSession: async () => {
-    await authClient.signOut();
+    localStorage.removeItem('sigma_access_token');
+    localStorage.removeItem('sigma_user_info');
+    sessionStorage.removeItem('oauth_state');
   },
 };
 
