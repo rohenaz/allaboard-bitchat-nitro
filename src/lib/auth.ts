@@ -52,19 +52,18 @@ export const sigmaAuth = {
     }
     sessionStorage.removeItem('oauth_state');
 
-    // Exchange the authorization code for a token by calling the auth server
-    const authUrl = import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
+    // Exchange the authorization code for a token via our API (which will sign the request)
+    const apiUrl = import.meta.env.VITE_NITRO_API_URL || 'https://api.bitchatnitro.com';
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
 
-    const tokenResponse = await fetch(`${authUrl}/api/oauth/token`, {
+    const tokenResponse = await fetch(`${apiUrl}/oauth/exchange`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        grant_type: 'authorization_code',
         code,
-        redirect_uri: redirectUri,
+        redirectUri,
       }),
     });
 
@@ -75,9 +74,20 @@ export const sigmaAuth = {
 
     const tokenData = await tokenResponse.json();
 
-    if (!tokenData.user) {
-      throw new Error('No user data in token response');
+    // Fetch user info using the access token
+    const authUrl = import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
+
+    const userInfoResponse = await fetch(`${authUrl}/api/oauth/userinfo`, {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
+
+    if (!userInfoResponse.ok) {
+      throw new Error('Failed to fetch user info');
     }
+
+    const userInfoData = await userInfoResponse.json();
 
     // Store the access token for future API calls
     if (tokenData.access_token) {
@@ -86,15 +96,15 @@ export const sigmaAuth = {
 
     // Build user info in expected format
     const userInfo = {
-      sub: tokenData.user.id || tokenData.user.sub,
-      public_key: tokenData.user.publicKey || tokenData.user.public_key,
-      address: tokenData.user.address || tokenData.user.bitcoinAddress,
-      bapIdKey: tokenData.user.bapIdKey,
-      avatar: tokenData.user.avatar || tokenData.user.image,
-      displayName: tokenData.user.displayName || tokenData.user.name,
-      name: tokenData.user.name,
-      paymail: tokenData.user.paymail || tokenData.user.email,
-      publicKey: tokenData.user.publicKey || tokenData.user.public_key,
+      sub: userInfoData.sub,
+      public_key: userInfoData.pubkey,
+      address: userInfoData.bitcoin_address || userInfoData.name,
+      bapIdKey: userInfoData.bapIdKey,
+      avatar: userInfoData.avatar || userInfoData.image,
+      displayName: userInfoData.name,
+      name: userInfoData.name,
+      paymail: userInfoData.email,
+      publicKey: userInfoData.pubkey,
     };
 
     // Store user info for future retrieval
