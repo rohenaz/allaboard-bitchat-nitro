@@ -34,7 +34,6 @@ class SigmaIframeSigner {
   }> = new Map();
   private initialized = false;
   private boundMessageHandler: ((event: MessageEvent) => void) | null = null;
-  private registeredPubkeys: Set<string> = new Set();
 
   /**
    * Initialize the Sigma signer iframe
@@ -197,81 +196,12 @@ class SigmaIframeSigner {
     } else {
       console.log('[Sigma Iframe] Signature received from iframe');
 
-      // Register the member pubkey with backend if provided
+      // Note: Bitchat doesn't need pubkey registration (that was for Droplit faucets)
+      // Just resolve with the auth token immediately
       if (response.signingPubkey) {
-        this.registerSigningPubkey(response.signingPubkey)
-          .then(() => {
-            pending.resolve(response.authToken);
-          })
-          .catch(error => {
-            console.error('[Sigma Iframe] Failed to register member pubkey:', error);
-            pending.reject(new Error(`Failed to register pubkey: ${error.message}`));
-          });
-      } else {
-        pending.resolve(response.authToken);
+        console.log('[Sigma Iframe] Received signing pubkey:', response.signingPubkey);
       }
-    }
-  }
-
-  /**
-   * Register signing pubkey with backend
-   * Throws error if registration fails (unless key is already registered - 409)
-   */
-  private async registerSigningPubkey(signingPubkey: string): Promise<void> {
-    // Check if already registered in this session
-    if (this.registeredPubkeys.has(signingPubkey)) {
-      console.log('[Sigma Iframe] Pubkey already registered in session, skipping');
-      return;
-    }
-
-    // Use BMAP API for registration
-    const API_URL = import.meta.env.VITE_API_URL || 'https://bmap-api-production.up.railway.app';
-
-    const startTime = performance.now();
-    console.log('[Sigma Iframe] Starting pubkey registration:', signingPubkey);
-
-    try {
-      // Add timeout to prevent hanging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          publicKey: signingPubkey,
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      const elapsed = performance.now() - startTime;
-      console.log(`[Sigma Iframe] Registration request completed in ${elapsed.toFixed(0)}ms`);
-
-      if (response.status === 409) {
-        // 409 = already registered, which is fine
-        console.log('[Sigma Iframe] Pubkey already registered on server');
-        this.registeredPubkeys.add(signingPubkey);
-        return;
-      }
-
-      if (!response.ok) {
-        // Any other non-2xx status is an error
-        throw new Error(`Registration failed with status ${response.status}`);
-      }
-
-      console.log('[Sigma Iframe] Signing pubkey registered successfully');
-      this.registeredPubkeys.add(signingPubkey);
-    } catch (error) {
-      const elapsed = performance.now() - startTime;
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.error(`[Sigma Iframe] Registration timeout after ${elapsed.toFixed(0)}ms`);
-        throw new Error('Registration timeout - please check your connection');
-      }
-      console.error(`[Sigma Iframe] Error registering signing pubkey (${elapsed.toFixed(0)}ms):`, error);
-      throw error;
+      pending.resolve(response.authToken);
     }
   }
 
@@ -302,9 +232,6 @@ class SigmaIframeSigner {
       reject(new Error('Signer destroyed'));
     }
     this.pendingRequests.clear();
-
-    // Clear registration cache
-    this.registeredPubkeys.clear();
   }
 }
 
