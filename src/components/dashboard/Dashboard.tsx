@@ -13,7 +13,7 @@ interface DashboardProps {
 
 const Container = styled.div`
   display: grid;
-  grid-template-columns: 72px 240px 1fr auto;
+  grid-template-columns: auto 1fr auto;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
