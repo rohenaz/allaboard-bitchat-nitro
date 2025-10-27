@@ -5,7 +5,6 @@ import {
   type FC,
   type MouseEvent,
   useCallback,
-  useEffect,
   useRef,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,7 +12,6 @@ import styled, { keyframes } from 'styled-components';
 import {
   closeSettings,
   toggleHideUnverifiedMessages,
-  toggleSettings,
 } from '../../../reducers/settingsReducer';
 import type { RootState } from '../../../store';
 

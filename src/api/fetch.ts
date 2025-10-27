@@ -9,8 +9,8 @@ interface FetchOptions extends RequestInit {
   requiresAuth?: boolean;
 }
 
-interface SSEOptions {
-  onMessage?: (data: unknown) => void;
+interface SSEOptions<T = unknown> {
+  onMessage?: (data: T) => void;
   onError?: (error: Event) => void;
   onOpen?: () => void;
 }
@@ -78,13 +78,13 @@ export async function apiFetch<T>(
   }
 }
 
-export function connectSSE(path: string, options: SSEOptions = {}) {
+export function connectSSE<T = unknown>(path: string, options: SSEOptions<T> = {}) {
   const url = `${API_BASE_URL}${path}`;
   const eventSource = new EventSource(url, { withCredentials: true });
 
   eventSource.onmessage = (event) => {
     try {
-      const data = JSON.parse(event.data);
+      const data = JSON.parse(event.data) as T;
       options.onMessage?.(data);
     } catch (error) {
       console.error('Error parsing SSE message:', error);

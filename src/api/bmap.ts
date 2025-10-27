@@ -128,7 +128,7 @@ export const listenToMessages = (
 ) => {
   // Note: This would need to be implemented with actual WebSocket connection
   // For now, we'll use SSE which is already available
-  return api.sse(`/social/@/${bapId}/messages/listen`, {
+  return api.sse<DirectMessage>(`/social/@/${bapId}/messages/listen`, {
     onMessage,
   });
 };
@@ -138,7 +138,7 @@ export const listenToConversation = (
   targetBapId: string,
   onMessage: (data: DirectMessage) => void,
 ) => {
-  return api.sse(`/social/@/${bapId}/messages/${targetBapId}/listen`, {
+  return api.sse<DirectMessage>(`/social/@/${bapId}/messages/${targetBapId}/listen`, {
     onMessage,
   });
 };

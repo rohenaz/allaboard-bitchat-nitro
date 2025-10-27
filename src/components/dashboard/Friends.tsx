@@ -7,7 +7,6 @@ import { useYours } from '../../context/yours';
 import { loadFriends } from '../../reducers/memberListReducer';
 import type { AppDispatch, RootState } from '../../store';
 import Avatar from './Avatar';
-import { UserList } from './UserList';
 
 interface FriendRequest {
   _id: string;
@@ -73,23 +72,6 @@ export const Friends = () => {
     [fetchFriendRequests],
   );
 
-  const _handleAddFriend = useCallback(
-    async (userId: string) => {
-      if (!session.user?.idKey) return;
-
-      try {
-        await api.post('/friend-requests', {
-          from: session.user.idKey,
-          to: userId,
-        });
-        await fetchFriendRequests();
-      } catch (error) {
-        console.error('Failed to send friend request:', error);
-      }
-    },
-    [session.user?.idKey, fetchFriendRequests],
-  );
-
   const handleStartChat = useCallback(
     async (userId: string) => {
       if (!session.user?.idKey) return;
@@ -143,7 +125,7 @@ export const Friends = () => {
                   key={id}
                   className="flex items-center gap-4 p-4 bg-base-200 rounded-lg"
                 >
-                  <Avatar size="40px" paymail={user.paymail} icon={user.logo} />
+                  <Avatar size="40px" paymail={user.paymail || undefined} icon={user.logo || undefined} />
                   <div>
                     <div className="font-medium">{user.paymail}</div>
                     <div className="flex gap-2 mt-2">
@@ -171,7 +153,7 @@ export const Friends = () => {
                   key={user._id}
                   className="flex items-center gap-4 p-4 bg-base-200 rounded-lg"
                 >
-                  <Avatar size="40px" paymail={user.paymail} />
+                  <Avatar size="40px" paymail={user.paymail || undefined} />
                   <div>
                     <div className="font-medium">{user.paymail}</div>
                     <div className="flex gap-2 mt-2">

@@ -16,7 +16,6 @@ import { useHandcash } from '../../context/handcash';
 import { hideInDesktop } from '../../design/mixins';
 import { useActiveUser } from '../../hooks';
 import { toggleMemberList } from '../../reducers/memberListReducer';
-import { toggleProfile } from '../../reducers/profileReducer';
 import { logout } from '../../reducers/sessionReducer';
 import { toggleSettings } from '../../reducers/settingsReducer';
 import { toggleSidebar } from '../../reducers/sidebarReducer';
@@ -147,7 +146,6 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
   const isMemberListOpen = useSelector(
     (state: RootState) => state.memberList.isOpen,
   );
-  const isProfileOpen = useSelector((state: RootState) => state.profile.isOpen);
   const channels = useSelector((state: RootState) => state.channels);
   const activeUser = useActiveUser();
   const navigate = useNavigate();

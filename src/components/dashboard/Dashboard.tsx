@@ -1,12 +1,11 @@
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import ChannelList from './ChannelList';
 import ChatArea from './ChatArea';
 import { Friends } from './Friends';
 import Header from './Header';
 import { MemberList } from './MemberList';
-import ServerList from './ServerList';
+import Sidebar from './Sidebar';
 
 interface DashboardProps {
   isFriendsPage: boolean;
@@ -19,6 +18,10 @@ const Container = styled.div`
   width: 100vw;
   overflow: hidden;
   background-color: var(--background-primary);
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const ContentWrapper = styled.div`
@@ -48,8 +51,7 @@ export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
 
   return (
     <Container>
-      <ServerList />
-      <ChannelList />
+      <Sidebar />
       <ContentWrapper>
         <Header isFriendsPage={isFriendsPage} />
         {renderMainContent()}

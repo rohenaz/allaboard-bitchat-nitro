@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FaCheck, FaFileImport, FaKey, FaUpload } from 'react-icons/fa';
+import { FaCheck, FaFileImport, FaKey } from 'react-icons/fa';
 import { ImProfile } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
 import { useBap } from '../../../context/bap';
