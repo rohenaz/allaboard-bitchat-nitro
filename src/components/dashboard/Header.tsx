@@ -15,14 +15,13 @@ import styled from 'styled-components';
 import { useHandcash } from '../../context/handcash';
 import { hideInDesktop } from '../../design/mixins';
 import { useActiveUser } from '../../hooks';
+import { getBitchatServer } from '../../constants/servers';
 import { toggleMemberList } from '../../reducers/memberListReducer';
 import { logout } from '../../reducers/sessionReducer';
-import { toggleSettings } from '../../reducers/settingsReducer';
 import { toggleSidebar } from '../../reducers/sidebarReducer';
 import type { RootState } from '../../store';
 import ArrowTooltip from './ArrowTooltip';
 import { UserSearch } from './UserSearch';
-import { SettingsModal } from './modals/SettingsModal';
 
 const Container = styled.header`
   display: flex;
@@ -192,7 +191,7 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
 
       <ActionButtons>
         <ArrowTooltip title="Settings">
-          <IconButton onClick={() => dispatch(toggleSettings())}>
+          <IconButton onClick={() => navigate(`/servers/${getBitchatServer()._id}`)}>
             <FaCog />
           </IconButton>
         </ArrowTooltip>
@@ -246,8 +245,6 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
           </ArrowTooltip>
         )}
       </ActionButtons>
-
-      <SettingsModal />
     </Container>
   );
 };
