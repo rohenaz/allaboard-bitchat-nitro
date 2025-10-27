@@ -82,3 +82,10 @@ export const MessageFiles = React.lazy(
 export const FileRenderer = React.lazy(
   () => import('../components/dashboard/FileRenderer'),
 );
+
+// Server Settings
+export const ServerSettings = React.lazy(() =>
+  import('../components/ServerSettings').then((module) => ({
+    default: module.ServerSettings,
+  })),
+);

@@ -1,33 +1,17 @@
 import { type PayloadAction, createSlice } from '@reduxjs/toolkit';
 import type { AppDispatch } from '../store';
-interface Server {
-  _id: string;
-  name: string;
-  description?: string;
-  type?: string;
-  icon?: string;
-  paymail?: string;
-}
+import { SERVERS, type ServerDefinition } from '../constants/servers';
 
 interface ServerState {
   loading: boolean;
   error: string | null;
-  data: Server[];
+  data: ServerDefinition[];
 }
 
 const initialState: ServerState = {
   loading: false,
   error: null,
-  data: [
-    {
-      _id: 'bitchat',
-      name: 'BitChat',
-      description: 'The main BitChat server',
-      icon: '/images/blockpost-logo.svg',
-      paymail: 'bitchat@bitchatnitro.com',
-    },
-    // More servers can be added here or fetched from an endpoint
-  ],
+  data: SERVERS,
 };
 
 const serverSlice = createSlice({
@@ -38,7 +22,7 @@ const serverSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchServersSuccess(state, action: PayloadAction<Server[]>) {
+    fetchServersSuccess(state, action: PayloadAction<ServerDefinition[]>) {
       state.loading = false;
       state.data = action.payload;
     },
@@ -46,7 +30,7 @@ const serverSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-    addServer(state, action: PayloadAction<Server>) {
+    addServer(state, action: PayloadAction<ServerDefinition>) {
       state.data.push(action.payload);
     },
     removeServer(state, action: PayloadAction<string>) {
@@ -66,18 +50,8 @@ export const {
 export const fetchServers = () => async (dispatch: AppDispatch) => {
   try {
     dispatch(fetchServersStart());
-    // Since there's no API endpoint yet, we'll just return success with the initial data
-    dispatch(
-      fetchServersSuccess([
-        {
-          _id: 'bitchat',
-          name: 'BitChat',
-          description: 'The main BitChat server',
-          icon: '/images/blockpost-logo.svg',
-          paymail: 'bitchat@bitchatnitro.com',
-        },
-      ]),
-    );
+    // Since there's no API endpoint yet, we'll just return success with the server definitions
+    dispatch(fetchServersSuccess(SERVERS));
   } catch (error) {
     dispatch(
       fetchServersFailure(
