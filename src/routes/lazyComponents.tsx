@@ -89,3 +89,9 @@ export const ServerSettings = React.lazy(() =>
     default: module.ServerSettings,
   })),
 );
+
+export const NewServerPage = React.lazy(() =>
+  import('../components/NewServerPage').then((module) => ({
+    default: module.NewServerPage,
+  })),
+);

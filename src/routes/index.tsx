@@ -76,6 +76,10 @@ const router = createBrowserRouter([
     element: withProviders(<LazyComponents.Dashboard isFriendsPage={false} />),
   },
   {
+    path: '/servers/new',
+    element: withProviders(<LazyComponents.NewServerPage />),
+  },
+  {
     path: '/servers/:serverId',
     element: withProviders(<LazyComponents.ServerSettings />),
   },
