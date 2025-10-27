@@ -125,8 +125,9 @@ const sessionSlice = createSlice({
         wallet: 'sigma',
         paymail: action.payload.paymail,
         address: action.payload.address,
-        // Only set bapId if we have the actual member BAP ID
+        // Set both bapId and idKey to the member BAP ID (NOT public_key!)
         bapId: action.payload.bapIdKey,
+        idKey: action.payload.bapIdKey,
         public_key: action.payload.public_key,
         bapIdKey: action.payload.bapIdKey,
       };
