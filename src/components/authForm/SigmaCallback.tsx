@@ -88,26 +88,9 @@ export const SigmaCallback: FC = () => {
           state || undefined,
         );
 
-        // Determine if user has a BAP profile or is a guest
-        const hasProfile = Boolean(
-          userInfo.displayName && userInfo.displayName !== '',
-        );
-        const displayName = hasProfile
-          ? userInfo.displayName
-          : `Guest (${userInfo.address.slice(0, 8)}...)`;
-
+        // userInfo is strictly typed SigmaUserInfo with required fields validated
         // Update session state in Redux
-        dispatch(
-          setSigmaUser({
-            paymail: userInfo.paymail,
-            address: userInfo.address,
-            displayName: displayName,
-            avatar: userInfo.avatar || '',
-            public_key: userInfo.public_key,
-            bapIdKey: userInfo.bapIdKey,
-            sub: userInfo.sub,
-          }),
-        );
+        dispatch(setSigmaUser(userInfo));
         await dispatch(loadChannels());
         navigate('/channels/nitro');
       } catch (err) {

@@ -37,12 +37,19 @@ export const sigmaAuth = {
     return !!(token && userInfo);
   },
 
-  getCurrentUser: async () => {
+  getCurrentUser: async (): Promise<SigmaUserInfo | null> => {
     const userInfoStr = localStorage.getItem('sigma_user_info');
     if (!userInfoStr) return null;
 
     try {
-      return JSON.parse(userInfoStr);
+      const userInfo = JSON.parse(userInfoStr) as SigmaUserInfo;
+      // Validate required fields
+      if (!userInfo.bapId || !userInfo.idKey || !userInfo.public_key || !userInfo.address) {
+        console.error('[Sigma Auth] Invalid stored user info, clearing session');
+        await sigmaAuth.clearSession();
+        return null;
+      }
+      return userInfo;
     } catch {
       return null;
     }
@@ -55,7 +62,7 @@ export const sigmaAuth = {
     sessionStorage.removeItem('oauth_state');
   },
 
-  handleCallback: async (code: string, state?: string) => {
+  handleCallback: async (code: string, state?: string): Promise<SigmaUserInfo> => {
     // Validate state for CSRF protection
     const storedState = sessionStorage.getItem('oauth_state');
     if (state && state !== storedState) {
@@ -97,30 +104,45 @@ export const sigmaAuth = {
       throw new Error('Failed to fetch user info');
     }
 
-    const userInfoData = await userInfoResponse.json();
-    console.log('[Sigma Auth] Userinfo response:', userInfoData);
+    const rawUserInfo: SigmaOAuthUserInfo = await userInfoResponse.json();
+    console.log('[Sigma Auth] Raw userinfo response:', rawUserInfo);
 
     // Store the access token for future API calls
     if (tokenData.access_token) {
       localStorage.setItem('sigma_access_token', tokenData.access_token);
     }
 
-    // Build user info in expected format
-    // Note: bapIdKey should be the member BAP ID (derived from client's BAP ID + user's identity)
-    const userInfo = {
-      sub: userInfoData.sub,
-      public_key: userInfoData.pubkey || userInfoData.public_key,
-      address: userInfoData.bitcoin_address || userInfoData.address || userInfoData.name,
-      bapIdKey: userInfoData.bapIdKey || userInfoData.member_bap_id || userInfoData.signingPubkey,
-      avatar: userInfoData.avatar || userInfoData.image,
-      displayName: userInfoData.name || userInfoData.displayName,
-      name: userInfoData.name,
-      paymail: userInfoData.email || userInfoData.paymail,
-      publicKey: userInfoData.pubkey || userInfoData.public_key,
+    // Extract public key (required)
+    const publicKey = rawUserInfo.pubkey || rawUserInfo.public_key;
+    if (!publicKey) {
+      throw new Error('No public key in userinfo response');
+    }
+
+    // Extract address (required)
+    const address = rawUserInfo.bitcoin_address || rawUserInfo.address;
+    if (!address) {
+      throw new Error('No Bitcoin address in userinfo response');
+    }
+
+    // Extract member BAP ID if available
+    // Note: pubkey can be used to lookup BAP ID if needed, but if Sigma provides it, use it
+    const memberBapId = rawUserInfo.bapIdKey || rawUserInfo.member_bap_id || rawUserInfo.signingPubkey;
+
+    // Build strictly typed user info
+    const userInfo: SigmaUserInfo = {
+      sub: rawUserInfo.sub,
+      // If we have member BAP ID from Sigma, use it. Otherwise use pubkey (valid for lookups)
+      bapId: memberBapId || publicKey,
+      idKey: memberBapId || publicKey,
+      public_key: publicKey,
+      address: address,
+      paymail: rawUserInfo.email,
+      displayName: rawUserInfo.name,
+      avatar: rawUserInfo.avatar || rawUserInfo.image,
     };
 
-    console.log('[Sigma Auth] Mapped user info:', userInfo);
-    console.log('[Sigma Auth] Member BAP ID:', userInfo.bapIdKey);
+    console.log('[Sigma Auth] Validated user info:', userInfo);
+    console.log('[Sigma Auth] Using for idKey/bapId:', memberBapId ? `Member BAP ID: ${memberBapId}` : `Pubkey (will lookup): ${publicKey}`);
 
     // Store user info for future retrieval
     localStorage.setItem('sigma_user_info', JSON.stringify(userInfo));
@@ -147,15 +169,38 @@ export const sigmaAuth = {
   },
 };
 
-// Export types (these will be defined by better-auth)
-export type SigmaUserInfo = {
-  sub: string;
-  public_key: string;
-  address: string;
-  bapIdKey?: string;
-  avatar?: string;
-  displayName?: string;
-  name?: string;
-  paymail?: string;
-  publicKey?: string;
-};
+/**
+ * Strict type for Sigma OAuth userinfo response
+ * Based on actual response from auth.sigmaidentity.com/api/oauth/userinfo
+ */
+export interface SigmaOAuthUserInfo {
+  sub: string;                    // OAuth user ID
+  name?: string;                  // Display name
+  email?: string;                 // Paymail/email
+  pubkey?: string;                // Bitcoin public key
+  public_key?: string;            // Alternate field name for pubkey
+  bitcoin_address?: string;       // Bitcoin address
+  address?: string;               // Alternate field name
+  avatar?: string;                // Avatar URL
+  image?: string;                 // Alternate field name for avatar
+  bapIdKey?: string;              // Member BAP ID (derived from client + user)
+  member_bap_id?: string;         // Alternate field name
+  signingPubkey?: string;         // Alternate field name
+}
+
+/**
+ * Internal user info format used throughout the app
+ * NOTE: bapId and idKey are THE SAME THING
+ * - Ideally the member BAP ID from Sigma
+ * - Can fall back to pubkey (which is valid for BAP ID lookups)
+ */
+export interface SigmaUserInfo {
+  sub: string;                    // OAuth user ID
+  bapId: string;                  // Member BAP ID or pubkey (for lookup)
+  idKey: string;                  // Same as bapId
+  public_key: string;             // Bitcoin public key
+  address: string;                // Bitcoin address
+  paymail?: string;               // Paymail
+  displayName?: string;           // Display name
+  avatar?: string;                // Avatar URL
+}

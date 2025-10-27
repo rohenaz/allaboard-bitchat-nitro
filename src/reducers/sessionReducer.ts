@@ -5,15 +5,24 @@ import {
 } from '@reduxjs/toolkit';
 import { loadFriends } from './memberListReducer';
 
+/**
+ * Session user state
+ * NOTE: bapId and idKey are THE SAME
+ * - Ideally member BAP ID from Sigma
+ * - Can be pubkey (valid for BAP ID lookups)
+ */
 interface SessionUser {
-  paymail?: string;
-  wallet?: string;
-  authToken?: string;
-  bapId?: string;
-  idKey?: string;
-  address?: string;
-  public_key?: string;
-  bapIdKey?: string;
+  wallet?: string;           // 'sigma' | 'yours' | 'handcash' | 'guest'
+
+  // Identity fields (from Sigma OAuth)
+  bapId?: string;           // Member BAP ID or pubkey (same as idKey)
+  idKey?: string;           // Member BAP ID or pubkey (same as bapId)
+  public_key?: string;      // Bitcoin public key
+  address?: string;         // Bitcoin address
+  paymail?: string;         // Paymail/email
+
+  // Legacy fields (for backwards compatibility)
+  authToken?: string;       // HandCash auth token
 }
 
 interface SessionState {
@@ -63,14 +72,19 @@ interface YoursUserPayload {
   address: string;
 }
 
+/**
+ * Payload for setting Sigma user
+ * Maps directly to SigmaUserInfo from auth.ts
+ */
 interface SigmaUserPayload {
-  paymail: string;
-  address: string;
-  displayName: string;
-  avatar: string;
-  public_key: string;
-  bapIdKey?: string;
-  sub: string;
+  sub: string;              // OAuth user ID
+  bapId: string;           // Member BAP ID
+  idKey: string;           // Member BAP ID (same as bapId)
+  public_key: string;      // Bitcoin public key
+  address: string;         // Bitcoin address
+  paymail?: string;        // Paymail
+  displayName?: string;    // Display name
+  avatar?: string;         // Avatar URL
 }
 
 export const login = createAsyncThunk(
@@ -123,13 +137,11 @@ const sessionSlice = createSlice({
       state.error = null;
       state.user = {
         wallet: 'sigma',
-        paymail: action.payload.paymail,
-        address: action.payload.address,
-        // Set both bapId and idKey to the member BAP ID (NOT public_key!)
-        bapId: action.payload.bapIdKey,
-        idKey: action.payload.bapIdKey,
+        bapId: action.payload.bapId,        // Member BAP ID
+        idKey: action.payload.idKey,        // Same as bapId
         public_key: action.payload.public_key,
-        bapIdKey: action.payload.bapIdKey,
+        address: action.payload.address,
+        paymail: action.payload.paymail,
       };
       saveSessionToStorage(state.user);
     },

@@ -112,27 +112,9 @@ export const LoginPage: FC = () => {
         const isAuthenticated = await sigmaAuth.isAuthenticated();
         if (isAuthenticated) {
           const currentUser = await sigmaAuth.getCurrentUser();
-          if (currentUser?.address) {
-            // Determine if user has a BAP profile or is a guest
-            const hasProfile = Boolean(
-              currentUser.displayName && currentUser.displayName !== '',
-            );
-            const displayName = hasProfile
-              ? currentUser.displayName
-              : `Guest (${currentUser.address.slice(0, 8)}...)`;
-
-            // Update Redux state with existing session
-            dispatch(
-              setSigmaUser({
-                paymail: currentUser.paymail,
-                address: currentUser.address,
-                displayName: displayName,
-                avatar: currentUser.avatar || '',
-                public_key: currentUser.publicKey || currentUser.public_key,
-                bapIdKey: currentUser.bapIdKey,
-                sub: currentUser.sub,
-              }),
-            );
+          if (currentUser) {
+            // currentUser is strictly typed SigmaUserInfo
+            dispatch(setSigmaUser(currentUser));
 
             // Load channels and redirect
             await dispatch(loadChannels());
