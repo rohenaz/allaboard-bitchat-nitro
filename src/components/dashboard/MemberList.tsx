@@ -55,14 +55,15 @@ export const MemberList: FC = () => {
     }));
 
   const fetchMemberList = useCallback(() => {
-    if ((authToken || connected) && !memberList.allIds.length) {
+    // Only load if we don't have any users AND we're not already loading
+    if ((authToken || connected) && !memberList.allIds.length && !memberList.loading) {
       if (activeChannel) {
         void dispatch(loadUsers());
       } else {
         void dispatch(loadFriends());
       }
     }
-  }, [authToken, connected, dispatch, memberList.allIds.length, activeChannel]);
+  }, [authToken, connected, dispatch, memberList.allIds.length, memberList.loading, activeChannel]);
 
   useEffect(() => {
     fetchMemberList();
