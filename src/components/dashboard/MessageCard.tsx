@@ -110,6 +110,20 @@ const MessageCard: FC<MessageProps> = ({ message, reactions }) => {
             >
               <MdAddReaction className="h-4 w-4" />
             </Button>
+
+            {/* Emoji picker positioned relative to button */}
+            {showEmojiPicker && (
+              <div
+                ref={emojiPickerRef}
+                className="absolute top-full right-0 mt-2 z-50 rounded-lg overflow-hidden shadow-lg border border-border bg-popover"
+              >
+                <EmojiPicker
+                  onEmojiSelect={(emoji) =>
+                    message.tx?.h && handleEmojiClick(emoji, message.tx.h)
+                  }
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -165,32 +179,20 @@ const MessageCard: FC<MessageProps> = ({ message, reactions }) => {
             {messageFiles && <MessageFiles files={messageFiles} />}
 
             {/* Reactions */}
-            <div className="flex items-center gap-2 mt-2 relative">
-              {Object.entries(groupedReactions).map(([emoji, count]) => (
-                <Badge
-                  key={`${emoji}-${Object.keys(groupedReactions).indexOf(emoji)}`}
-                  variant="secondary"
-                  className="gap-1.5 px-2.5 py-1 rounded-full cursor-pointer hover:bg-secondary/80 transition-colors"
-                >
-                  <span>{emoji}</span>
-                  {count > 1 && <span className="text-xs">{count}</span>}
-                </Badge>
-              ))}
-
-              {/* Emoji picker */}
-              {showEmojiPicker && (
-                <div
-                  ref={emojiPickerRef}
-                  className="absolute top-full mt-2 z-50 rounded-lg overflow-hidden shadow-lg border border-border bg-popover"
-                >
-                  <EmojiPicker
-                    onEmojiSelect={(emoji) =>
-                      message.tx?.h && handleEmojiClick(emoji, message.tx.h)
-                    }
-                  />
-                </div>
-              )}
-            </div>
+            {Object.entries(groupedReactions).length > 0 && (
+              <div className="flex items-center gap-2 mt-2">
+                {Object.entries(groupedReactions).map(([emoji, count]) => (
+                  <Badge
+                    key={`${emoji}-${Object.keys(groupedReactions).indexOf(emoji)}`}
+                    variant="secondary"
+                    className="gap-1.5 px-2.5 py-1 rounded-full cursor-pointer hover:bg-secondary/80 transition-colors"
+                  >
+                    <span>{emoji}</span>
+                    {count > 1 && <span className="text-xs">{count}</span>}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </Card>
