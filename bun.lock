@@ -9,6 +9,8 @@
         "@emotion/styled": "^11.14.1",
         "@mui/material": "^7.3.4",
         "@mui/styled-engine-sc": "^7.3.3",
+        "@radix-ui/react-avatar": "^1.1.10",
+        "@radix-ui/react-slot": "^1.2.3",
         "@radix-ui/themes": "^3.2.1",
         "@reduxjs/toolkit": "^2.9.2",
         "@runonbitcoin/nimble": "^1.0.14",
@@ -24,6 +26,8 @@
         "bmapjs": "^0.4.0",
         "bops": "^1.0.1",
         "bsv-bap": "^0.1.12",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
         "crypto-browserify": "^3.12.1",
         "frimousse": "^0.3.0",
         "html-react-parser": "^5.2.7",
@@ -48,6 +52,7 @@
         "socket.io-client": "^4.8.1",
         "stream-browserify": "^3.0.0",
         "styled-components": "^6.1.19",
+        "tailwind-merge": "^3.3.1",
         "util": "^0.12.5",
         "yours-wallet-provider": "^3.7.0",
       },
@@ -840,6 +845,8 @@
 
     "cjs-module-lexer": ["cjs-module-lexer@1.4.3", "", {}, "sha512-9z8TZaGM1pfswYeXrUpzPrkx8UnWYdhJclsiYMm6x/w5+nN+8Tf/LnAgfLGQCm59qAOxU8WwHEq2vNwF6i4j+Q=="],
 
+    "class-variance-authority": ["class-variance-authority@0.7.1", "", { "dependencies": { "clsx": "^2.1.1" } }, "sha512-Ka+9Trutv7G8M6WT6SeiRWz792K5qEqIGEGzXKhAE6xOWAY6pPH8U+9IY3oCMv6kqTmLsv7Xh/2w2RigkePMsg=="],
+
     "classnames": ["classnames@2.5.1", "", {}, "sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow=="],
 
     "cliui": ["cliui@8.0.1", "", { "dependencies": { "string-width": "^4.2.0", "strip-ansi": "^6.0.1", "wrap-ansi": "^7.0.0" } }, "sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ=="],
@@ -1585,6 +1592,8 @@
     "stylis": ["stylis@4.3.2", "", {}, "sha512-bhtUjWd/z6ltJiQwg0dUfxEJ+W+jdqQd8TbWLWyeIJHlnsqmGLRFFd8e5mA0AZi/zx90smXRlN66YMTcaSFifg=="],
 
     "supports-preserve-symlinks-flag": ["supports-preserve-symlinks-flag@1.0.0", "", {}, "sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w=="],
+
+    "tailwind-merge": ["tailwind-merge@3.3.1", "", {}, "sha512-gBXpgUm/3rp1lMZZrM/w7D8GKqshif0zAymAhbCyIt8KMe+0v9DQ7cdYLR4FHH/cKpdTXb+A/tKKU3eolfsI+g=="],
 
     "tailwindcss": ["tailwindcss@4.1.16", "", {}, "sha512-pONL5awpaQX4LN5eiv7moSiSPd/DLDzKVRJz8Q9PgzmAdd1R4307GQS2ZpfiN7ZmekdQrfhZZiSE5jkLR4WNaA=="],
 

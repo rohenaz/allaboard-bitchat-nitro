@@ -12,7 +12,7 @@ import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchMessages, fetchMoreMessages } from '../../reducers/chatReducer';
 import type { AppDispatch, RootState } from '../../store';
-import Message from './Message';
+import MessageCard from './MessageCard';
 
 const Container = styled.div`
   display: flex;
@@ -164,7 +164,7 @@ const Messages: FC = () => {
     <Container>
       <MessagesContainer ref={messageListRef} onScroll={handleScroll}>
         {messages.data.map((message, index) => (
-          <Message
+          <MessageCard
             key={`${message.tx?.h || index}-${message.timestamp || index}`}
             message={message}
             reactions={reactions}
