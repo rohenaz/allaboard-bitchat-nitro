@@ -142,3 +142,74 @@ export const listenToConversation = (
     onMessage,
   });
 };
+
+// Recent Activity
+export interface BapIdentity {
+  idKey: string;
+  rootAddress: string;
+  currentAddress: string;
+  addresses: Array<{
+    address: string;
+    txId?: string;
+    block?: number;
+  }>;
+  identity: any;
+  identityTxId: string;
+  block: number;
+  timestamp: number;
+  valid: boolean;
+  paymail?: string;
+  displayName?: string;
+  icon?: string;
+}
+
+export interface ActivityTransaction {
+  tx: { h: string };
+  blk?: { i: number; t: number };
+  timestamp?: number;
+  MAP?: Array<{
+    app?: string;
+    type?: string;
+    paymail?: string;
+    context?: string;
+    channel?: string;
+    bapID?: string;
+    encrypted?: string;
+    messageID?: string;
+  }>;
+  AIP?: Array<{
+    algorithm?: string;
+    address?: string;
+    signature?: string;
+  }>;
+  B?: Array<{
+    encoding?: string;
+    content?: string;
+    'content-type'?: string;
+    filename?: string;
+  }>;
+  collection: string;
+}
+
+export interface ActivityResponse {
+  results: ActivityTransaction[];
+  signers: BapIdentity[];
+  meta: {
+    limit: number;
+    blocks: number | null;
+    collections: string[];
+    cached: boolean;
+  };
+}
+
+export interface ActivityParams {
+  limit?: number;
+  blocks?: number;
+  types?: string;
+}
+
+export const getRecentActivity = async (params?: ActivityParams): Promise<ActivityResponse> => {
+  return api.get<ActivityResponse>('/social/activity', {
+    params: params as Record<string, string>,
+  });
+};
