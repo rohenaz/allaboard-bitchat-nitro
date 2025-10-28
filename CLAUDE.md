@@ -103,7 +103,7 @@ Key integrations:
 
 ### API Communication
 - Centralized fetch utility: `src/api/fetch.ts`
-- Base URL configured via `VITE_API_URL` environment variable
+- Base URL configured via `VITE_BMAP_API_URL` environment variable
 - Authentication via `X-Auth-Token` header
 - Endpoints organized by feature: `/api/user.ts`, `/api/channel.ts`
 
@@ -124,7 +124,7 @@ Key integrations:
 ### Environment Variables
 Required in `.env`:
 ```bash
-VITE_API_URL=http://localhost:3055
+VITE_BMAP_API_URL=http://localhost:3055
 VITE_HANDCASH_APP_ID=<your-app-id>
 VITE_HANDCASH_API_URL=https://api.bitchatnitro.com
 VITE_SIGMA_CLIENT_ID=bitchat-nitro

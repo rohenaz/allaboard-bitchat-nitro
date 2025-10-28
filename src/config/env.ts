@@ -2,7 +2,7 @@
 
 // BMAP API - for SSE streams, messages, social features
 export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'https://bmap-api-production.up.railway.app';
+  import.meta.env.VITE_BMAP_API_URL || 'https://bmap-api-production.up.railway.app';
 
 // Nitro API - for Droplit proxy with platform auth
 export const NITRO_API_URL =

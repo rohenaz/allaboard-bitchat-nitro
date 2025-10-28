@@ -34,6 +34,7 @@ class SigmaIframeSigner {
   }> = new Map();
   private initialized = false;
   private boundMessageHandler: ((event: MessageEvent) => void) | null = null;
+  private walletLocked = false;
 
   /**
    * Initialize the Sigma signer iframe
@@ -47,6 +48,8 @@ class SigmaIframeSigner {
 
     // Create iframe for Sigma signer (full screen, transparent, hidden until needed)
     // The iframe content will handle its own backdrop/modal styling
+    // pointer-events: none by default so clicks pass through to main UI
+    // Only set to 'auto' when iframe is actively showing a modal
     this.iframe = document.createElement('iframe');
     this.iframe.src = `${SIGMA_AUTH_URL}/signer`;
     this.iframe.style.cssText = `
@@ -58,7 +61,7 @@ class SigmaIframeSigner {
       background: transparent;
       z-index: 10000;
       display: none;
-      pointer-events: auto;
+      pointer-events: none;
     `;
     document.body.appendChild(this.iframe);
 
@@ -122,6 +125,11 @@ class SigmaIframeSigner {
         this.pendingRequests.delete(requestId);
         const elapsed = performance.now() - startTime;
         console.error(`[Sigma Iframe] Signature timeout after ${elapsed.toFixed(0)}ms`);
+        // Hide iframe on timeout
+        if (this.iframe) {
+          this.iframe.style.display = 'none';
+          this.iframe.style.pointerEvents = 'none';
+        }
         reject(new Error('Signature request timeout'));
       }, 30000);
 
@@ -129,12 +137,24 @@ class SigmaIframeSigner {
         resolve: (authToken: string) => {
           const elapsed = performance.now() - startTime;
           console.log(`[Sigma Iframe] Signature complete in ${elapsed.toFixed(0)}ms`);
+          // Hide iframe after successful signature
+          if (this.iframe) {
+            this.iframe.style.display = 'none';
+            this.iframe.style.pointerEvents = 'none';
+          }
           resolve(authToken);
         },
         reject,
         timeout
       });
     });
+
+    // If wallet is already locked, show iframe immediately
+    if (this.walletLocked && this.iframe) {
+      console.log('[Sigma Iframe] Wallet already locked, showing unlock UI');
+      this.iframe.style.display = 'block';
+      this.iframe.style.pointerEvents = 'auto';
+    }
 
     // Send request to iframe
     if (this.iframe.contentWindow) {
@@ -158,17 +178,32 @@ class SigmaIframeSigner {
 
     console.log('[Sigma Iframe] Received message:', event.data?.type, 'from:', event.origin);
 
-    // Handle wallet locked event (show iframe for login)
+    // Handle wallet locked event (only show iframe if we have pending signing requests)
     if (event.data?.type === 'WALLET_LOCKED') {
-      console.log('[Sigma Iframe] Wallet locked, showing login iframe');
-      if (this.iframe) this.iframe.style.display = 'block';
+      console.log('[Sigma Iframe] Wallet locked');
+      this.walletLocked = true;
+
+      // Only show iframe if we're actively trying to sign something
+      if (this.pendingRequests.size > 0) {
+        console.log('[Sigma Iframe] Showing unlock UI (have pending requests)');
+        if (this.iframe) {
+          this.iframe.style.display = 'block';
+          this.iframe.style.pointerEvents = 'auto';
+        }
+      } else {
+        console.log('[Sigma Iframe] Wallet locked but no pending requests, keeping iframe hidden');
+      }
       return;
     }
 
     // Handle wallet unlocked event (hide iframe)
     if (event.data?.type === 'WALLET_UNLOCKED') {
       console.log('[Sigma Iframe] Wallet unlocked, hiding iframe');
-      if (this.iframe) this.iframe.style.display = 'none';
+      this.walletLocked = false;
+      if (this.iframe) {
+        this.iframe.style.display = 'none';
+        this.iframe.style.pointerEvents = 'none';
+      }
       return;
     }
 
@@ -192,6 +227,11 @@ class SigmaIframeSigner {
     // Resolve or reject
     if (response.error) {
       console.error('[Sigma Iframe] Signature error:', response.error);
+      // Hide iframe on error
+      if (this.iframe) {
+        this.iframe.style.display = 'none';
+        this.iframe.style.pointerEvents = 'none';
+      }
       pending.reject(new Error(response.error));
     } else {
       console.log('[Sigma Iframe] Signature received from iframe');

@@ -73,7 +73,7 @@ export const sigmaAuth = {
     // Exchange the authorization code for a token via backend proxy
     // The backend signs the request with BITCHAT_MEMBER_WIF to prove client identity
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://api.bitchatnitro.com';
+    const apiUrl = import.meta.env.VITE_NITRO_API_URL || 'http://localhost:3055';
 
     const tokenResponse = await fetch(`${apiUrl}/oauth/exchange`, {
       method: 'POST',

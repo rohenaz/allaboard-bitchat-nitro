@@ -79,4 +79,4 @@ node_modules/
 
 # mac junk
 .DS_Store
-public/
+public/.playwright-mcp/
