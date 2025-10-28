@@ -1,5 +1,5 @@
 import { Transaction, Script, Utils } from '@bsv/sdk';
-import { SIGMA_AUTH_URL, API_BASE_URL } from '../config/env';
+import { SIGMA_AUTH_URL, NITRO_API_URL } from '../config/env';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -137,7 +137,7 @@ export async function sendTransaction(options: SendTransactionOptions): Promise<
   // Step 1: Get OP_RETURN template from nitro-api (proxies to Droplit with platform auth)
   console.log('[sendTransaction] Step 1: Requesting template from nitro-api /droplit/push');
 
-  const templateResp = await fetch(`${API_BASE_URL}/droplit/push`, {
+  const templateResp = await fetch(`${NITRO_API_URL}/droplit/push`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -186,7 +186,7 @@ export async function sendTransaction(options: SendTransactionOptions): Promise<
   // Step 4: Fund and broadcast via nitro-api (proxies to Droplit with platform auth)
   console.log('[sendTransaction] Step 4: Funding via nitro-api /droplit/fund (broadcast:', broadcast, ')');
 
-  const fundResp = await fetch(`${API_BASE_URL}/droplit/fund`, {
+  const fundResp = await fetch(`${NITRO_API_URL}/droplit/fund`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

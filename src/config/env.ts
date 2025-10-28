@@ -4,6 +4,10 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'https://bmap-api-production.up.railway.app';
 
+// Nitro API - for Droplit proxy with platform auth
+export const NITRO_API_URL =
+  import.meta.env.VITE_NITRO_API_URL || 'https://api.bitchatnitro.com';
+
 // Sigma Auth - for OAuth authentication only
 export const SIGMA_AUTH_URL =
   import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';

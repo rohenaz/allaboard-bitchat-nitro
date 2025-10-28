@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "next-devtools": {
+      "command": "bunx",
+      "args": ["next-devtools-mcp@latest"]
+    },
+    "encore-mcp": {
+      "command": "encore",
+      "args": ["mcp", "run", "--app=go-faucet-api-mazi"],
+      "cwd": "../go-faucet-api"
+    },
+    "playwright": {
+			"command": "bunx",
+			"args": ["@playwright/mcp@latest"]
+		}
+  }
+}
