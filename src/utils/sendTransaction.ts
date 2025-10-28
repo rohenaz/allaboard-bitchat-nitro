@@ -84,6 +84,7 @@ function waitForSignerReady(): Promise<void> {
 
 /**
  * Request AIP signature from Sigma signer iframe
+ * Note: Signer determines which identity to use from localStorage (set during OAuth login)
  */
 async function requestAIPSignature(hexArray: string[]): Promise<number[][]> {
   const iframe = getSignerIframe();
