@@ -1,15 +1,17 @@
 import { Transaction, Script, Utils } from '@bsv/sdk';
-import { SIGMA_AUTH_URL, DROPLIT_API_URL, DROPLIT_FAUCET_NAME } from '../config/env';
+import { SIGMA_AUTH_URL, API_BASE_URL } from '../config/env';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Unified transaction sending flow using Droplit + Sigma AIP Signer
  *
  * Flow:
- * 1. Get OP_RETURN template from Droplit /push (platform auth)
- * 2. Sign data via Sigma iframe with user's BAP identity
+ * 1. Get OP_RETURN template from nitro-api /droplit/push (fillInputs: false)
+ * 2. Sign OP_RETURN data via Sigma iframe with user's BAP identity
  * 3. Replace template OP_RETURN with signed data
- * 4. Fund and broadcast via Droplit /fund (platform auth)
+ * 4. Fund and broadcast via nitro-api /droplit/fund
+ *
+ * Note: nitro-api handles platform authentication with BITCHAT_MEMBER_WIF
  */
 
 interface SendTransactionOptions {
@@ -132,29 +134,25 @@ export async function sendTransaction(options: SendTransactionOptions): Promise<
 
   console.log('[sendTransaction] Starting transaction flow', { dataCount: dataPayload.length, broadcast });
 
-  // Step 1: Get OP_RETURN template from Droplit
-  console.log('[sendTransaction] Step 1: Requesting template from Droplit');
+  // Step 1: Get OP_RETURN template from nitro-api (proxies to Droplit with platform auth)
+  console.log('[sendTransaction] Step 1: Requesting template from nitro-api /droplit/push');
 
-  // TODO: This should go through backend API with platform key auth
-  // For now, calling directly (will need CORS config or backend proxy)
-  const templateResp = await fetch(
-    `${DROPLIT_API_URL}/faucet/${DROPLIT_FAUCET_NAME}/push`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // TODO: Add bitcoin-auth header with platform key signature
-      },
-      body: JSON.stringify({
-        data: dataPayload,
-        encoding: 'utf8',
-        fillInputs: false,
-        broadcast: false,
-      }),
-    }
-  );
+  const templateResp = await fetch(`${API_BASE_URL}/droplit/push`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      data: dataPayload,
+      encoding: 'utf8',
+      fillInputs: false,
+      broadcast: false,
+    }),
+  });
 
   if (!templateResp.ok) {
+    const errorText = await templateResp.text();
+    console.error('[sendTransaction] Template request failed:', errorText);
     throw new Error(`Droplit template request failed: ${templateResp.statusText}`);
   }
 
@@ -185,26 +183,23 @@ export async function sendTransaction(options: SendTransactionOptions): Promise<
   const signedTemplateHex = tx.toHex();
   console.log('[sendTransaction] Signed template:', signedTemplateHex.substring(0, 100) + '...');
 
-  // Step 4: Fund and broadcast via Droplit
-  console.log('[sendTransaction] Step 4: Funding via Droplit (broadcast:', broadcast, ')');
+  // Step 4: Fund and broadcast via nitro-api (proxies to Droplit with platform auth)
+  console.log('[sendTransaction] Step 4: Funding via nitro-api /droplit/fund (broadcast:', broadcast, ')');
 
-  // TODO: This should also go through backend API with platform key auth
-  const fundResp = await fetch(
-    `${DROPLIT_API_URL}/faucet/${DROPLIT_FAUCET_NAME}/fund`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // TODO: Add bitcoin-auth header with platform key signature
-      },
-      body: JSON.stringify({
-        rawtx: signedTemplateHex,
-        broadcast,
-      }),
-    }
-  );
+  const fundResp = await fetch(`${API_BASE_URL}/droplit/fund`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      rawtx: signedTemplateHex,
+      broadcast,
+    }),
+  });
 
   if (!fundResp.ok) {
+    const errorText = await fundResp.text();
+    console.error('[sendTransaction] Fund request failed:', errorText);
     throw new Error(`Droplit fund request failed: ${fundResp.statusText}`);
   }
 
