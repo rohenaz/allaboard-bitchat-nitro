@@ -325,20 +325,8 @@ const WriteArea = () => {
     activeUserId ||
     last(window?.location?.pathname?.split('/'));
 
-  const isAuthenticated = useMemo(() => {
-    // Check if we have a valid Handcash connection
-    const hasHandcash = Boolean(authToken);
-
-    // Check if we have a valid Yours wallet connection
-    const hasYours = Boolean(pandaProfile && connected === FetchStatus.Success);
-    // Remove debug console.log
-
-    // Check if we have a valid BAP connection
-    const hasBap = Boolean(activeUser && decIdentity);
-
-    const result = hasHandcash || hasYours || hasBap;
-    return result;
-  }, [authToken, pandaProfile, connected, activeUser, decIdentity]);
+  // Use session.isAuthenticated from Redux (set by Sigma Auth, HandCash, or Yours)
+  const isAuthenticated = session.isAuthenticated;
 
   const self = useMemo(() => {
     return activeUser && session.user?.bapId === activeUser._id;
