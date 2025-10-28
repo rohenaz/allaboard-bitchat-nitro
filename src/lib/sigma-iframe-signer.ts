@@ -178,20 +178,15 @@ class SigmaIframeSigner {
 
     console.log('[Sigma Iframe] Received message:', event.data?.type, 'from:', event.origin);
 
-    // Handle wallet locked event (only show iframe if we have pending signing requests)
+    // Handle wallet locked event - always show iframe so user can unlock
     if (event.data?.type === 'WALLET_LOCKED') {
-      console.log('[Sigma Iframe] Wallet locked');
+      console.log('[Sigma Iframe] Wallet locked, showing unlock UI');
       this.walletLocked = true;
 
-      // Only show iframe if we're actively trying to sign something
-      if (this.pendingRequests.size > 0) {
-        console.log('[Sigma Iframe] Showing unlock UI (have pending requests)');
-        if (this.iframe) {
-          this.iframe.style.display = 'block';
-          this.iframe.style.pointerEvents = 'auto';
-        }
-      } else {
-        console.log('[Sigma Iframe] Wallet locked but no pending requests, keeping iframe hidden');
+      // Show iframe so user can unlock their wallet
+      if (this.iframe) {
+        this.iframe.style.display = 'block';
+        this.iframe.style.pointerEvents = 'auto';
       }
       return;
     }
