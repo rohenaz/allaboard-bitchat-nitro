@@ -8,6 +8,14 @@ export const API_BASE_URL =
 export const SIGMA_AUTH_URL =
   import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
 
+// Droplit API - for transaction creation and funding
+export const DROPLIT_API_URL =
+  import.meta.env.VITE_DROPLIT_API_URL || 'https://dev-go-faucet-api-mazi.encr.app';
+
+// Droplit faucet name for BitChat
+export const DROPLIT_FAUCET_NAME =
+  import.meta.env.VITE_DROPLIT_FAUCET_NAME || 'bitchat';
+
 export const HANDCASH_APP_ID = import.meta.env.VITE_HANDCASH_APP_ID;
 
 export const HANDCASH_API_URL =

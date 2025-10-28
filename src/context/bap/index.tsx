@@ -20,6 +20,7 @@ import { login } from '../../reducers/sessionReducer';
 import { FetchStatus } from '../../utils/common';
 import { useLocalStorage } from '../../utils/storage';
 import { useHandcash } from '../handcash';
+import { Identities } from 'node_modules/bsv-bap/dist/interface';
 
 interface BapContextValue {
   identity: string | null;
@@ -35,7 +36,7 @@ interface BapContextValue {
 
 interface DecryptedIdentity {
   xprv: string;
-  ids?: { idKey: string }[];
+  ids?: Identities | string;
   bapId?: string;
 }
 

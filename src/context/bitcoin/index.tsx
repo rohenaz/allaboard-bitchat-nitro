@@ -1,4 +1,4 @@
-import { ECIES, Hash, type PrivateKey, type PublicKey, Script } from '@bsv/sdk';
+import { ECIES, Hash, type PrivateKey, type PublicKey, Script, Transaction } from '@bsv/sdk';
 import { HD, Utils } from '@bsv/sdk';
 import bops from 'bops';
 import { BAP } from 'bsv-bap';
@@ -15,7 +15,13 @@ import { useDispatch, useSelector, useStore } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { Store } from 'redux';
 import type { PendingFile } from '../../components/dashboard/WriteArea';
-import { API_BASE_URL, HANDCASH_API_URL } from '../../config/env';
+import {
+  API_BASE_URL,
+  DROPLIT_API_URL,
+  DROPLIT_FAUCET_NAME,
+  HANDCASH_API_URL,
+  SIGMA_AUTH_URL
+} from '../../config/env';
 import { pinPaymentAddress } from '../../reducers/channelsReducer';
 import {
   receiveNewMessage,
@@ -350,7 +356,6 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
   const handleMessage = useCallback(
     async (pm: string, content: string, channel: string, userId?: string) => {
-      // Remove debug console.log
       setPostStatus(FetchStatus.Loading);
 
       try {
@@ -406,18 +411,196 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           );
         }
 
-        // Remove debug console.log
+        // Use unified Droplit + Sigma signing flow
+        try {
+          const { sendTransaction } = await import('../../utils/sendTransaction');
 
-        const hexArray = dataPayload.map((d) =>
-          Buffer.from(d, 'utf8').toString('hex'),
-        );
+          const result = await sendTransaction({
+            dataPayload,
+            broadcast: false, // Keep false for testing
+          });
 
-        // Send with Handcash
+          console.log('[Message] Transaction complete:', result.txid);
+          if (result.rawtx) {
+            console.log('[Message] Final hex:', result.rawtx);
+          }
+
+          // Reset pending files
+          if (pendingFiles.length > 0) {
+            setPendingFiles([]);
+          }
+
+          // Notify indexer
+          const txForIndexer = {
+            tx: { h: result.txid },
+            timestamp: moment().unix(),
+          };
+
+          dispatch(receiveNewMessage(txForIndexer));
+          setPostStatus(FetchStatus.Success);
+          return txForIndexer;
+
+        } catch (error) {
+          console.error('[Message] Transaction failed:', error);
+          setPostStatus(FetchStatus.Error);
+          throw error;
+        }
+
+        // OLD CODE BELOW - TO BE REMOVED
+        /*
+        try {
+          console.log('[Message] Using old Droplit + Sigma Auth flow');
+
+          try {
+            // Step 1: Get OP_RETURN template from Droplit (no inputs)
+            console.log('[Message] Step 1: Requesting template from Droplit');
+            const templateResp = await fetch(
+              `${DROPLIT_API_URL}/faucet/${DROPLIT_FAUCET_NAME}/push`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  // TODO: Add Droplit auth token when available
+                },
+                body: JSON.stringify({
+                  data: hexArray,
+                  encoding: 'hex',
+                  broadcast: false,
+                  fillInputs: false,
+                }),
+              },
+            );
+
+            if (!templateResp.ok) {
+              throw new Error(`Droplit template request failed: ${templateResp.statusText}`);
+            }
+
+            const templateData = await templateResp.json();
+            const templateHex = templateData.rawtx;
+            console.log('[Message] Template received:', templateHex.substring(0, 100));
+
+            // Step 2: Sign with signer iframe (keys stay in auth.sigmaidentity.com)
+            console.log('[Message] Step 2: Requesting signature from signer iframe');
+
+            // Use iframe communication to sign without exposing keys
+            const signedOps = await new Promise<number[][]>((resolve, reject) => {
+              // Create hidden iframe to signer page
+              const iframe = document.createElement('iframe');
+              iframe.style.display = 'none';
+              iframe.src = `${SIGMA_AUTH_URL}/signer`; // TODO: Confirm signer URL
+
+              const timeout = setTimeout(() => {
+                document.body.removeChild(iframe);
+                reject(new Error('Signer iframe timeout'));
+              }, 30000); // 30 second timeout
+
+              // Listen for signed response
+              const messageHandler = (event: MessageEvent) => {
+                if (event.origin !== new URL(SIGMA_AUTH_URL).origin) return;
+
+                if (event.data.type === 'SIGN_RESPONSE') {
+                  clearTimeout(timeout);
+                  window.removeEventListener('message', messageHandler);
+                  document.body.removeChild(iframe);
+
+                  if (event.data.error) {
+                    reject(new Error(event.data.error));
+                  } else {
+                    resolve(event.data.signedOps);
+                  }
+                }
+              };
+
+              window.addEventListener('message', messageHandler);
+
+              iframe.onload = () => {
+                // Send signing request to iframe
+                iframe.contentWindow?.postMessage({
+                  type: 'SIGN_REQUEST',
+                  hexArray,
+                  bapId: decIdentity.bapId,
+                }, SIGMA_AUTH_URL);
+              };
+
+              document.body.appendChild(iframe);
+            });
+
+            console.log('[Message] Signed ops received:', signedOps.length, 'parts');
+
+            // Step 3: Parse template, replace OP_RETURN with signed data
+            console.log('[Message] Step 3: Modifying template with signed OP_RETURN');
+            const tx = Transaction.fromHex(templateHex);
+
+            // The template should have exactly 1 output (the OP_RETURN)
+            if (tx.outputs.length !== 1) {
+              throw new Error(`Expected 1 output in template, got ${tx.outputs.length}`);
+            }
+
+            // Create new script with signed data
+            // signedOps is array of byte arrays, need to convert to hex strings
+            const signedHexArray = signedOps.map((bytes: number[]) =>
+              Buffer.from(bytes).toString('hex')
+            );
+            const newScript = Script.fromASM(`OP_0 OP_RETURN ${signedHexArray.join(' ')}`);
+
+            // Replace the OP_RETURN output
+            tx.outputs[0].lockingScript = newScript;
+
+            const signedTemplateHex = tx.toHex();
+            console.log('[Message] Modified template:', signedTemplateHex.substring(0, 100));
+
+            // Step 4: Fund and broadcast via Droplit /fund
+            console.log('[Message] Step 4: Funding and broadcasting via Droplit');
+            const fundResp = await fetch(
+              `${DROPLIT_API_URL}/faucet/${DROPLIT_FAUCET_NAME}/fund`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  // TODO: Add Droplit auth token when available
+                },
+                body: JSON.stringify({
+                  rawtx: signedTemplateHex,
+                  broadcast: true,
+                }),
+              },
+            );
+
+            if (!fundResp.ok) {
+              throw new Error(`Droplit fund request failed: ${fundResp.statusText}`);
+            }
+
+            const fundData = await fundResp.json();
+            console.log('[Message] Transaction broadcast:', fundData.txid);
+
+            // Reset pending files
+            if (pendingFiles.length > 0) {
+              setPendingFiles([]);
+            }
+
+            // Notify indexer with the funded transaction
+            // We need to get the raw tx from the fund response
+            // For now, we'll use the txid to construct a minimal tx object
+            const txForIndexer = {
+              tx: { h: fundData.txid },
+              timestamp: moment().unix(),
+            };
+
+            dispatch(receiveNewMessage(txForIndexer));
+            setPostStatus(FetchStatus.Success);
+            return txForIndexer;
+
+          } catch (error) {
+            console.error('[Message] Droplit+Sigma flow failed:', error);
+            setPostStatus(FetchStatus.Error);
+            throw error;
+          }
+        }
+
+        // Fallback: Old HandCash flow for users without identity
         if (authToken) {
-          // Remove debug console.log
           let signedOps: string[] | undefined;
           if (decIdentity && !isYoursWallet) {
-            // decrypt and import identity
             signedOps = await signOpReturnWithAIP(hexArray);
           }
 
@@ -433,10 +616,8 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           });
 
           const { paymentResult } = await resp.json();
-          // Remove debug console.log
 
-          // reset pending files
-          if (pendingFiles) {
+          if (pendingFiles.length > 0) {
             setPendingFiles([]);
           }
           if (paymentResult?.rawTransactionHex) {
@@ -448,7 +629,6 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
               setPostStatus(FetchStatus.Success);
               return tx;
             } catch (error) {
-              // Keep error log for production debugging
               console.error('Failed to notify indexer:', error);
               setPostStatus(FetchStatus.Error);
               throw error;
@@ -457,9 +637,8 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           return;
         }
 
-        // Send with yours
+        // Send with Yours wallet
         if (pandaProfile && utxos) {
-          // Remove debug console.log
           let scriptP: Script;
 
           try {
@@ -494,19 +673,18 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
             setPostStatus(FetchStatus.Success);
             return tx;
           } catch (error) {
-            // Keep error log for production debugging
             console.error('Failed to send with Yours:', error);
             setPostStatus(FetchStatus.Error);
             throw error;
           }
         }
 
-        // Keep error log for production debugging
         console.error('No valid sending method available');
         setPostStatus(FetchStatus.Error);
         throw new Error('No valid sending method available');
+      */
+      // END OLD CODE COMMENT
       } catch (error) {
-        // Keep error log for production debugging
         console.error('Failed to send message:', error);
         setPostStatus(FetchStatus.Error);
         throw error;

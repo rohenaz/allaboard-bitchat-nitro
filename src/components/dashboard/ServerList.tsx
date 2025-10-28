@@ -129,13 +129,18 @@ const ServerList: FC = () => {
 
   const handleServerClick = useCallback(
     (serverId: string) => {
-      navigate(`/servers/${serverId}`);
+      // BitChat server goes to channels view, others go to settings
+      if (serverId === 'bitchat') {
+        navigate('/channels');
+      } else {
+        navigate(`/servers/${serverId}`);
+      }
     },
     [navigate],
   );
 
   const handleHomeClick = useCallback(() => {
-    navigate('/channels');
+    navigate('/friends');
   }, [navigate]);
 
   const handleAddServer = useCallback(() => {
