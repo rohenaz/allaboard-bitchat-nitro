@@ -40,12 +40,6 @@ type Profile = {
   avatar?: string;
 };
 
-interface DecIdentity {
-  xprv: string;
-  bapId?: string;
-  ids?: { idKey: string }[];
-  commsPublicKey?: string;
-}
 
 interface ActiveUser {
   _id: string;
@@ -461,7 +455,6 @@ const WriteArea = () => {
             content,
             channel,
             activeUserId || '',
-            decIdentity as DecIdentity,
           );
 
           // Only clear after successful post

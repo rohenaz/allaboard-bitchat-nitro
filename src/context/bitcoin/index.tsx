@@ -104,8 +104,7 @@ interface BitcoinContextValue {
     pm: string,
     content: string,
     channel: string,
-    userId: string,
-    decIdentity: DecIdentity,
+    userId?: string,
   ) => Promise<void>;
   postStatus: FetchStatusType;
   likeMessage: (
@@ -438,7 +437,6 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
           dispatch(receiveNewMessage(txForIndexer));
           setPostStatus(FetchStatus.Success);
-          return txForIndexer;
 
         } catch (error) {
           console.error('[Message] Transaction failed:', error);
