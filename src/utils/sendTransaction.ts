@@ -159,7 +159,7 @@ export async function sendTransaction(options: SendTransactionOptions): Promise<
 
   const templateData = await templateResp.json();
   const templateHex = templateData.rawtx;
-  console.log('[sendTransaction] Template received:', templateHex);
+  console.log('[sendTransaction] STEP 1 - Template BEFORE signing (OP_RETURN placeholder):', templateHex);
 
   // Step 2: Sign via Sigma iframe
   console.log('[sendTransaction] Step 2: Requesting AIP signature from signer');
@@ -182,7 +182,7 @@ export async function sendTransaction(options: SendTransactionOptions): Promise<
   tx.outputs[0].lockingScript = Script.fromASM(`OP_0 OP_RETURN ${signedHexArray.join(' ')}`);
 
   const signedTemplateHex = tx.toHex();
-  console.log('[sendTransaction] Signed template:', signedTemplateHex);
+  console.log('[sendTransaction] STEP 2 - AFTER AIP signing (with user identity signature):', signedTemplateHex);
 
   // Step 4: Fund and broadcast via nitro-api (proxies to Droplit with platform auth)
   console.log('[sendTransaction] Step 4: Funding via nitro-api /droplit/fund (broadcast:', broadcast, ')');
@@ -205,11 +205,8 @@ export async function sendTransaction(options: SendTransactionOptions): Promise<
   }
 
   const fundData = await fundResp.json();
-  console.log('[sendTransaction] Transaction complete:', fundData.txid);
-
-  if (!broadcast && fundData.rawtx) {
-    console.log('[sendTransaction] Final transaction hex (not broadcast):', fundData.rawtx);
-  }
+  console.log('[sendTransaction] STEP 3 - AFTER Droplit funding (inputs filled, ready to broadcast):', fundData.rawtx);
+  console.log('[sendTransaction] Transaction complete - TXID:', fundData.txid);
 
   return {
     txid: fundData.txid,
