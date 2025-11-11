@@ -20,8 +20,5 @@ export const DROPLIT_API_URL = 'https://dev-go-faucet-api-mazi.encr.app';
 // Droplit faucet name for BitChat
 export const DROPLIT_FAUCET_NAME = 'bitchat';
 
-// HandCash API URL
-export const HANDCASH_API_URL = 'https://api.bitchatnitro.com';
-
 // HandCash App ID (optional, can be undefined for local dev)
 export const HANDCASH_APP_ID = import.meta.env.VITE_HANDCASH_APP_ID;

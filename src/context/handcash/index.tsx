@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCallback, useContext, useMemo, useState } from 'react';
-import { API_BASE_URL, HANDCASH_API_URL } from '../../config/constants';
+import { API_BASE_URL, NITRO_API_URL } from '../../config/constants';
 import { FetchStatus } from '../../utils/common';
 import { lsTest, useLocalStorage } from '../../utils/storage';
 
@@ -51,7 +51,7 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
 
     if (authToken) {
       try {
-        const resp = await fetch(`${HANDCASH_API_URL}/hcProfile`, {
+        const resp = await fetch(`${NITRO_API_URL}/hcProfile`, {
           method: 'POST',
           headers: {
             'Content-type': 'application/json',
@@ -78,7 +78,7 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
         }
 
         if (authToken) {
-          fetch(`${HANDCASH_API_URL}/hcEncrypt`, {
+          fetch(`${NITRO_API_URL}/hcEncrypt`, {
             method: 'POST',
             headers: {
               'Content-type': 'application/json',
@@ -113,7 +113,7 @@ const HandcashProvider: React.FC<HandcashProviderProps> = (props) => {
         if (authToken) {
           if (encryptedData) {
             setDecryptStatus(FetchStatus.Loading);
-            fetch(`${HANDCASH_API_URL}/hcDecrypt`, {
+            fetch(`${NITRO_API_URL}/hcDecrypt`, {
               method: 'POST',
               headers: {
                 'Content-type': 'application/json',

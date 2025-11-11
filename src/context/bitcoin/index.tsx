@@ -19,7 +19,7 @@ import {
   API_BASE_URL,
   DROPLIT_API_URL,
   DROPLIT_FAUCET_NAME,
-  HANDCASH_API_URL,
+  NITRO_API_URL,
   SIGMA_AUTH_URL
 } from '../../config/constants';
 import { pinPaymentAddress } from '../../reducers/channelsReducer';
@@ -221,7 +221,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           // decrypt and import identity
           const signedOps = await signOpReturnWithAIP(hexArray);
 
-          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
+          const resp = await fetch(`${NITRO_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -257,7 +257,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
           );
           // .join(" ")
 
-          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
+          const resp = await fetch(`${NITRO_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ hexArray, authToken, channel }),
@@ -602,7 +602,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
             signedOps = await signOpReturnWithAIP(hexArray);
           }
 
-          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
+          const resp = await fetch(`${NITRO_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -740,7 +740,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
           setLikeStatus(FetchStatus.Loading);
 
-          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
+          const resp = await fetch(`${NITRO_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
@@ -831,7 +831,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
         if (authToken && decIdentity && !isYoursWallet) {
           const signedOps = await signOpReturnWithAIP(hexArray);
 
-          const resp = await fetch(`${HANDCASH_API_URL}/hcSend/`, {
+          const resp = await fetch(`${NITRO_API_URL}/hcSend/`, {
             method: 'POST',
             headers: new Headers({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
