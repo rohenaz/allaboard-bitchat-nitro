@@ -5,7 +5,7 @@
  * All auth happens on auth.sigmaidentity.com
  */
 
-import { SIGMA_AUTH_URL } from '../config/env';
+import { NITRO_API_URL, SIGMA_AUTH_URL } from '../config/env';
 
 // Direct replacements for existing sigmaAuth functions
 export const sigmaAuth = {
@@ -73,9 +73,8 @@ export const sigmaAuth = {
     // Exchange the authorization code for a token via backend proxy
     // The backend signs the request with BITCHAT_MEMBER_WIF to prove client identity
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
-    const apiUrl = import.meta.env.VITE_NITRO_API_URL || 'http://localhost:3055';
 
-    const tokenResponse = await fetch(`${apiUrl}/oauth/exchange`, {
+    const tokenResponse = await fetch(`${NITRO_API_URL}/oauth/exchange`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
