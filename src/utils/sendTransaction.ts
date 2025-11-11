@@ -39,10 +39,20 @@ function getSignerIframe(): HTMLIFrameElement {
     return signerIframe;
   }
 
-  // Create new iframe
+  // Create new iframe - full screen overlay, hidden until needed
   const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
   iframe.src = `${SIGMA_AUTH_URL}/signer`;
+  iframe.style.cssText = `
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    background: transparent;
+    z-index: 10000;
+    display: none;
+    pointer-events: none;
+  `;
 
   document.body.appendChild(iframe);
   signerIframe = iframe;
@@ -70,11 +80,26 @@ function waitForSignerReady(): Promise<void> {
         clearTimeout(timeout);
         window.removeEventListener('message', handleMessage);
         isSignerReady = true;
+
+        // Hide iframe after unlock
+        if (signerIframe) {
+          signerIframe.style.display = 'none';
+          signerIframe.style.pointerEvents = 'none';
+        }
+
+        console.log('[sendTransaction] Wallet unlocked, iframe hidden');
         resolve();
       } else if (event.data.type === 'WALLET_LOCKED') {
-        clearTimeout(timeout);
-        window.removeEventListener('message', handleMessage);
-        reject(new Error('Wallet is locked. Please unlock your wallet in the Sigma signer.'));
+        console.log('[sendTransaction] Wallet locked - showing unlock UI');
+
+        // Show iframe so user can unlock their wallet
+        if (signerIframe) {
+          signerIframe.style.display = 'block';
+          signerIframe.style.pointerEvents = 'auto';
+        }
+
+        // Don't reject - wait for user to unlock
+        // The timeout will handle if they take too long
       }
     };
 
@@ -92,8 +117,31 @@ async function requestAIPSignature(hexArray: string[]): Promise<number[][]> {
 
   return new Promise((resolve, reject) => {
     const requestId = uuidv4();
+
+    // Log what we're requesting signature for
+    console.log('[sendTransaction] Requesting AIP signature:', {
+      requestId,
+      dataPartsCount: hexArray.length,
+      dataPreview: hexArray.map(h => h.substring(0, 40) + '...'),
+    });
+
+    // Check what identity is stored locally (should match what iframe has)
+    try {
+      const storedUser = localStorage.getItem('sigma_current_user');
+      const selectedIdentity = localStorage.getItem('sigma_selected_identity');
+      console.log('[sendTransaction] Local identity info:', {
+        hasStoredUser: !!storedUser,
+        userBapId: storedUser ? JSON.parse(storedUser).bap_id : 'none',
+        hasSelectedIdentity: !!selectedIdentity,
+        selectedBapId: selectedIdentity ? JSON.parse(selectedIdentity).bapId : 'none'
+      });
+    } catch (e) {
+      console.error('[sendTransaction] Failed to read local identity:', e);
+    }
+
     const timeout = setTimeout(() => {
       window.removeEventListener('message', handleResponse);
+      console.error('[sendTransaction] AIP signing timeout - no response from Sigma iframe after 30s');
       reject(new Error('AIP signing timeout'));
     }, 30000);
 
@@ -102,14 +150,24 @@ async function requestAIPSignature(hexArray: string[]): Promise<number[][]> {
       if (event.data.type !== 'SIGN_AIP_RESPONSE') return;
       if (event.data.payload.requestId !== requestId) return;
 
+      console.log('[sendTransaction] Received AIP signature response:', {
+        requestId: event.data.payload.requestId,
+        hasError: !!event.data.payload.error,
+        hasSignedOps: !!event.data.payload.signedOps,
+        signedOpsCount: event.data.payload.signedOps?.length || 0
+      });
+
       clearTimeout(timeout);
       window.removeEventListener('message', handleResponse);
 
       if (event.data.payload.error) {
+        console.error('[sendTransaction] AIP signing failed:', event.data.payload.error);
         reject(new Error(event.data.payload.error));
       } else if (event.data.payload.signedOps) {
+        console.log('[sendTransaction] AIP signature successful');
         resolve(event.data.payload.signedOps);
       } else {
+        console.error('[sendTransaction] Invalid AIP response - no error and no signedOps');
         reject(new Error('Invalid response from signer'));
       }
     };
