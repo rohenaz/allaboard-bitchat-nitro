@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/env';
+import { API_BASE_URL } from '../config/constants';
 import { requestSigmaSignature } from '../lib/sigma-iframe-signer';
 
 type RequestInit = globalThis.RequestInit;

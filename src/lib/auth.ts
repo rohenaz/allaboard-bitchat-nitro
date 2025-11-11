@@ -5,13 +5,13 @@
  * All auth happens on auth.sigmaidentity.com
  */
 
-import { NITRO_API_URL, SIGMA_AUTH_URL } from '../config/env';
+import { NITRO_API_URL, SIGMA_AUTH_URL } from '../config/constants';
 
 // Direct replacements for existing sigmaAuth functions
 export const sigmaAuth = {
   authorize: () => {
     // Direct OAuth2 authorization flow to Sigma
-    const clientId = import.meta.env.VITE_SIGMA_CLIENT_ID || 'bitchat-nitro';
+    // Client is identified on nitro-api side via BITCHAT_MEMBER_WIF signature
     const redirectUri = `${window.location.origin}/auth/sigma/callback`;
 
     // Generate state for CSRF protection
@@ -20,7 +20,6 @@ export const sigmaAuth = {
 
     // Build OAuth authorization URL
     const params = new URLSearchParams({
-      client_id: clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
       state: state,

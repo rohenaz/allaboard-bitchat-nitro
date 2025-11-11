@@ -8,7 +8,7 @@
  * only changing HOW signatures are obtained.
  */
 
-import { SIGMA_AUTH_URL } from '../config/env';
+import { SIGMA_AUTH_URL } from '../config/constants';
 
 interface SignatureRequest {
   requestId: string;

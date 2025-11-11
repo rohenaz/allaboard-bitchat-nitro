@@ -1,5 +1,5 @@
 import { Transaction, Script, Utils } from '@bsv/sdk';
-import { SIGMA_AUTH_URL, NITRO_API_URL } from '../config/env';
+import { SIGMA_AUTH_URL, NITRO_API_URL } from '../config/constants';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

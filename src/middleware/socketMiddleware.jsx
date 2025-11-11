@@ -1,6 +1,6 @@
 import { head, last } from 'lodash';
 import { listenToMessages } from '../api/bmap';
-import { API_BASE_URL } from '../config/env';
+import { API_BASE_URL } from '../config/constants';
 import { receiveNewChannel } from '../reducers/channelsReducer';
 import { receiveNewMessage, receiveNewReaction } from '../reducers/chatReducer';
 import { receiveNewFriend } from '../reducers/memberListReducer';
