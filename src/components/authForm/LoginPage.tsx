@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import type { SocialProfile as BaseSocialProfile } from 'yours-wallet-provider';
 import { useYoursWallet } from 'yours-wallet-provider';
-import { HANDCASH_API_URL } from '../../config/env';
+import { HANDCASH_API_URL } from '../../config/constants';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { useAppDispatch } from '../../hooks';

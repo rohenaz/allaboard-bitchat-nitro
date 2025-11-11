@@ -4,7 +4,7 @@ import React, {
   useCallback,
   type PropsWithChildren,
 } from 'react';
-import { API_BASE_URL } from '../../config/env';
+import { API_BASE_URL } from '../../config/constants';
 
 interface BmapContextType {
   notifyIndexer: (rawTx: string) => Promise<unknown>;

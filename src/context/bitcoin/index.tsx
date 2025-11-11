@@ -21,7 +21,7 @@ import {
   DROPLIT_FAUCET_NAME,
   HANDCASH_API_URL,
   SIGMA_AUTH_URL
-} from '../../config/env';
+} from '../../config/constants';
 import { pinPaymentAddress } from '../../reducers/channelsReducer';
 import {
   receiveNewMessage,

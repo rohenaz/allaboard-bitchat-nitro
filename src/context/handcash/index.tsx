@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCallback, useContext, useMemo, useState } from 'react';
-import { API_BASE_URL, HANDCASH_API_URL } from '../../config/env';
+import { API_BASE_URL, HANDCASH_API_URL } from '../../config/constants';
 import { FetchStatus } from '../../utils/common';
 import { lsTest, useLocalStorage } from '../../utils/storage';
 

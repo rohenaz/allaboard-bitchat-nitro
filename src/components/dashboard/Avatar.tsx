@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { API_BASE_URL } from '../../config/env';
+import { API_BASE_URL } from '../../config/constants';
 
 interface AvatarProps {
   size?: string;
