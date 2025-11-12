@@ -132,7 +132,6 @@ export const sigmaAuth = {
     const userInfo: SigmaUserInfo = {
       sub: rawUserInfo.sub,
       bapId: memberBapId,
-      idKey: memberBapId,
       public_key: publicKey,
       address: address,
       paymail: rawUserInfo.email,
@@ -187,12 +186,10 @@ export interface SigmaOAuthUserInfo {
 
 /**
  * Internal user info format used throughout the app
- * NOTE: bapId and idKey are THE SAME THING - both are the member BAP ID from Sigma
  */
 export interface SigmaUserInfo {
   sub: string;                    // OAuth user ID
-  bapId: string;                  // Member BAP ID from Sigma (required)
-  idKey: string;                  // Same as bapId (required)
+  bapId: string;                  // Member BAP ID from Sigma
   public_key: string;             // Bitcoin public key
   address: string;                // Bitcoin address
   paymail?: string;               // Paymail
