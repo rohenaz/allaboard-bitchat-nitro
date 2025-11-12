@@ -122,16 +122,17 @@ export const sigmaAuth = {
       throw new Error('No Bitcoin address in userinfo response');
     }
 
-    // Extract member BAP ID if available
-    // Note: pubkey can be used to lookup BAP ID if needed, but if Sigma provides it, use it
-    const memberBapId = rawUserInfo.bap_id || rawUserInfo.bapIdKey || rawUserInfo.member_bap_id || rawUserInfo.signingPubkey;
+    // Extract member BAP ID (required)
+    const memberBapId = rawUserInfo.bap_id;
+    if (!memberBapId) {
+      throw new Error('No BAP ID in userinfo response');
+    }
 
     // Build strictly typed user info
     const userInfo: SigmaUserInfo = {
       sub: rawUserInfo.sub,
-      // If we have member BAP ID from Sigma, use it. Otherwise use pubkey (valid for lookups)
-      bapId: memberBapId || publicKey,
-      idKey: memberBapId || publicKey,
+      bapId: memberBapId,
+      idKey: memberBapId,
       public_key: publicKey,
       address: address,
       paymail: rawUserInfo.email,
@@ -140,7 +141,7 @@ export const sigmaAuth = {
     };
 
     console.log('[Sigma Auth] Validated user info:', userInfo);
-    console.log('[Sigma Auth] Using for idKey/bapId:', memberBapId ? `Member BAP ID: ${memberBapId}` : `Pubkey (will lookup): ${publicKey}`);
+    console.log('[Sigma Auth] Member BAP ID:', memberBapId);
 
     // Store user info for future retrieval
     localStorage.setItem('sigma_user_info', JSON.stringify(userInfo));
@@ -181,22 +182,17 @@ export interface SigmaOAuthUserInfo {
   address?: string;               // Alternate field name
   avatar?: string;                // Avatar URL
   image?: string;                 // Alternate field name for avatar
-  bap_id?: string;                // Member BAP ID (primary field from server)
-  bapIdKey?: string;              // Member BAP ID (alternate field name)
-  member_bap_id?: string;         // Alternate field name
-  signingPubkey?: string;         // Alternate field name
+  bap_id: string;                 // Member BAP ID (required)
 }
 
 /**
  * Internal user info format used throughout the app
- * NOTE: bapId and idKey are THE SAME THING
- * - Ideally the member BAP ID from Sigma
- * - Can fall back to pubkey (which is valid for BAP ID lookups)
+ * NOTE: bapId and idKey are THE SAME THING - both are the member BAP ID from Sigma
  */
 export interface SigmaUserInfo {
   sub: string;                    // OAuth user ID
-  bapId: string;                  // Member BAP ID or pubkey (for lookup)
-  idKey: string;                  // Same as bapId
+  bapId: string;                  // Member BAP ID from Sigma (required)
+  idKey: string;                  // Same as bapId (required)
   public_key: string;             // Bitcoin public key
   address: string;                // Bitcoin address
   paymail?: string;               // Paymail
