@@ -43,7 +43,7 @@ export const sigmaAuth = {
     try {
       const userInfo = JSON.parse(userInfoStr) as SigmaUserInfo;
       // Validate required fields
-      if (!userInfo.bapId || !userInfo.idKey || !userInfo.public_key || !userInfo.address) {
+      if (!userInfo.idKey || !userInfo.public_key || !userInfo.address) {
         console.error('[Sigma Auth] Invalid stored user info, clearing session');
         await sigmaAuth.clearSession();
         return null;
