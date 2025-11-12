@@ -124,7 +124,7 @@ export const sigmaAuth = {
 
     // Extract member BAP ID if available
     // Note: pubkey can be used to lookup BAP ID if needed, but if Sigma provides it, use it
-    const memberBapId = rawUserInfo.bapIdKey || rawUserInfo.member_bap_id || rawUserInfo.signingPubkey;
+    const memberBapId = rawUserInfo.bap_id || rawUserInfo.bapIdKey || rawUserInfo.member_bap_id || rawUserInfo.signingPubkey;
 
     // Build strictly typed user info
     const userInfo: SigmaUserInfo = {
@@ -181,7 +181,8 @@ export interface SigmaOAuthUserInfo {
   address?: string;               // Alternate field name
   avatar?: string;                // Avatar URL
   image?: string;                 // Alternate field name for avatar
-  bapIdKey?: string;              // Member BAP ID (derived from client + user)
+  bap_id?: string;                // Member BAP ID (primary field from server)
+  bapIdKey?: string;              // Member BAP ID (alternate field name)
   member_bap_id?: string;         // Alternate field name
   signingPubkey?: string;         // Alternate field name
 }
