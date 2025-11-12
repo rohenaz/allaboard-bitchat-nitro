@@ -4,7 +4,6 @@ export interface User {
   paymail?: string;
   wallet?: string;
   authToken?: string;
-  bapId?: string;
   idKey?: string;
   icon?: string;
   address?: string;

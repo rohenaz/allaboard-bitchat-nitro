@@ -7,22 +7,18 @@ import { loadFriends } from './memberListReducer';
 
 /**
  * Session user state
- * NOTE: bapId and idKey are THE SAME
- * - Ideally member BAP ID from Sigma
- * - Can be pubkey (valid for BAP ID lookups)
  */
 interface SessionUser {
   wallet?: string;           // 'sigma' | 'yours' | 'handcash' | 'guest'
 
   // Identity fields (from Sigma OAuth)
-  bapId?: string;           // Member BAP ID or pubkey (same as idKey)
-  idKey?: string;           // Member BAP ID or pubkey (same as bapId)
-  public_key?: string;      // Bitcoin public key
-  address?: string;         // Bitcoin address
-  paymail?: string;         // Paymail/email
+  idKey?: string;            // Member BAP ID from Sigma
+  public_key?: string;       // Bitcoin public key
+  address?: string;          // Bitcoin address
+  paymail?: string;          // Paymail/email
 
   // Legacy fields (for backwards compatibility)
-  authToken?: string;       // HandCash auth token
+  authToken?: string;        // HandCash auth token
 }
 
 interface SessionState {
@@ -64,7 +60,7 @@ const initialState: SessionState = {
 interface LoginPayload {
   wallet: string; // 'handcash' | 'yours' | 'guest'
   authToken?: string;
-  bapId?: string;
+  idKey?: string;
 }
 
 interface YoursUserPayload {
@@ -78,27 +74,26 @@ interface YoursUserPayload {
  */
 interface SigmaUserPayload {
   sub: string;              // OAuth user ID
-  bapId: string;           // Member BAP ID
-  idKey: string;           // Member BAP ID (same as bapId)
-  public_key: string;      // Bitcoin public key
-  address: string;         // Bitcoin address
-  paymail?: string;        // Paymail
-  displayName?: string;    // Display name
-  avatar?: string;         // Avatar URL
+  idKey: string;            // Member BAP ID from Sigma
+  public_key: string;       // Bitcoin public key
+  address: string;          // Bitcoin address
+  paymail?: string;         // Paymail
+  displayName?: string;     // Display name
+  avatar?: string;          // Avatar URL
 }
 
 export const login = createAsyncThunk(
   'session/login',
   async (
-    { wallet, authToken, bapId }: LoginPayload,
+    { wallet, authToken, idKey }: LoginPayload,
     { dispatch, rejectWithValue },
   ) => {
     try {
-      if (bapId) {
-        dispatch(setBapId(bapId));
+      if (idKey) {
+        dispatch(setBapId(idKey));
         dispatch(loadFriends());
       }
-      return { wallet, authToken, bapId };
+      return { wallet, authToken, idKey };
     } catch (err) {
       const error = err as { response?: { data?: string } };
       return rejectWithValue(error.response?.data || 'Login failed');
@@ -137,8 +132,7 @@ const sessionSlice = createSlice({
       state.error = null;
       state.user = {
         wallet: 'sigma',
-        bapId: action.payload.bapId,        // Member BAP ID
-        idKey: action.payload.idKey,        // Same as bapId
+        idKey: action.payload.idKey,        // Member BAP ID from Sigma
         public_key: action.payload.public_key,
         address: action.payload.address,
         paymail: action.payload.paymail,
@@ -180,7 +174,7 @@ const sessionSlice = createSlice({
         state.user = {
           wallet: action.payload.wallet,
           authToken: action.payload.authToken,
-          bapId: action.payload.bapId,
+          idKey: action.payload.idKey,
         };
         saveSessionToStorage(state.user);
         state.error = null;

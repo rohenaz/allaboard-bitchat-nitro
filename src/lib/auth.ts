@@ -131,7 +131,7 @@ export const sigmaAuth = {
     // Build strictly typed user info
     const userInfo: SigmaUserInfo = {
       sub: rawUserInfo.sub,
-      bapId: memberBapId,
+      idKey: memberBapId,
       public_key: publicKey,
       address: address,
       paymail: rawUserInfo.email,
@@ -189,7 +189,7 @@ export interface SigmaOAuthUserInfo {
  */
 export interface SigmaUserInfo {
   sub: string;                    // OAuth user ID
-  bapId: string;                  // Member BAP ID from Sigma
+  idKey: string;                  // Member BAP ID from Sigma
   public_key: string;             // Bitcoin public key
   address: string;                // Bitcoin address
   paymail?: string;               // Paymail
