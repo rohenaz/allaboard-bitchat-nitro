@@ -1,67 +1,58 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
 	theme: Theme;
 	setTheme: (theme: Theme) => void;
-	resolvedTheme: 'light' | 'dark';
+	toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = 'bitchat-theme';
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-	const [theme, setThemeState] = useState<Theme>(() => {
-		if (typeof window === 'undefined') return 'dark';
-		return (localStorage.getItem(THEME_STORAGE_KEY) as Theme) || 'dark';
-	});
+function getSystemTheme(): Theme {
+	if (typeof window === 'undefined') return 'dark';
+	return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
 
-	const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+function getInitialTheme(): Theme {
+	if (typeof window === 'undefined') return 'dark';
+	const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+	// If no stored preference, detect system preference
+	if (!stored) {
+		return getSystemTheme();
+	}
+	return stored;
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+	const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
 	useEffect(() => {
 		const root = window.document.documentElement;
 
-		const applyTheme = (newTheme: Theme) => {
-			let resolved: 'light' | 'dark';
+		if (theme === 'dark') {
+			root.classList.add('dark');
+		} else {
+			root.classList.remove('dark');
+		}
 
-			if (newTheme === 'system') {
-				resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-			} else {
-				resolved = newTheme;
-			}
-
-			setResolvedTheme(resolved);
-
-			if (resolved === 'dark') {
-				root.classList.add('dark');
-			} else {
-				root.classList.remove('dark');
-			}
-		};
-
-		applyTheme(theme);
-
-		// Listen for system theme changes
-		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-		const handleChange = () => {
-			if (theme === 'system') {
-				applyTheme('system');
-			}
-		};
-
-		mediaQuery.addEventListener('change', handleChange);
-		return () => mediaQuery.removeEventListener('change', handleChange);
+		// Persist the choice
+		localStorage.setItem(THEME_STORAGE_KEY, theme);
 	}, [theme]);
 
 	const setTheme = (newTheme: Theme) => {
-		localStorage.setItem(THEME_STORAGE_KEY, newTheme);
 		setThemeState(newTheme);
 	};
 
+	const toggleTheme = () => {
+		setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+	};
+
 	return (
-		<ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
+		<ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
 			{children}
 		</ThemeContext.Provider>
 	);

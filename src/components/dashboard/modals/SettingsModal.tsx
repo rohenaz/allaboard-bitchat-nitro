@@ -1,15 +1,5 @@
 import { useThemeTokenContext } from '@theme-token/sdk/react';
-import {
-	Copy,
-	ExternalLink,
-	Loader2,
-	Monitor,
-	Moon,
-	Palette,
-	RefreshCw,
-	Sun,
-	X,
-} from 'lucide-react';
+import { Copy, ExternalLink, Loader2, Moon, Palette, RefreshCw, Sun, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
@@ -21,8 +11,6 @@ import { useOwnedThemes } from '../../../hooks/useOwnedThemes';
 import { closeSettings, toggleHideUnverifiedMessages } from '../../../reducers/settingsReducer';
 import type { RootState } from '../../../store';
 import { SubscriptionPanel } from '../SubscriptionPanel';
-
-type Theme = 'light' | 'dark' | 'system';
 
 export const SettingsModal = () => {
 	const dispatch = useDispatch();
@@ -43,10 +31,9 @@ export const SettingsModal = () => {
 		dispatch(closeSettings());
 	}, [dispatch]);
 
-	const themeOptions: { value: Theme; label: string; icon: React.ReactNode }[] = [
+	const themeOptions: { value: 'light' | 'dark'; label: string; icon: React.ReactNode }[] = [
 		{ value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" /> },
 		{ value: 'dark', label: 'Dark', icon: <Moon className="h-4 w-4" /> },
-		{ value: 'system', label: 'System', icon: <Monitor className="h-4 w-4" /> },
 	];
 
 	return (
