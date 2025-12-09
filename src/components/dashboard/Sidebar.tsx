@@ -55,6 +55,7 @@ const ListWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 240px;
+  height: 100%;
   background-color: var(--card);
 `;
 

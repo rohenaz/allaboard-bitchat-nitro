@@ -6,6 +6,7 @@ import { Friends } from './Friends';
 import Header from './Header';
 import { MemberList } from './MemberList';
 import Sidebar from './Sidebar';
+import { SettingsModal } from './modals/SettingsModal';
 
 interface DashboardProps {
 	isFriendsPage: boolean;
@@ -17,7 +18,7 @@ const Container = styled.div`
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background-color: var(--background-primary);
+  background-color: var(--background);
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -29,7 +30,7 @@ const ContentWrapper = styled.div`
   flex-direction: column;
   min-height: 0;
   height: 100vh;
-  background-color: var(--background-primary);
+  background-color: var(--background);
 `;
 
 export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
@@ -57,6 +58,7 @@ export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
 				{renderMainContent()}
 			</ContentWrapper>
 			<MemberList />
+			<SettingsModal />
 		</Container>
 	);
 };

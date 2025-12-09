@@ -10,7 +10,7 @@ const Container = styled.main`
   min-width: 0;
   min-height: 0;
   height: 100%;
-  background-color: var(--background-primary);
+  background-color: var(--background);
   position: relative;
 `;
 

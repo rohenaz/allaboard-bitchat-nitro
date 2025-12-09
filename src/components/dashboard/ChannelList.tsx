@@ -47,14 +47,14 @@ const ChannelListContent: React.FC = () => {
 
 	if (loading) {
 		return (
-			<aside className="flex flex-col bg-card relative">
+			<aside className="flex flex-col h-full bg-card relative">
 				<div className="p-4 text-muted-foreground text-sm text-center">Loading channels...</div>
 			</aside>
 		);
 	}
 
 	return (
-		<aside className="flex flex-col bg-card relative">
+		<aside className="flex flex-col h-full bg-card relative">
 			<div className="flex items-center justify-between px-4 pt-4 pb-2 h-12">
 				<h2 className="uppercase font-semibold text-xs leading-4 text-muted-foreground m-0 select-none flex items-center">
 					Text Channels ({channels.length})
