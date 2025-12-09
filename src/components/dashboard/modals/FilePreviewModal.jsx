@@ -58,7 +58,7 @@ const FilePreviewModal = ({ open, onClose, file }) => {
         zIndex: 1000,
         width: '100vw',
         height: '100dvh',
-        background: 'rgba(0,0,0,.5)',
+        background: 'rgb(0 0 0 / 0.5)',
         alignItems: 'center',
         justifyContent: 'center',
         display: `${open ? 'flex' : 'none'}`,

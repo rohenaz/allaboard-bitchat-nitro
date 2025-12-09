@@ -49,8 +49,8 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
   ${({ $variant }) =>
 		$variant === 'primary'
 			? `
-    background-color: var(--brand);
-    color: white;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
     border: none;
 
     &:hover {

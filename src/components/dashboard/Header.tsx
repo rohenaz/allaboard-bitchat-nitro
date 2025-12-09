@@ -23,7 +23,7 @@ const Container = styled.header`
   height: 48px;
   min-height: 48px;
   background-color: var(--background-primary);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border);
   padding: 0 16px;
   position: relative;
   z-index: 1;

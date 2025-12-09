@@ -32,7 +32,7 @@ const fadeIn = keyframes`
 const ModalBackdrop = styled.div`
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgb(0 0 0 / 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,7 +121,7 @@ const ErrorMessage = styled.div`
   font-size: 14px;
   margin-bottom: 16px;
   padding: 8px 12px;
-  background-color: rgba(237, 66, 69, 0.1);
+  background-color: color-mix(in oklch, var(--destructive), transparent 90%);
   border-radius: 4px;
   border-left: 4px solid var(--text-danger);
 `;
@@ -146,10 +146,11 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
 		switch ($variant) {
 			case 'primary':
 				return `
-          background-color: var(--brand-experiment);
-          color: white;
+          background-color: var(--primary);
+          color: var(--primary-foreground);
           &:hover {
-            background-color: var(--brand-experiment-darker);
+            background-color: var(--primary);
+            opacity: 0.9;
           }
         `;
 			default:

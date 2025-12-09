@@ -71,10 +71,11 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
 		switch ($variant) {
 			case 'primary':
 				return `
-          background-color: var(--brand-experiment);
-          color: white;
+          background-color: var(--primary);
+          color: var(--primary-foreground);
           &:hover {
-            background-color: var(--brand-experiment-darker);
+            background-color: var(--primary);
+            opacity: 0.9;
           }
         `;
 			default:

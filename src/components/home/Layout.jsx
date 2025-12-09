@@ -16,7 +16,7 @@ const Wrapper = styled.div`
 const Container = styled.div`
   padding: 28px;
   background-color: var(--background-primary);
-  box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px 0 rgb(0 0 0 / 0.2);
   border-radius: 5px;
   display: flex;
   flex-direction: column;
@@ -37,7 +37,7 @@ const Header = styled.div`
   justify-content: center;
   text-align: center;
   font-size: 40px;
-  color: white;
+  color: var(--primary);
   margin-bottom: 20px;
 `;
 

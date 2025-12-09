@@ -74,9 +74,9 @@ const PopoverContainer = styled.div<{ $placement: string }>`
 
 const PopoverHeader = styled.div`
   position: relative;
-  background: linear-gradient(135deg, var(--brand-experiment) 0%, var(--brand-experiment-darker) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%);
   padding: 16px;
-  color: white;
+  color: var(--primary-foreground);
 `;
 
 const UserInfoSection = styled.div`
@@ -94,15 +94,16 @@ const UserDetails = styled.div`
 const DisplayName = styled.div`
   font-size: 18px;
   font-weight: 700;
-  color: white;
+  color: var(--primary-foreground);
   margin-bottom: 2px;
   word-break: break-word;
 `;
 
 const Username = styled.div`
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--primary-foreground);
   font-weight: 500;
+  opacity: 0.8;
 `;
 
 const StatusSection = styled.div`
@@ -127,20 +128,22 @@ const StatusIndicator = styled.div<{ $status: string }>`
 				return 'var(--text-muted)';
 		}
 	}};
-  border: 2px solid white;
+  border: 2px solid var(--primary-foreground);
 `;
 
 const StatusText = styled.div`
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--primary-foreground);
   font-weight: 500;
+  opacity: 0.9;
 `;
 
 const CustomStatus = styled.div`
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--primary-foreground);
   margin-top: 4px;
   font-style: italic;
+  opacity: 0.7;
 `;
 
 const PopoverBody = styled.div`
@@ -187,18 +190,20 @@ const ActionButton = styled.button<{
 		switch ($variant) {
 			case 'primary':
 				return `
-          background-color: var(--brand-experiment);
-          color: white;
+          background-color: var(--primary);
+          color: var(--primary-foreground);
           &:hover {
-            background-color: var(--brand-experiment-darker);
+            background-color: var(--primary);
+            opacity: 0.9;
           }
         `;
 			case 'danger':
 				return `
-          background-color: var(--status-danger);
-          color: white;
+          background-color: var(--destructive);
+          color: var(--destructive-foreground);
           &:hover {
-            background-color: var(--status-danger-darker);
+            background-color: var(--destructive);
+            opacity: 0.9;
           }
         `;
 			default:
@@ -226,8 +231,8 @@ const Divider = styled.div`
 
 const RoleTag = styled.span`
   display: inline-block;
-  background-color: var(--brand-experiment);
-  color: white;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
   font-size: 11px;
   font-weight: 600;
   padding: 2px 6px;

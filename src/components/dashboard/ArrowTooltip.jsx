@@ -7,14 +7,14 @@ const Wrapper = styled((p) => (
   <Tooltip classes={{ popper: p.className }} {...p} />
 ))`
   & .MuiTooltip-tooltip {
-    background-color: black;
-    color: white;
+    background-color: var(--popover);
+    color: var(--popover-foreground);
     font-size: 14px;
     padding: 10px;
   }
 
   & .MuiTooltip-arrow {
-    color: black;
+    color: var(--popover);
   }
 `;
 

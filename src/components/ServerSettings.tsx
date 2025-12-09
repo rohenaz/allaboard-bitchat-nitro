@@ -154,7 +154,7 @@ const Toggle = styled.input.attrs({ type: 'checkbox' })`
     left: 2px;
     width: 16px;
     height: 16px;
-    background-color: white;
+    background-color: var(--background);
     border-radius: 50%;
     transition: transform 0.2s ease;
   }

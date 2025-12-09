@@ -30,7 +30,7 @@ const SearchInput = styled.input`
 
   &:focus {
     border-color: var(--brand-experiment);
-    box-shadow: 0 0 0 2px rgba(var(--brand-experiment-rgb), 0.2);
+    box-shadow: 0 0 0 2px var(--ring);
   }
 
   &::placeholder {
@@ -55,7 +55,7 @@ const ResultsContainer = styled.div`
   background-color: var(--background-floating);
   border: 1px solid var(--background-modifier-accent);
   border-radius: 8px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgb(0 0 0 / 0.2);
   max-height: 400px;
   overflow-y: auto;
   z-index: 1000;
@@ -112,10 +112,11 @@ const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
 		switch ($variant) {
 			case 'primary':
 				return `
-          background-color: var(--brand-experiment);
-          color: var(--white);
+          background-color: var(--primary);
+          color: var(--primary-foreground);
           &:hover {
-            background-color: var(--brand-experiment-darker);
+            background-color: var(--primary);
+            opacity: 0.9;
           }
         `;
 			default:
