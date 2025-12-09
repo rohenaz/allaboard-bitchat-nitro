@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Moon, Sun, Monitor } from 'lucide-react';
+import { Moon, Sun, Monitor, Palette, Loader2, ExternalLink, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -10,12 +10,14 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/context/theme';
+import { useThemeToken } from '@/context/theme-token';
 import {
   closeSettings,
   toggleHideUnverifiedMessages,
 } from '../../../reducers/settingsReducer';
 import type { RootState } from '../../../store';
 import { cn } from '@/lib/utils';
+import { SubscriptionPanel } from '../SubscriptionPanel';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -25,6 +27,8 @@ export const SettingsModal = () => {
     (state: RootState) => state.settings,
   );
   const { theme, setTheme } = useTheme();
+  const { activeTheme, activeOrigin, loadTheme, resetTheme, isLoading, error } = useThemeToken();
+  const [themeOriginInput, setThemeOriginInput] = useState('');
 
   const handleClose = useCallback(() => {
     dispatch(closeSettings());
@@ -66,6 +70,91 @@ export const SettingsModal = () => {
             </div>
           </div>
 
+          {/* Theme Token Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium flex items-center gap-2">
+                <Palette className="h-4 w-4" />
+                Theme Token
+              </h4>
+              {activeTheme && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetTheme}
+                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Reset
+                </Button>
+              )}
+            </div>
+
+            {activeTheme ? (
+              <div className="rounded-lg border p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{activeTheme.name}</span>
+                  <a
+                    href={`https://themetoken.dev/preview/${activeOrigin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                  >
+                    Preview <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+                {activeTheme.author && (
+                  <p className="text-xs text-muted-foreground">by {activeTheme.author}</p>
+                )}
+                <p className="text-xs text-muted-foreground font-mono truncate">
+                  {activeOrigin?.slice(0, 12)}...{activeOrigin?.slice(-8)}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Load a custom theme from the blockchain
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={themeOriginInput}
+                    onChange={(e) => setThemeOriginInput(e.target.value)}
+                    placeholder="Enter theme origin (txid_vout)"
+                    className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (themeOriginInput.trim()) {
+                        loadTheme(themeOriginInput.trim());
+                        setThemeOriginInput('');
+                      }
+                    }}
+                    disabled={isLoading || !themeOriginInput.trim()}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      'Load'
+                    )}
+                  </Button>
+                </div>
+                {error && (
+                  <p className="text-xs text-destructive">{error.message}</p>
+                )}
+                <a
+                  href="https://themetoken.dev/themes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  Browse themes <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
+          </div>
+
           {/* Messages Section */}
           <div className="space-y-3">
             <h4 className="text-sm font-medium">Messages</h4>
@@ -87,6 +176,12 @@ export const SettingsModal = () => {
                 onCheckedChange={() => dispatch(toggleHideUnverifiedMessages())}
               />
             </div>
+          </div>
+
+          {/* Subscription Section */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium">Subscription</h4>
+            <SubscriptionPanel />
           </div>
         </div>
       </DialogContent>

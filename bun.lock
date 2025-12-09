@@ -19,7 +19,7 @@
         "@runonbitcoin/nimble": "^1.0.14",
         "@sigma-auth/better-auth-plugin": "0.0.15",
         "@tanstack/react-query": "^5.90.5",
-        "@theme-token/sdk": "^0.0.8",
+        "@theme-token/sdk": "^0.0.9",
         "@types/redux-logger": "^3.0.13",
         "@types/remarkable": "^2.0.8",
         "assert": "^2.1.0",
@@ -611,7 +611,7 @@
 
     "@tanstack/react-query": ["@tanstack/react-query@5.90.5", "", { "dependencies": { "@tanstack/query-core": "5.90.5" }, "peerDependencies": { "react": "^18 || ^19" } }, "sha512-pN+8UWpxZkEJ/Rnnj2v2Sxpx1WFlaa9L6a4UO89p6tTQbeo+m0MS8oYDjbggrR8QcTyjKoYWKS3xJQGr3ExT8Q=="],
 
-    "@theme-token/sdk": ["@theme-token/sdk@0.0.8", "", { "dependencies": { "zod": "^3.24.1" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["react"] }, "sha512-MtbQ+0dLSL3+AGdy/cDt2RQjfhttzhgRTbR7+AJClE1tFPBU+Er0dOMLE2P4WFpZx63MzU8YbQEccH6bf8tlcw=="],
+    "@theme-token/sdk": ["@theme-token/sdk@0.0.9", "", { "dependencies": { "zod": "^3.24.1" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["react"] }, "sha512-lmobevJPP7MWumgx3I5lLGQlsUECjbfdPfMxJJ70oBFNMbM1llCeWjJS99CJHCjtZbnSjsI6cDj0iio4zMFSUw=="],
 
     "@tootallnate/quickjs-emscripten": ["@tootallnate/quickjs-emscripten@0.23.0", "", {}, "sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA=="],
 
