@@ -138,86 +138,75 @@ const TextArea = styled.textarea`
 `;
 
 export const NewServerPage: FC = () => {
-  const navigate = useNavigate();
+	const navigate = useNavigate();
 
-  const handleBack = () => {
-    navigate('/channels');
-  };
+	const handleBack = () => {
+		navigate('/channels');
+	};
 
-  return (
-    <Container>
-      <Header>
-        <BackButton onClick={handleBack}>
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </BackButton>
-        <HeaderInfo>
-          <PageTitle>Submit a Server</PageTitle>
-        </HeaderInfo>
-      </Header>
+	return (
+		<Container>
+			<Header>
+				<BackButton onClick={handleBack}>
+					<svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M15 19l-7-7 7-7"
+						/>
+					</svg>
+					Back
+				</BackButton>
+				<HeaderInfo>
+					<PageTitle>Submit a Server</PageTitle>
+				</HeaderInfo>
+			</Header>
 
-      <Content>
-        <FormWrapper>
-          <ComingSoonBadge>
-            Server submissions opening soon - stay tuned
-          </ComingSoonBadge>
+			<Content>
+				<FormWrapper>
+					<ComingSoonBadge>Server submissions opening soon - stay tuned</ComingSoonBadge>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Server Submission Form</CardTitle>
-              <CardDescription>
-                Submit your server to be featured in BitChat Nitro. Once approved, users will be able to discover and join your community.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField>
-                <Label htmlFor="server-name">Server Name</Label>
-                <Input
-                  id="server-name"
-                  type="text"
-                  placeholder="My Awesome Server"
-                  disabled
-                />
-              </FormField>
+					<Card>
+						<CardHeader>
+							<CardTitle>Server Submission Form</CardTitle>
+							<CardDescription>
+								Submit your server to be featured in BitChat Nitro. Once approved, users will be
+								able to discover and join your community.
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<FormField>
+								<Label htmlFor="server-name">Server Name</Label>
+								<Input id="server-name" type="text" placeholder="My Awesome Server" disabled />
+							</FormField>
 
-              <FormField>
-                <Label htmlFor="server-email">Contact Email</Label>
-                <Input
-                  id="server-email"
-                  type="email"
-                  placeholder="admin@example.com"
-                  disabled
-                />
-              </FormField>
+							<FormField>
+								<Label htmlFor="server-email">Contact Email</Label>
+								<Input id="server-email" type="email" placeholder="admin@example.com" disabled />
+							</FormField>
 
-              <FormField>
-                <Label htmlFor="server-url">Server URL</Label>
-                <Input
-                  id="server-url"
-                  type="url"
-                  placeholder="https://myserver.com"
-                  disabled
-                />
-              </FormField>
+							<FormField>
+								<Label htmlFor="server-url">Server URL</Label>
+								<Input id="server-url" type="url" placeholder="https://myserver.com" disabled />
+							</FormField>
 
-              <FormField>
-                <Label htmlFor="server-description">Description</Label>
-                <TextArea
-                  id="server-description"
-                  placeholder="Tell us about your server..."
-                  disabled
-                />
-              </FormField>
+							<FormField>
+								<Label htmlFor="server-description">Description</Label>
+								<TextArea
+									id="server-description"
+									placeholder="Tell us about your server..."
+									disabled
+								/>
+							</FormField>
 
-              <Button disabled className="w-full">
-                Submit Server
-              </Button>
-            </CardContent>
-          </Card>
-        </FormWrapper>
-      </Content>
-    </Container>
-  );
+							<Button disabled className="w-full">
+								Submit Server
+							</Button>
+						</CardContent>
+					</Card>
+				</FormWrapper>
+			</Content>
+		</Container>
+	);
 };

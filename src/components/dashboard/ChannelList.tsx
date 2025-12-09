@@ -6,16 +6,16 @@ import styled from 'styled-components';
 import { loadChannels } from '../../reducers/channelsReducer';
 import type { AppDispatch, RootState } from '../../store';
 import ErrorBoundary from '../ErrorBoundary';
-import UserPanel from './UserPanel';
 import DirectMessageModal from './modals/DirectMessageModal';
+import UserPanel from './UserPanel';
 
 export interface Channel {
-  id?: string;
-  channel: string;
-  last_message_time?: number;
-  last_message?: string;
-  messages?: number;
-  creator?: string;
+	id?: string;
+	channel: string;
+	last_message_time?: number;
+	last_message?: string;
+	messages?: number;
+	creator?: string;
 }
 
 const Container = styled.aside`
@@ -107,8 +107,8 @@ const ChannelItem = styled.div<{ $isActive: boolean }>`
   }
 
   ${({ $isActive }) =>
-    $isActive &&
-    `
+		$isActive &&
+		`
     &::before {
       content: '';
       position: absolute;
@@ -157,90 +157,81 @@ const NoChannelsText = styled(LoadingText)`
 `;
 
 const ChannelListContent: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const params = useParams();
-  const [showDMModal, setShowDMModal] = useState(false);
+	const dispatch = useDispatch<AppDispatch>();
+	const navigate = useNavigate();
+	const params = useParams();
+	const [showDMModal, setShowDMModal] = useState(false);
 
-  const { loading, channels } = useSelector((state: RootState) => {
-    const { byId, allIds, loading } = state.channels;
-    return {
-      loading,
-      channels: allIds.map((id) => byId[id]).filter(Boolean),
-    };
-  });
+	const { loading, channels } = useSelector((state: RootState) => {
+		const { byId, allIds, loading } = state.channels;
+		return {
+			loading,
+			channels: allIds.map((id) => byId[id]).filter(Boolean),
+		};
+	});
 
-  useEffect(() => {
-    dispatch(loadChannels());
-  }, [dispatch]);
+	useEffect(() => {
+		dispatch(loadChannels());
+	}, [dispatch]);
 
-  const handleClick = useCallback(
-    (channelId: string) => {
-      navigate(`/channels/${channelId}`);
-    },
-    [navigate],
-  );
+	const handleClick = useCallback(
+		(channelId: string) => {
+			navigate(`/channels/${channelId}`);
+		},
+		[navigate],
+	);
 
-  if (loading) {
-    return (
-      <Container>
-        <LoadingText>Loading channels...</LoadingText>
-      </Container>
-    );
-  }
+	if (loading) {
+		return (
+			<Container>
+				<LoadingText>Loading channels...</LoadingText>
+			</Container>
+		);
+	}
 
-  return (
-    <Container>
-      <TitleRow>
-        <Title>Text Channels ({channels.length})</Title>
-        <AddDMButton
-          onClick={() => setShowDMModal(true)}
-          title="Start Direct Message"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-        </AddDMButton>
-      </TitleRow>
-      <ChannelList>
-        {!channels.length && <NoChannelsText>No channels found</NoChannelsText>}
-        {channels.map((channel) => (
-          <ChannelItem
-            key={channel.channel}
-            $isActive={channel.channel === params.channel}
-            onClick={() => handleClick(channel.channel)}
-          >
-            <HashtagIcon />
-            <ChannelName $isActive={channel.channel === params.channel}>
-              {channel.channel}
-            </ChannelName>
-          </ChannelItem>
-        ))}
-      </ChannelList>
-      <UserPanel />
-      {showDMModal && (
-        <DirectMessageModal onClose={() => setShowDMModal(false)} />
-      )}
-    </Container>
-  );
+	return (
+		<Container>
+			<TitleRow>
+				<Title>Text Channels ({channels.length})</Title>
+				<AddDMButton onClick={() => setShowDMModal(true)} title="Start Direct Message">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						strokeWidth={2}
+						stroke="currentColor"
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+					</svg>
+				</AddDMButton>
+			</TitleRow>
+			<ChannelList>
+				{!channels.length && <NoChannelsText>No channels found</NoChannelsText>}
+				{channels.map((channel) => (
+					<ChannelItem
+						key={channel.channel}
+						$isActive={channel.channel === params.channel}
+						onClick={() => handleClick(channel.channel)}
+					>
+						<HashtagIcon />
+						<ChannelName $isActive={channel.channel === params.channel}>
+							{channel.channel}
+						</ChannelName>
+					</ChannelItem>
+				))}
+			</ChannelList>
+			<UserPanel />
+			{showDMModal && <DirectMessageModal onClose={() => setShowDMModal(false)} />}
+		</Container>
+	);
 };
 
 const ChannelListWrapper: React.FC = () => {
-  return (
-    <ErrorBoundary>
-      <ChannelListContent />
-    </ErrorBoundary>
-  );
+	return (
+		<ErrorBoundary>
+			<ChannelListContent />
+		</ErrorBoundary>
+	);
 };
 
 export default ChannelListWrapper;

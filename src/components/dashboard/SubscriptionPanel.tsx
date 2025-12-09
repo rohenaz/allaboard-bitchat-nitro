@@ -5,31 +5,28 @@
  * Uses sigma-auth plugin for NFT-based subscription verification.
  */
 
-import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { Wallet, Crown, Loader2, ExternalLink, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import type { RootState } from "../../store";
 import type {
-	SubscriptionStatus,
 	ConnectedWallet,
+	SubscriptionStatus,
 	SubscriptionTier,
-} from "@sigma-auth/better-auth-plugin/client";
-import { SIGMA_AUTH_URL } from "../../config/constants";
+} from '@sigma-auth/better-auth-plugin/client';
+import { Crown, ExternalLink, Loader2, RefreshCw, Wallet } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { SIGMA_AUTH_URL } from '../../config/constants';
+import type { RootState } from '../../store';
 
 // Tier display configuration
-const TIER_CONFIG: Record<
-	SubscriptionTier,
-	{ label: string; color: string; icon: string }
-> = {
-	free: { label: "Free", color: "bg-muted text-muted-foreground", icon: "" },
-	plus: { label: "Plus", color: "bg-primary text-primary-foreground", icon: "" },
-	pro: { label: "Pro", color: "bg-purple-500 text-white", icon: "" },
-	premium: { label: "Premium", color: "bg-amber-500 text-white", icon: "" },
-	enterprise: { label: "Enterprise", color: "bg-blue-600 text-white", icon: "" },
+const TIER_CONFIG: Record<SubscriptionTier, { label: string; color: string; icon: string }> = {
+	free: { label: 'Free', color: 'bg-muted text-muted-foreground', icon: '' },
+	plus: { label: 'Plus', color: 'bg-primary text-primary-foreground', icon: '' },
+	pro: { label: 'Pro', color: 'bg-purple-500 text-white', icon: '' },
+	premium: { label: 'Premium', color: 'bg-amber-500 text-white', icon: '' },
+	enterprise: { label: 'Enterprise', color: 'bg-blue-600 text-white', icon: '' },
 };
 
 export function SubscriptionPanel() {
@@ -39,7 +36,7 @@ export function SubscriptionPanel() {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const accessToken = localStorage.getItem("sigma_access_token");
+	const accessToken = localStorage.getItem('sigma_access_token');
 	const bapId = session.user?.idKey;
 
 	// Fetch subscription status
@@ -60,14 +57,14 @@ export function SubscriptionPanel() {
 				setSubscription(subData);
 			} else if (subResponse.status === 404) {
 				// No BAP identity - set free tier
-				setSubscription({ tier: "free", isActive: false });
+				setSubscription({ tier: 'free', isActive: false });
 			}
 
 			// Fetch connected wallets
 			if (bapId) {
 				const walletResponse = await fetch(
 					`${SIGMA_AUTH_URL}/api/wallet/connect?bapId=${encodeURIComponent(bapId)}`,
-					{ headers: { Authorization: `Bearer ${accessToken}` } }
+					{ headers: { Authorization: `Bearer ${accessToken}` } },
 				);
 
 				if (walletResponse.ok) {
@@ -76,8 +73,8 @@ export function SubscriptionPanel() {
 				}
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to load subscription");
-			setSubscription({ tier: "free", isActive: false });
+			setError(err instanceof Error ? err.message : 'Failed to load subscription');
+			setSubscription({ tier: 'free', isActive: false });
 		} finally {
 			setLoading(false);
 		}
@@ -100,15 +97,13 @@ export function SubscriptionPanel() {
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-muted-foreground text-sm">
-						Sign in to view your subscription status.
-					</p>
+					<p className="text-muted-foreground text-sm">Sign in to view your subscription status.</p>
 				</CardContent>
 			</Card>
 		);
 	}
 
-	const tierConfig = TIER_CONFIG[subscription?.tier || "free"];
+	const tierConfig = TIER_CONFIG[subscription?.tier || 'free'];
 
 	return (
 		<div className="space-y-4">
@@ -120,18 +115,11 @@ export function SubscriptionPanel() {
 							<Crown className="h-5 w-5" />
 							Subscription
 						</CardTitle>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={fetchData}
-							disabled={loading}
-						>
-							<RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+						<Button variant="ghost" size="icon" onClick={fetchData} disabled={loading}>
+							<RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
 						</Button>
 					</div>
-					<CardDescription>
-						Your current plan and connected wallets
-					</CardDescription>
+					<CardDescription>Your current plan and connected wallets</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{loading ? (
@@ -156,14 +144,12 @@ export function SubscriptionPanel() {
 							)}
 
 							{/* Upgrade Link */}
-							{subscription?.tier === "free" && (
+							{subscription?.tier === 'free' && (
 								<Button
 									variant="outline"
 									size="sm"
 									className="w-full"
-									onClick={() =>
-										window.open("https://sigmaidentity.com/pricing", "_blank")
-									}
+									onClick={() => window.open('https://sigmaidentity.com/pricing', '_blank')}
 								>
 									<ExternalLink className="h-4 w-4 mr-2" />
 									Upgrade Plan
@@ -181,23 +167,19 @@ export function SubscriptionPanel() {
 						<Wallet className="h-4 w-4" />
 						Connected Wallets
 					</CardTitle>
-					<CardDescription>
-						Wallets linked to your identity for NFT verification
-					</CardDescription>
+					<CardDescription>Wallets linked to your identity for NFT verification</CardDescription>
 				</CardHeader>
 				<CardContent>
 					{wallets.length === 0 ? (
 						<div className="text-center py-4">
-							<p className="text-muted-foreground text-sm mb-3">
-								No wallets connected
-							</p>
+							<p className="text-muted-foreground text-sm mb-3">No wallets connected</p>
 							<Button
 								variant="outline"
 								size="sm"
 								onClick={() =>
 									window.open(
-										`https://sigmaidentity.com/dashboard/wallets`,
-										"_blank"
+										`https://auth.sigmaidentity.com/account${bapId ? `/${bapId}` : ''}`,
+										'_blank',
 									)
 								}
 							>
@@ -236,8 +218,8 @@ export function SubscriptionPanel() {
 								className="w-full mt-2"
 								onClick={() =>
 									window.open(
-										`https://sigmaidentity.com/dashboard/wallets`,
-										"_blank"
+										`https://auth.sigmaidentity.com/account${bapId ? `/${bapId}` : ''}`,
+										'_blank',
 									)
 								}
 							>

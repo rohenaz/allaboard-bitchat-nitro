@@ -170,104 +170,112 @@ const Toggle = styled.input.attrs({ type: 'checkbox' })`
 `;
 
 export const ServerSettings: FC = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { serverId } = useParams<{ serverId: string }>();
-  const { hideUnverifiedMessages } = useSelector((state: RootState) => state.settings);
+	const dispatch = useDispatch();
+	const navigate = useNavigate();
+	const { serverId } = useParams<{ serverId: string }>();
+	const { hideUnverifiedMessages } = useSelector((state: RootState) => state.settings);
 
-  const server = serverId ? getServerById(serverId) : undefined;
+	const server = serverId ? getServerById(serverId) : undefined;
 
-  if (!server) {
-    return (
-      <Container>
-        <Header>
-          <BackButton onClick={() => navigate('/channels')}>
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back
-          </BackButton>
-          <HeaderInfo>
-            <ServerName>Server Not Found</ServerName>
-          </HeaderInfo>
-        </Header>
-        <Content>
-          <Section>
-            <p>The server "{serverId}" could not be found.</p>
-          </Section>
-        </Content>
-      </Container>
-    );
-  }
+	if (!server) {
+		return (
+			<Container>
+				<Header>
+					<BackButton onClick={() => navigate('/channels')}>
+						<svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M15 19l-7-7 7-7"
+							/>
+						</svg>
+						Back
+					</BackButton>
+					<HeaderInfo>
+						<ServerName>Server Not Found</ServerName>
+					</HeaderInfo>
+				</Header>
+				<Content>
+					<Section>
+						<p>The server "{serverId}" could not be found.</p>
+					</Section>
+				</Content>
+			</Container>
+		);
+	}
 
-  const handleBack = () => {
-    navigate('/channels');
-  };
+	const handleBack = () => {
+		navigate('/channels');
+	};
 
-  return (
-    <Container>
-      <Header>
-        <BackButton onClick={handleBack}>
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back
-        </BackButton>
-        <HeaderInfo>
-          <ServerIcon src={server.icon} alt={server.name} />
-          <ServerInfo>
-            <ServerName>{server.name} Settings</ServerName>
-            <ServerDescription>{server.description}</ServerDescription>
-          </ServerInfo>
-        </HeaderInfo>
-      </Header>
+	return (
+		<Container>
+			<Header>
+				<BackButton onClick={handleBack}>
+					<svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M15 19l-7-7 7-7"
+						/>
+					</svg>
+					Back
+				</BackButton>
+				<HeaderInfo>
+					<ServerIcon src={server.icon} alt={server.name} />
+					<ServerInfo>
+						<ServerName>{server.name} Settings</ServerName>
+						<ServerDescription>{server.description}</ServerDescription>
+					</ServerInfo>
+				</HeaderInfo>
+			</Header>
 
-      <Content>
-        <Section>
-          <SectionTitle>Messages</SectionTitle>
-          <SettingRow>
-            <SettingInfo>
-              <SettingLabel htmlFor="hide-unverified">
-                Hide unverified messages
-              </SettingLabel>
-              <SettingDescription>
-                Only show messages that have been verified on the blockchain
-              </SettingDescription>
-            </SettingInfo>
-            <Toggle
-              id="hide-unverified"
-              checked={hideUnverifiedMessages}
-              onChange={() => dispatch(toggleHideUnverifiedMessages())}
-            />
-          </SettingRow>
-        </Section>
+			<Content>
+				<Section>
+					<SectionTitle>Messages</SectionTitle>
+					<SettingRow>
+						<SettingInfo>
+							<SettingLabel htmlFor="hide-unverified">Hide unverified messages</SettingLabel>
+							<SettingDescription>
+								Only show messages that have been verified on the blockchain
+							</SettingDescription>
+						</SettingInfo>
+						<Toggle
+							id="hide-unverified"
+							checked={hideUnverifiedMessages}
+							onChange={() => dispatch(toggleHideUnverifiedMessages())}
+						/>
+					</SettingRow>
+				</Section>
 
-        <Section>
-          <SectionTitle>Server Information</SectionTitle>
-          <SettingRow>
-            <SettingInfo>
-              <SettingLabel>Server ID</SettingLabel>
-              <SettingDescription>{server._id}</SettingDescription>
-            </SettingInfo>
-          </SettingRow>
-          <SettingRow>
-            <SettingInfo>
-              <SettingLabel>Type</SettingLabel>
-              <SettingDescription>
-                {server.isNative ? 'Native Interface' : 'External Server (iframe)'}
-              </SettingDescription>
-            </SettingInfo>
-          </SettingRow>
-          {server.paymail && (
-            <SettingRow>
-              <SettingInfo>
-                <SettingLabel>Paymail</SettingLabel>
-                <SettingDescription>{server.paymail}</SettingDescription>
-              </SettingInfo>
-            </SettingRow>
-          )}
-        </Section>
-      </Content>
-    </Container>
-  );
+				<Section>
+					<SectionTitle>Server Information</SectionTitle>
+					<SettingRow>
+						<SettingInfo>
+							<SettingLabel>Server ID</SettingLabel>
+							<SettingDescription>{server._id}</SettingDescription>
+						</SettingInfo>
+					</SettingRow>
+					<SettingRow>
+						<SettingInfo>
+							<SettingLabel>Type</SettingLabel>
+							<SettingDescription>
+								{server.isNative ? 'Native Interface' : 'External Server (iframe)'}
+							</SettingDescription>
+						</SettingInfo>
+					</SettingRow>
+					{server.paymail && (
+						<SettingRow>
+							<SettingInfo>
+								<SettingLabel>Paymail</SettingLabel>
+								<SettingDescription>{server.paymail}</SettingDescription>
+							</SettingInfo>
+						</SettingRow>
+					)}
+				</Section>
+			</Content>
+		</Container>
+	);
 };

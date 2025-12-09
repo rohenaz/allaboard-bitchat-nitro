@@ -5,15 +5,15 @@ import MessageFile from './MessageFile';
 import FilePreviewModal from './modals/FilePreviewModal';
 
 interface File {
-  txid?: string;
-  name?: string;
-  url?: string;
-  'content-type'?: string;
-  media_type?: string;
+	txid?: string;
+	name?: string;
+	url?: string;
+	'content-type'?: string;
+	media_type?: string;
 }
 
 interface MessageFilesProps {
-  files?: File[];
+	files?: File[];
 }
 
 const Container = styled.div`
@@ -26,31 +26,31 @@ const Container = styled.div`
 `;
 
 const MessageFiles: React.FC<MessageFilesProps> = ({ files }) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  if (!files || files.length === 0) {
-    return null;
-  }
+	if (!files || files.length === 0) {
+		return null;
+	}
 
-  return (
-    <>
-      <Container>
-        {files.map((file, index) => (
-          <MessageFile
-            key={file.txid || file.url || `file-${index}`}
-            file={file}
-            onClick={() => setSelectedFile(file)}
-          />
-        ))}
-      </Container>
+	return (
+		<>
+			<Container>
+				{files.map((file, index) => (
+					<MessageFile
+						key={file.txid || file.url || `file-${index}`}
+						file={file}
+						onClick={() => setSelectedFile(file)}
+					/>
+				))}
+			</Container>
 
-      <FilePreviewModal
-        open={!!selectedFile}
-        file={selectedFile}
-        onClose={() => setSelectedFile(null)}
-      />
-    </>
-  );
+			<FilePreviewModal
+				open={!!selectedFile}
+				file={selectedFile}
+				onClose={() => setSelectedFile(null)}
+			/>
+		</>
+	);
 };
 
 export default MessageFiles;

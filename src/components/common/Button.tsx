@@ -2,33 +2,33 @@ import type { FC, ReactNode } from 'react';
 import styled, { css } from 'styled-components';
 
 interface ButtonProps {
-  children: ReactNode;
-  onClick?: () => void;
-  className?: string;
-  type?: 'button' | 'submit' | 'reset';
-  disabled?: boolean;
-  variant?: 'primary' | 'secondary' | 'accent' | 'ghost' | 'link';
-  size?: 'xs' | 'sm' | 'md' | 'lg';
-  fullWidth?: boolean;
+	children: ReactNode;
+	onClick?: () => void;
+	className?: string;
+	type?: 'button' | 'submit' | 'reset';
+	disabled?: boolean;
+	variant?: 'primary' | 'secondary' | 'accent' | 'ghost' | 'link';
+	size?: 'xs' | 'sm' | 'md' | 'lg';
+	fullWidth?: boolean;
 }
 
 const sizeStyles = {
-  xs: css`
+	xs: css`
     padding: 2px 12px;
     font-size: 12px;
     min-height: 24px;
   `,
-  sm: css`
+	sm: css`
     padding: 4px 16px;
     font-size: 14px;
     min-height: 32px;
   `,
-  md: css`
+	md: css`
     padding: 8px 16px;
     font-size: 14px;
     min-height: 38px;
   `,
-  lg: css`
+	lg: css`
     padding: 12px 20px;
     font-size: 16px;
     min-height: 44px;
@@ -36,7 +36,7 @@ const sizeStyles = {
 };
 
 const variantStyles = {
-  primary: css`
+	primary: css`
     background-color: var(--brand-experiment);
     color: var(--white-500);
     
@@ -48,7 +48,7 @@ const variantStyles = {
       background-color: var(--brand-experiment-560);
     }
   `,
-  secondary: css`
+	secondary: css`
     background-color: var(--background-modifier-accent);
     color: var(--text-normal);
     
@@ -60,7 +60,7 @@ const variantStyles = {
       background-color: var(--background-modifier-active);
     }
   `,
-  accent: css`
+	accent: css`
     background-color: var(--green-360);
     color: var(--white-500);
     
@@ -74,7 +74,7 @@ const variantStyles = {
       filter: brightness(0.9);
     }
   `,
-  ghost: css`
+	ghost: css`
     background-color: transparent;
     color: var(--text-normal);
     
@@ -87,7 +87,7 @@ const variantStyles = {
       background-color: var(--background-modifier-active);
     }
   `,
-  link: css`
+	link: css`
     background-color: transparent;
     color: var(--text-link);
     padding: 0;
@@ -101,9 +101,9 @@ const variantStyles = {
 };
 
 interface StyledButtonProps {
-  $variant: ButtonProps['variant'];
-  $size: ButtonProps['size'];
-  $fullWidth?: boolean;
+	$variant: ButtonProps['variant'];
+	$size: ButtonProps['size'];
+	$fullWidth?: boolean;
 }
 
 const StyledButton = styled.button<StyledButtonProps>`
@@ -135,26 +135,26 @@ const StyledButton = styled.button<StyledButtonProps>`
 `;
 
 export const Button: FC<ButtonProps> = ({
-  children,
-  onClick,
-  className,
-  type = 'button',
-  disabled = false,
-  variant = 'primary',
-  size = 'md',
-  fullWidth = false,
+	children,
+	onClick,
+	className,
+	type = 'button',
+	disabled = false,
+	variant = 'primary',
+	size = 'md',
+	fullWidth = false,
 }) => {
-  return (
-    <StyledButton
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={className}
-      $variant={variant}
-      $size={size}
-      $fullWidth={fullWidth}
-    >
-      {children}
-    </StyledButton>
-  );
+	return (
+		<StyledButton
+			type={type}
+			onClick={onClick}
+			disabled={disabled}
+			className={className}
+			$variant={variant}
+			$size={size}
+			$fullWidth={fullWidth}
+		>
+			{children}
+		</StyledButton>
+	);
 };

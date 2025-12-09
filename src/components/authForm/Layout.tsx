@@ -2,8 +2,8 @@ import type { FC, ReactNode } from 'react';
 import styled from 'styled-components';
 
 interface LayoutProps {
-  heading: string;
-  children: ReactNode;
+	heading: string;
+	children: ReactNode;
 }
 
 const Container = styled.div`
@@ -57,18 +57,18 @@ const Content = styled.div`
 `;
 
 const Layout: FC<LayoutProps> = ({ heading, children }) => {
-  return (
-    <Container>
-      <Card>
-        <Header>
-          <Logo src="/images/logo-noBgColor.svg" alt="BitChat Logo" />
-          <Heading>Welcome to BitChat</Heading>
-          <SubHeading>{heading}</SubHeading>
-        </Header>
-        <Content>{children}</Content>
-      </Card>
-    </Container>
-  );
+	return (
+		<Container>
+			<Card>
+				<Header>
+					<Logo src="/images/logo-noBgColor.svg" alt="BitChat Logo" />
+					<Heading>Welcome to BitChat</Heading>
+					<SubHeading>{heading}</SubHeading>
+				</Header>
+				<Content>{children}</Content>
+			</Card>
+		</Container>
+	);
 };
 
 export default Layout;

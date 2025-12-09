@@ -9,13 +9,13 @@ import { loadChannels } from '../../../reducers/channelsReducer';
 import type { AppDispatch, RootState } from '../../../store';
 
 interface Channel {
-  id: string;
-  name: string;
-  members: string[];
+	id: string;
+	name: string;
+	members: string[];
 }
 
 interface DirectMessageModalProps {
-  onClose: () => void;
+	onClose: () => void;
 }
 
 const fadeIn = keyframes`
@@ -143,17 +143,17 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
   transition: all 0.15s ease;
 
   ${({ $variant = 'secondary' }) => {
-    switch ($variant) {
-      case 'primary':
-        return `
+		switch ($variant) {
+			case 'primary':
+				return `
           background-color: var(--brand-experiment);
           color: white;
           &:hover {
             background-color: var(--brand-experiment-darker);
           }
         `;
-      default:
-        return `
+			default:
+				return `
           background-color: transparent;
           color: var(--text-normal);
           border: 1px solid var(--background-modifier-accent);
@@ -161,8 +161,8 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
             background-color: var(--background-modifier-hover);
           }
         `;
-    }
-  }}
+		}
+	}}
 
   &:disabled {
     opacity: 0.5;
@@ -171,127 +171,123 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
 `;
 
 const DirectMessageModal = ({ onClose }: DirectMessageModalProps) => {
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const currentUser = useSelector((state: RootState) => state.session.user);
+	const [username, setUsername] = useState('');
+	const [error, setError] = useState('');
+	const [isLoading, setIsLoading] = useState(false);
+	const dispatch = useDispatch<AppDispatch>();
+	const navigate = useNavigate();
+	const currentUser = useSelector((state: RootState) => state.session.user);
 
-  const handleEscapeKey = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    },
-    [onClose],
-  );
+	const handleEscapeKey = useCallback(
+		(e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				onClose();
+			}
+		},
+		[onClose],
+	);
 
-  useEffect(() => {
-    document.addEventListener('keydown', handleEscapeKey);
-    return () => {
-      document.removeEventListener('keydown', handleEscapeKey);
-    };
-  }, [handleEscapeKey]);
+	useEffect(() => {
+		document.addEventListener('keydown', handleEscapeKey);
+		return () => {
+			document.removeEventListener('keydown', handleEscapeKey);
+		};
+	}, [handleEscapeKey]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		setError('');
+		setIsLoading(true);
 
-    if (!currentUser?.idKey) {
-      setError('Not logged in');
-      setIsLoading(false);
-      return;
-    }
+		if (!currentUser?.idKey) {
+			setError('Not logged in');
+			setIsLoading(false);
+			return;
+		}
 
-    try {
-      // Find user by username using autofill
-      const users = await autofill(username);
+		try {
+			// Find user by username using autofill
+			const users = await autofill(username);
 
-      const targetUser = users.find(
-        (user) =>
-          user.name.toLowerCase() === username.toLowerCase() ||
-          user.paymail?.toLowerCase() === username.toLowerCase(),
-      );
-      if (!targetUser) {
-        setError('User not found');
-        setIsLoading(false);
-        return;
-      }
+			const targetUser = users.find(
+				(user) =>
+					user.name.toLowerCase() === username.toLowerCase() ||
+					user.paymail?.toLowerCase() === username.toLowerCase(),
+			);
+			if (!targetUser) {
+				setError('User not found');
+				setIsLoading(false);
+				return;
+			}
 
-      // Create DM channel
-      const channel = await api.post<Channel>('/channels', {
-        type: 'dm',
-        members: [currentUser.idKey, targetUser.idKey],
-      });
+			// Create DM channel
+			const channel = await api.post<Channel>('/channels', {
+				type: 'dm',
+				members: [currentUser.idKey, targetUser.idKey],
+			});
 
-      await dispatch(loadChannels());
-      navigate(`/channels/${channel.id}`);
-      onClose();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create DM');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+			await dispatch(loadChannels());
+			navigate(`/channels/${channel.id}`);
+			onClose();
+		} catch (error) {
+			setError(error instanceof Error ? error.message : 'Failed to create DM');
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
-  };
+	const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+		setUsername(e.target.value);
+	};
 
-  return (
-    <ModalBackdrop
-      onClick={onClose}
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
-      role="presentation"
-    >
-      <ModalContainer
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="dm-modal-title"
-        aria-modal="true"
-      >
-        <ModalHeader>
-          <ModalTitle id="dm-modal-title">Start Direct Message</ModalTitle>
-          <CloseButton type="button" onClick={onClose} aria-label="Close modal">
-            ✕
-          </CloseButton>
-        </ModalHeader>
+	return (
+		<ModalBackdrop
+			onClick={onClose}
+			onKeyDown={(e) => e.key === 'Escape' && onClose()}
+			role="presentation"
+		>
+			<ModalContainer
+				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
+				role="dialog"
+				aria-labelledby="dm-modal-title"
+				aria-modal="true"
+			>
+				<ModalHeader>
+					<ModalTitle id="dm-modal-title">Start Direct Message</ModalTitle>
+					<CloseButton type="button" onClick={onClose} aria-label="Close modal">
+						✕
+					</CloseButton>
+				</ModalHeader>
 
-        <ModalBody>
-          <form onSubmit={handleSubmit}>
-            {error && <ErrorMessage>{error}</ErrorMessage>}
+				<ModalBody>
+					<form onSubmit={handleSubmit}>
+						{error && <ErrorMessage>{error}</ErrorMessage>}
 
-            <FormGroup>
-              <Input
-                type="text"
-                placeholder="Enter username or paymail"
-                value={username}
-                onChange={handleInputChange}
-                disabled={isLoading}
-                autoFocus
-              />
-            </FormGroup>
+						<FormGroup>
+							<Input
+								type="text"
+								placeholder="Enter username or paymail"
+								value={username}
+								onChange={handleInputChange}
+								disabled={isLoading}
+								autoFocus
+							/>
+						</FormGroup>
 
-            <ButtonGroup>
-              <Button type="button" onClick={onClose} disabled={isLoading}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                $variant="primary"
-                disabled={!username.trim() || isLoading}
-              >
-                {isLoading ? 'Creating...' : 'Start Conversation'}
-              </Button>
-            </ButtonGroup>
-          </form>
-        </ModalBody>
-      </ModalContainer>
-    </ModalBackdrop>
-  );
+						<ButtonGroup>
+							<Button type="button" onClick={onClose} disabled={isLoading}>
+								Cancel
+							</Button>
+							<Button type="submit" $variant="primary" disabled={!username.trim() || isLoading}>
+								{isLoading ? 'Creating...' : 'Start Conversation'}
+							</Button>
+						</ButtonGroup>
+					</form>
+				</ModalBody>
+			</ModalContainer>
+		</ModalBackdrop>
+	);
 };
 
 export default DirectMessageModal;

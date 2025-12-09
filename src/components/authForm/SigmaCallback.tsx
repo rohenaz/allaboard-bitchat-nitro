@@ -48,119 +48,111 @@ const LoadingText = styled.p`
 `;
 
 export const SigmaCallback: FC = () => {
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const [error, setError] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
+	const [error, setError] = useState<string>('');
+	const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state = urlParams.get('state');
-        const errorParam = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
+	useEffect(() => {
+		const handleCallback = async () => {
+			try {
+				const urlParams = new URLSearchParams(window.location.search);
+				const code = urlParams.get('code');
+				const state = urlParams.get('state');
+				const errorParam = urlParams.get('error');
+				const errorDescription = urlParams.get('error_description');
 
-        // Handle OAuth error responses
-        if (errorParam) {
-          let errorMessage = `Authentication error: ${errorParam}`;
-          if (errorDescription) {
-            errorMessage += ` - ${errorDescription}`;
-          }
-          setError(errorMessage);
-          setIsLoading(false);
-          return;
-        }
+				// Handle OAuth error responses
+				if (errorParam) {
+					let errorMessage = `Authentication error: ${errorParam}`;
+					if (errorDescription) {
+						errorMessage += ` - ${errorDescription}`;
+					}
+					setError(errorMessage);
+					setIsLoading(false);
+					return;
+				}
 
-        // Validate required parameters
-        if (!code) {
-          setError(
-            'No authorization code received from authentication provider',
-          );
-          setIsLoading(false);
-          return;
-        }
+				// Validate required parameters
+				if (!code) {
+					setError('No authorization code received from authentication provider');
+					setIsLoading(false);
+					return;
+				}
 
-        // Exchange code for user information with state validation
-        const userInfo = await sigmaAuth.handleCallback(
-          code,
-          state || undefined,
-        );
+				// Exchange code for user information with state validation
+				const userInfo = await sigmaAuth.handleCallback(code, state || undefined);
 
-        // userInfo is strictly typed SigmaUserInfo with required fields validated
-        // Update session state in Redux
-        dispatch(setSigmaUser(userInfo));
-        await dispatch(loadChannels());
-        navigate('/channels/nitro');
-      } catch (err) {
-        console.error('OAuth callback error:', err);
+				// userInfo is strictly typed SigmaUserInfo with required fields validated
+				// Update session state in Redux
+				dispatch(setSigmaUser(userInfo));
+				await dispatch(loadChannels());
+				navigate('/channels/nitro');
+			} catch (err) {
+				console.error('OAuth callback error:', err);
 
-        const errorMessage =
-          err instanceof Error ? err.message : 'Authentication failed';
+				const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
 
-        // Handle specific error types
-        if (errorMessage.includes('Invalid or expired state')) {
-          setError('Security validation failed. Please try signing in again.');
-        } else if (errorMessage.includes('Network')) {
-          setError(
-            'Network error. Please check your connection and try again.',
-          );
-        } else if (errorMessage.includes('Token exchange failed')) {
-          setError('Failed to complete authentication. Please try again.');
-        } else {
-          setError(errorMessage);
-        }
+				// Handle specific error types
+				if (errorMessage.includes('Invalid or expired state')) {
+					setError('Security validation failed. Please try signing in again.');
+				} else if (errorMessage.includes('Network')) {
+					setError('Network error. Please check your connection and try again.');
+				} else if (errorMessage.includes('Token exchange failed')) {
+					setError('Failed to complete authentication. Please try again.');
+				} else {
+					setError(errorMessage);
+				}
 
-        setIsLoading(false);
-      }
-    };
+				setIsLoading(false);
+			}
+		};
 
-    handleCallback();
-  }, [dispatch, navigate]);
+		handleCallback();
+	}, [dispatch, navigate]);
 
-  const handleBackToLogin = () => {
-    // Clear any stored auth state
-    sigmaAuth.clearSession();
-    navigate('/login');
-  };
+	const handleBackToLogin = () => {
+		// Clear any stored auth state
+		sigmaAuth.clearSession();
+		navigate('/login');
+	};
 
-  if (isLoading) {
-    return (
-      <Layout heading="Completing Bitcoin Authentication">
-        <LoadingContainer>
-          <LoadingSpinner />
-          <LoadingText>Verifying your Bitcoin identity...</LoadingText>
-        </LoadingContainer>
-      </Layout>
-    );
-  }
+	if (isLoading) {
+		return (
+			<Layout heading="Completing Bitcoin Authentication">
+				<LoadingContainer>
+					<LoadingSpinner />
+					<LoadingText>Verifying your Bitcoin identity...</LoadingText>
+				</LoadingContainer>
+			</Layout>
+		);
+	}
 
-  if (error) {
-    return (
-      <Layout heading="Authentication Error">
-        <ErrorMessage>{error}</ErrorMessage>
-        <LoadingContainer>
-          <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-            <button
-              type="button"
-              onClick={handleBackToLogin}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: 'var(--background-modifier-accent)',
-                color: 'var(--text-normal)',
-                border: '1px solid var(--background-modifier-accent)',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              Back to Login
-            </button>
-          </div>
-        </LoadingContainer>
-      </Layout>
-    );
-  }
+	if (error) {
+		return (
+			<Layout heading="Authentication Error">
+				<ErrorMessage>{error}</ErrorMessage>
+				<LoadingContainer>
+					<div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+						<button
+							type="button"
+							onClick={handleBackToLogin}
+							style={{
+								padding: '12px 24px',
+								backgroundColor: 'var(--background-modifier-accent)',
+								color: 'var(--text-normal)',
+								border: '1px solid var(--background-modifier-accent)',
+								borderRadius: '4px',
+								cursor: 'pointer',
+							}}
+						>
+							Back to Login
+						</button>
+					</div>
+				</LoadingContainer>
+			</Layout>
+		);
+	}
 
-  return null;
+	return null;
 };

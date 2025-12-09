@@ -9,7 +9,7 @@ import ServerList from './ServerList';
 import { UserList } from './UserList';
 
 interface ContainerProps {
-  $isOpen: boolean;
+	$isOpen: boolean;
 }
 
 const Overlay = styled.div<ContainerProps>`
@@ -59,29 +59,29 @@ const ListWrapper = styled.div`
 `;
 
 const Sidebar = () => {
-  const dispatch = useDispatch();
-  const params = useParams();
-  const activeUserId = useMemo(() => params.user, [params]);
-  const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
+	const dispatch = useDispatch();
+	const params = useParams();
+	const activeUserId = useMemo(() => params.user, [params]);
+	const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
 
-  const handleOverlayClick = () => {
-    dispatch(toggleSidebar());
-  };
+	const handleOverlayClick = () => {
+		dispatch(toggleSidebar());
+	};
 
-  return (
-    <>
-      <Overlay $isOpen={isOpen} onClick={handleOverlayClick} />
-      <Container $isOpen={isOpen}>
-        <ServerListWrapper>
-          <ServerList />
-        </ServerListWrapper>
-        <ListWrapper>
-          {!activeUserId && <ChannelList />}
-          {activeUserId && <UserList activeUserId={activeUserId} />}
-        </ListWrapper>
-      </Container>
-    </>
-  );
+	return (
+		<>
+			<Overlay $isOpen={isOpen} onClick={handleOverlayClick} />
+			<Container $isOpen={isOpen}>
+				<ServerListWrapper>
+					<ServerList />
+				</ServerListWrapper>
+				<ListWrapper>
+					{!activeUserId && <ChannelList />}
+					{activeUserId && <UserList activeUserId={activeUserId} />}
+				</ListWrapper>
+			</Container>
+		</>
+	);
 };
 
 export default Sidebar;

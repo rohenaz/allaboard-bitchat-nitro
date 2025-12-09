@@ -1,12 +1,6 @@
 import type { FC } from 'react';
 import { useRef, useState } from 'react';
-import {
-  FaComments,
-  FaEllipsisV,
-  FaUserCheck,
-  FaUserMinus,
-  FaUserPlus,
-} from 'react-icons/fa';
+import { FaComments, FaEllipsisV, FaUserCheck, FaUserMinus, FaUserPlus } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import type { RootState } from '../../store';
@@ -16,21 +10,21 @@ import Avatar from './Avatar';
 import { UserPopover } from './UserPopover';
 
 interface User {
-  id: string;
-  name: string;
-  avatar: string;
-  paymail?: string;
-  bapId: string;
-  idKey: string;
-  status: 'online' | 'offline';
+	id: string;
+	name: string;
+	avatar: string;
+	paymail?: string;
+	bapId: string;
+	idKey: string;
+	status: 'online' | 'offline';
 }
 
 interface UserListProps {
-  users?: User[];
-  loading?: boolean;
-  title?: string;
-  showFriendRequests?: boolean;
-  activeUserId?: string;
+	users?: User[];
+	loading?: boolean;
+	title?: string;
+	showFriendRequests?: boolean;
+	activeUserId?: string;
 }
 
 const Container = styled.div`
@@ -57,7 +51,7 @@ const UserItem = styled.div<{ $isActive?: boolean }>`
   cursor: pointer;
   transition: background-color 0.15s ease;
   background-color: ${({ $isActive }) =>
-    $isActive ? 'var(--background-modifier-selected)' : 'transparent'};
+		$isActive ? 'var(--background-modifier-selected)' : 'transparent'};
   
   &:hover {
     background-color: var(--background-modifier-hover);
@@ -80,8 +74,7 @@ const UserInfo = styled.div`
 const Username = styled.div<{ $isActive?: boolean }>`
   font-size: 14px;
   font-weight: 500;
-  color: ${({ $isActive }) =>
-    $isActive ? 'var(--text-normal)' : 'var(--channels-default)'};
+  color: ${({ $isActive }) => ($isActive ? 'var(--text-normal)' : 'var(--channels-default)')};
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -100,17 +93,17 @@ const StatusDot = styled.div<{ $status: string }>`
   height: 8px;
   border-radius: 50%;
   background-color: ${({ $status }) => {
-    switch ($status) {
-      case 'online':
-        return 'var(--status-positive)';
-      case 'away':
-        return 'var(--status-warning)';
-      case 'dnd':
-        return 'var(--status-danger)';
-      default:
-        return 'var(--text-muted)';
-    }
-  }};
+		switch ($status) {
+			case 'online':
+				return 'var(--status-positive)';
+			case 'away':
+				return 'var(--status-warning)';
+			case 'dnd':
+				return 'var(--status-danger)';
+			default:
+				return 'var(--text-muted)';
+		}
+	}};
 `;
 
 const ActionButton = styled.button`
@@ -175,233 +168,213 @@ const EmptyState = styled.div`
 `;
 
 export const UserList: FC<UserListProps> = ({
-  activeUserId,
-  users = [],
-  loading = false,
-  title,
-  showFriendRequests = false,
+	activeUserId,
+	users = [],
+	loading = false,
+	title,
+	showFriendRequests = false,
 }) => {
-  const [activePopover, setActivePopover] = useState<string | null>(null);
-  const userRefs = useRef<Record<string, HTMLDivElement>>({});
+	const [activePopover, setActivePopover] = useState<string | null>(null);
+	const userRefs = useRef<Record<string, HTMLDivElement>>({});
 
-  const friendRequests = useSelector(
-    (state: RootState) => state.memberList.friendRequests,
-  );
+	const friendRequests = useSelector((state: RootState) => state.memberList.friendRequests);
 
-  const isLoading = showFriendRequests
-    ? loading || friendRequests.loading
-    : loading;
+	const isLoading = showFriendRequests ? loading || friendRequests.loading : loading;
 
-  const handleUserClick = (user: User) => {
-    setActivePopover(activePopover === user.id ? null : user.id);
-  };
+	const handleUserClick = (user: User) => {
+		setActivePopover(activePopover === user.id ? null : user.id);
+	};
 
-  const handleClosePopover = () => {
-    setActivePopover(null);
-  };
+	const handleClosePopover = () => {
+		setActivePopover(null);
+	};
 
-  const createContextMenuItems = (_user: User) => [
-    {
-      id: 'profile',
-      label: 'View Profile',
-      icon: <FaUserCheck />,
-      onClick: () => {
-        // Navigate to profile
-      },
-    },
-    {
-      id: 'message',
-      label: 'Send Message',
-      icon: <FaComments />,
-      onClick: () => {
-        // Create DM
-      },
-    },
-    {
-      id: 'separator1',
-      label: '',
-      separator: true,
-      onClick: () => {},
-    },
-    {
-      id: 'add-friend',
-      label: 'Add Friend',
-      icon: <FaUserPlus />,
-      onClick: () => {
-        // Send friend request
-      },
-    },
-    {
-      id: 'separator2',
-      label: '',
-      separator: true,
-      onClick: () => {},
-    },
-    {
-      id: 'remove',
-      label: 'Remove Friend',
-      icon: <FaUserMinus />,
-      danger: true,
-      onClick: () => {
-        // Remove friend
-      },
-    },
-  ];
+	const createContextMenuItems = (_user: User) => [
+		{
+			id: 'profile',
+			label: 'View Profile',
+			icon: <FaUserCheck />,
+			onClick: () => {
+				// Navigate to profile
+			},
+		},
+		{
+			id: 'message',
+			label: 'Send Message',
+			icon: <FaComments />,
+			onClick: () => {
+				// Create DM
+			},
+		},
+		{
+			id: 'separator1',
+			label: '',
+			separator: true,
+			onClick: () => {},
+		},
+		{
+			id: 'add-friend',
+			label: 'Add Friend',
+			icon: <FaUserPlus />,
+			onClick: () => {
+				// Send friend request
+			},
+		},
+		{
+			id: 'separator2',
+			label: '',
+			separator: true,
+			onClick: () => {},
+		},
+		{
+			id: 'remove',
+			label: 'Remove Friend',
+			icon: <FaUserMinus />,
+			danger: true,
+			onClick: () => {
+				// Remove friend
+			},
+		},
+	];
 
-  if (isLoading) {
-    return (
-      <Container>
-        {title && <Title>{title}</Title>}
-        <LoadingContainer>
-          <div className="loading loading-spinner loading-md" />
-        </LoadingContainer>
-      </Container>
-    );
-  }
+	if (isLoading) {
+		return (
+			<Container>
+				{title && <Title>{title}</Title>}
+				<LoadingContainer>
+					<div className="loading loading-spinner loading-md" />
+				</LoadingContainer>
+			</Container>
+		);
+	}
 
-  return (
-    <Container>
-      {title && <Title>{title}</Title>}
+	return (
+		<Container>
+			{title && <Title>{title}</Title>}
 
-      {showFriendRequests && (
-        <Section>
-          <SectionTitle>Incoming Friend Requests</SectionTitle>
-          {friendRequests.incoming.allIds.map((id) => {
-            const request = friendRequests.incoming.byId[id];
-            const signer = request.signer;
-            if (!signer) return null;
+			{showFriendRequests && (
+				<Section>
+					<SectionTitle>Incoming Friend Requests</SectionTitle>
+					{friendRequests.incoming.allIds.map((id) => {
+						const request = friendRequests.incoming.byId[id];
+						const signer = request.signer;
+						if (!signer) return null;
 
-            return (
-              <ContextMenu
-                key={id}
-                items={createContextMenuItems({
-                  id,
-                  name: signer.paymail || 'Unknown',
-                  avatar: signer.logo || '',
-                  paymail: signer.paymail || '',
-                  bapId: id,
-                  idKey: id,
-                  status: 'offline' as const,
-                })}
-              >
-                <UserItem
-                  ref={(ref: HTMLDivElement | null) => {
-                    if (ref) userRefs.current[id] = ref;
-                  }}
-                  onClick={() =>
-                    handleUserClick({
-                      id,
-                      name: signer.paymail || 'Unknown',
-                      avatar: signer.logo || '',
-                      paymail: signer.paymail || '',
-                      bapId: id,
-                      idKey: id,
-                      status: 'offline' as const,
-                    })
-                  }
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`User ${signer.paymail}`}
-                >
-                  <Avatar
-                    size="32px"
-                    paymail={signer.paymail || ''}
-                    icon={signer.logo || ''}
-                  />
-                  <UserInfo>
-                    <Username>{signer.paymail}</Username>
-                    <UserStatus>
-                      <StatusDot $status="offline" />
-                      Friend Request
-                    </UserStatus>
-                  </UserInfo>
+						return (
+							<ContextMenu
+								key={id}
+								items={createContextMenuItems({
+									id,
+									name: signer.paymail || 'Unknown',
+									avatar: signer.logo || '',
+									paymail: signer.paymail || '',
+									bapId: id,
+									idKey: id,
+									status: 'offline' as const,
+								})}
+							>
+								<UserItem
+									ref={(ref: HTMLDivElement | null) => {
+										if (ref) userRefs.current[id] = ref;
+									}}
+									onClick={() =>
+										handleUserClick({
+											id,
+											name: signer.paymail || 'Unknown',
+											avatar: signer.logo || '',
+											paymail: signer.paymail || '',
+											bapId: id,
+											idKey: id,
+											status: 'offline' as const,
+										})
+									}
+									role="button"
+									tabIndex={0}
+									aria-label={`User ${signer.paymail}`}
+								>
+									<Avatar size="32px" paymail={signer.paymail || ''} icon={signer.logo || ''} />
+									<UserInfo>
+										<Username>{signer.paymail}</Username>
+										<UserStatus>
+											<StatusDot $status="offline" />
+											Friend Request
+										</UserStatus>
+									</UserInfo>
 
-                  <Tooltip content="More options" placement="left">
-                    <ActionButton
-                      aria-label="More options"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <FaEllipsisV />
-                    </ActionButton>
-                  </Tooltip>
-                </UserItem>
-              </ContextMenu>
-            );
-          })}
-        </Section>
-      )}
+									<Tooltip content="More options" placement="left">
+										<ActionButton aria-label="More options" onClick={(e) => e.stopPropagation()}>
+											<FaEllipsisV />
+										</ActionButton>
+									</Tooltip>
+								</UserItem>
+							</ContextMenu>
+						);
+					})}
+				</Section>
+			)}
 
-      <Section>
-        <SectionTitle>
-          {showFriendRequests ? 'Friends' : 'Members'} — {users.length}
-        </SectionTitle>
+			<Section>
+				<SectionTitle>
+					{showFriendRequests ? 'Friends' : 'Members'} — {users.length}
+				</SectionTitle>
 
-        {users.length === 0 ? (
-          <EmptyState>
-            {showFriendRequests
-              ? 'No friends yet. Add some friends to get started!'
-              : 'No members online'}
-          </EmptyState>
-        ) : (
-          users.map((user) => (
-            <ContextMenu key={user.id} items={createContextMenuItems(user)}>
-              <UserItem
-                ref={(ref: HTMLDivElement | null) => {
-                  if (ref) userRefs.current[user.id] = ref;
-                }}
-                $isActive={activeUserId === user.id}
-                onClick={() => handleUserClick(user)}
-                role="button"
-                tabIndex={0}
-                aria-label={`User ${user.name}`}
-                aria-pressed={activeUserId === user.id}
-              >
-                <Avatar
-                  size="32px"
-                  paymail={user.paymail || ''}
-                  icon={user.avatar}
-                />
-                <UserInfo>
-                  <Username $isActive={activeUserId === user.id}>
-                    {user.name}
-                  </Username>
-                  <UserStatus>
-                    <StatusDot $status={user.status} />
-                    {user.status === 'online' ? 'Online' : 'Offline'}
-                  </UserStatus>
-                </UserInfo>
+				{users.length === 0 ? (
+					<EmptyState>
+						{showFriendRequests
+							? 'No friends yet. Add some friends to get started!'
+							: 'No members online'}
+					</EmptyState>
+				) : (
+					users.map((user) => (
+						<ContextMenu key={user.id} items={createContextMenuItems(user)}>
+							<UserItem
+								ref={(ref: HTMLDivElement | null) => {
+									if (ref) userRefs.current[user.id] = ref;
+								}}
+								$isActive={activeUserId === user.id}
+								onClick={() => handleUserClick(user)}
+								role="button"
+								tabIndex={0}
+								aria-label={`User ${user.name}`}
+								aria-pressed={activeUserId === user.id}
+							>
+								<Avatar size="32px" paymail={user.paymail || ''} icon={user.avatar} />
+								<UserInfo>
+									<Username $isActive={activeUserId === user.id}>{user.name}</Username>
+									<UserStatus>
+										<StatusDot $status={user.status} />
+										{user.status === 'online' ? 'Online' : 'Offline'}
+									</UserStatus>
+								</UserInfo>
 
-                <Tooltip content="More options" placement="left">
-                  <ActionButton
-                    aria-label="More options"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FaEllipsisV />
-                  </ActionButton>
-                </Tooltip>
-              </UserItem>
+								<Tooltip content="More options" placement="left">
+									<ActionButton aria-label="More options" onClick={(e) => e.stopPropagation()}>
+										<FaEllipsisV />
+									</ActionButton>
+								</Tooltip>
+							</UserItem>
 
-              {/* User Popover */}
-              {activePopover === user.id && userRefs.current[user.id] && (
-                <UserPopover
-                  user={{
-                    _id: user.id,
-                    paymail: user.paymail || '',
-                    logo: user.avatar,
-                    alternateName: user.name,
-                    idKey: user.idKey,
-                    status: user.status,
-                  }}
-                  targetRef={{ current: userRefs.current[user.id] }}
-                  isVisible={true}
-                  onClose={handleClosePopover}
-                  placement="left"
-                />
-              )}
-            </ContextMenu>
-          ))
-        )}
-      </Section>
-    </Container>
-  );
+							{/* User Popover */}
+							{activePopover === user.id && userRefs.current[user.id] && (
+								<UserPopover
+									user={{
+										_id: user.id,
+										paymail: user.paymail || '',
+										logo: user.avatar,
+										alternateName: user.name,
+										idKey: user.idKey,
+										status: user.status,
+									}}
+									targetRef={{ current: userRefs.current[user.id] }}
+									isVisible={true}
+									onClose={handleClosePopover}
+									placement="left"
+								/>
+							)}
+						</ContextMenu>
+					))
+				)}
+			</Section>
+		</Container>
+	);
 };

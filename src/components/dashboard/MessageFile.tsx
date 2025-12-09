@@ -5,11 +5,11 @@ import { getBase64Url } from '../../utils/file';
 import FileRenderer, { type MediaType } from './FileRenderer';
 
 interface MessageFileProps {
-  file: {
-    'content-type'?: string;
-    media_type?: string;
-  };
-  onClick?: () => void;
+	file: {
+		'content-type'?: string;
+		media_type?: string;
+	};
+	onClick?: () => void;
 }
 
 const Container = styled.div`
@@ -35,20 +35,20 @@ const Container = styled.div`
 `;
 
 const MessageFile: React.FC<MessageFileProps> = ({ file, onClick }) => {
-  const b64 = useMemo(() => getBase64Url(file), [file]);
+	const b64 = useMemo(() => getBase64Url(file), [file]);
 
-  if (!b64) {
-    return null;
-  }
+	if (!b64) {
+		return null;
+	}
 
-  const contentType = file['content-type'] ?? file.media_type;
-  const fileType = contentType?.split('/')[0];
+	const contentType = file['content-type'] ?? file.media_type;
+	const fileType = contentType?.split('/')[0];
 
-  return (
-    <Container>
-      <FileRenderer type={fileType as MediaType} data={b64} onClick={onClick} />
-    </Container>
-  );
+	return (
+		<Container>
+			<FileRenderer type={fileType as MediaType} data={b64} onClick={onClick} />
+		</Container>
+	);
 };
 
 export default MessageFile;

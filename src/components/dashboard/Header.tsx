@@ -1,21 +1,14 @@
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
-import {
-  FaBars,
-  FaCog,
-  FaGithub,
-  FaSignInAlt,
-  FaSignOutAlt,
-  FaUserFriends,
-} from 'react-icons/fa';
+import { FaBars, FaCog, FaGithub, FaSignInAlt, FaSignOutAlt, FaUserFriends } from 'react-icons/fa';
 import { ImProfile } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { getBitchatServer } from '../../constants/servers';
 import { useHandcash } from '../../context/handcash';
 import { hideInDesktop } from '../../design/mixins';
 import { useActiveUser } from '../../hooks';
-import { getBitchatServer } from '../../constants/servers';
 import { toggleMemberList } from '../../reducers/memberListReducer';
 import { logout } from '../../reducers/sessionReducer';
 import { toggleSidebar } from '../../reducers/sidebarReducer';
@@ -76,8 +69,8 @@ const ActionButtons = styled.div`
 `;
 
 interface IconButtonProps {
-  $isActive?: boolean;
-  $isHamburger?: boolean;
+	$isActive?: boolean;
+	$isHamburger?: boolean;
 }
 
 const IconButton = styled.button<IconButtonProps>`
@@ -136,117 +129,108 @@ const AtIcon = styled.span`
 `;
 
 interface HeaderProps {
-  isFriendsPage?: boolean;
+	isFriendsPage?: boolean;
 }
 
 const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
-  const dispatch = useDispatch();
-  const params = useParams<{ channel?: string; user?: string }>();
-  const isMemberListOpen = useSelector(
-    (state: RootState) => state.memberList.isOpen,
-  );
-  const channels = useSelector((state: RootState) => state.channels);
-  const activeUser = useActiveUser();
-  const navigate = useNavigate();
-  const { authToken, profile } = useHandcash();
+	const dispatch = useDispatch();
+	const params = useParams<{ channel?: string; user?: string }>();
+	const isMemberListOpen = useSelector((state: RootState) => state.memberList.isOpen);
+	const channels = useSelector((state: RootState) => state.channels);
+	const session = useSelector((state: RootState) => state.session);
+	const activeUser = useActiveUser();
+	const navigate = useNavigate();
+	const { authToken, profile } = useHandcash();
 
-  const activeChannelId = useMemo(() => params.channel, [params]);
-  const activeUserId = useMemo(() => params.user, [params]);
-  const guest = useMemo(
-    () => !authToken && !activeUser,
-    [authToken, activeUser],
-  );
+	const activeChannelId = useMemo(() => params.channel, [params]);
+	const activeUserId = useMemo(() => params.user, [params]);
+	const guest = useMemo(() => !authToken && !activeUser, [authToken, activeUser]);
 
-  const channelName = useMemo(() => {
-    if (isFriendsPage) return 'Friends';
-    if (!channels?.loading && activeChannelId) return activeChannelId;
-    if (profile?.paymail) return profile.paymail;
-    if (activeUser?.paymail) return activeUser.paymail;
-    if (activeUserId) return activeUserId;
-    return 'general';
-  }, [
-    isFriendsPage,
-    channels?.loading,
-    activeChannelId,
-    profile?.paymail,
-    activeUser?.paymail,
-    activeUserId,
-  ]);
+	const channelName = useMemo(() => {
+		if (isFriendsPage) return 'Friends';
+		if (!channels?.loading && activeChannelId) return activeChannelId;
+		if (profile?.paymail) return profile.paymail;
+		if (activeUser?.paymail) return activeUser.paymail;
+		if (activeUserId) return activeUserId;
+		return 'general';
+	}, [
+		isFriendsPage,
+		channels?.loading,
+		activeChannelId,
+		profile?.paymail,
+		activeUser?.paymail,
+		activeUserId,
+	]);
 
-  return (
-    <Container>
-      <LeftSection>
-        <HamburgerButton onClick={() => dispatch(toggleSidebar())}>
-          <FaBars />
-        </HamburgerButton>
+	return (
+		<Container>
+			<LeftSection>
+				<HamburgerButton onClick={() => dispatch(toggleSidebar())}>
+					<FaBars />
+				</HamburgerButton>
 
-        <ChannelInfo>
-          {activeChannelId && <HashtagIcon />}
-          {activeUserId && <AtIcon />}
-          <ChannelName>{channelName}</ChannelName>
-        </ChannelInfo>
-      </LeftSection>
+				<ChannelInfo>
+					{activeChannelId && <HashtagIcon />}
+					{activeUserId && <AtIcon />}
+					<ChannelName>{channelName}</ChannelName>
+				</ChannelInfo>
+			</LeftSection>
 
-      <MiddleSection>{isFriendsPage && <UserSearch />}</MiddleSection>
+			<MiddleSection>{isFriendsPage && <UserSearch />}</MiddleSection>
 
-      <ActionButtons>
-        <ArrowTooltip title="Settings">
-          <IconButton onClick={() => navigate(`/servers/${getBitchatServer()._id}`)}>
-            <FaCog />
-          </IconButton>
-        </ArrowTooltip>
+			<ActionButtons>
+				<ArrowTooltip title="Settings">
+					<IconButton onClick={() => navigate(`/servers/${getBitchatServer()._id}`)}>
+						<FaCog />
+					</IconButton>
+				</ArrowTooltip>
 
-        <ArrowTooltip title="GitHub Repository">
-          <IconButton
-            as="a"
-            href="https://github.com/rohenaz/allaboard-bitchat-nitro"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FaGithub />
-          </IconButton>
-        </ArrowTooltip>
+				<ArrowTooltip title="GitHub Repository">
+					<IconButton
+						as="a"
+						href="https://github.com/rohenaz/allaboard-bitchat-nitro"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<FaGithub />
+					</IconButton>
+				</ArrowTooltip>
 
-        <ArrowTooltip
-          title={`${isMemberListOpen ? 'Hide' : 'Show'} Member List`}
-        >
-          <IconButton
-            $isActive={isMemberListOpen}
-            onClick={() => dispatch(toggleMemberList())}
-          >
-            <FaUserFriends />
-          </IconButton>
-        </ArrowTooltip>
+				<ArrowTooltip title={`${isMemberListOpen ? 'Hide' : 'Show'} Member List`}>
+					<IconButton $isActive={isMemberListOpen} onClick={() => dispatch(toggleMemberList())}>
+						<FaUserFriends />
+					</IconButton>
+				</ArrowTooltip>
 
-        <ArrowTooltip title="Manage Profile on Sigma">
-          <IconButton
-            as="a"
-            href="https://auth.sigmaidentity.com/profile"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ImProfile />
-          </IconButton>
-        </ArrowTooltip>
+				<ArrowTooltip title="Manage Profile on Sigma">
+					<IconButton
+						as="a"
+						href={`https://auth.sigmaidentity.com/account${session.user?.idKey ? `/${session.user.idKey}` : ''}`}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<ImProfile />
+					</IconButton>
+				</ArrowTooltip>
 
-        {!guest && (
-          <ArrowTooltip title="Sign Out">
-            <IconButton onClick={() => dispatch(logout())}>
-              <FaSignOutAlt />
-            </IconButton>
-          </ArrowTooltip>
-        )}
+				{!guest && (
+					<ArrowTooltip title="Sign Out">
+						<IconButton onClick={() => dispatch(logout())}>
+							<FaSignOutAlt />
+						</IconButton>
+					</ArrowTooltip>
+				)}
 
-        {guest && (
-          <ArrowTooltip title="Sign In">
-            <IconButton onClick={() => navigate('/login')}>
-              <FaSignInAlt />
-            </IconButton>
-          </ArrowTooltip>
-        )}
-      </ActionButtons>
-    </Container>
-  );
+				{guest && (
+					<ArrowTooltip title="Sign In">
+						<IconButton onClick={() => navigate('/login')}>
+							<FaSignInAlt />
+						</IconButton>
+					</ArrowTooltip>
+				)}
+			</ActionButtons>
+		</Container>
+	);
 };
 
 export default Header;

@@ -2,9 +2,9 @@ import type React from 'react';
 import styled from 'styled-components';
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
+	isOpen: boolean;
+	onClose: () => void;
+	children: React.ReactNode;
 }
 
 const Overlay = styled.div<{ isOpen: boolean }>`
@@ -30,17 +30,17 @@ const Content = styled.div`
 `;
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null;
+	if (!isOpen) return null;
 
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+	const handleOverlayClick = (e: React.MouseEvent) => {
+		if (e.target === e.currentTarget) {
+			onClose();
+		}
+	};
 
-  return (
-    <Overlay isOpen={isOpen} onClick={handleOverlayClick}>
-      <Content>{children}</Content>
-    </Overlay>
-  );
+	return (
+		<Overlay isOpen={isOpen} onClick={handleOverlayClick}>
+			<Content>{children}</Content>
+		</Overlay>
+	);
 };

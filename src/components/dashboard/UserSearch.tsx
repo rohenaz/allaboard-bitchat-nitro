@@ -109,17 +109,17 @@ const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
   transition: all 0.2s ease;
 
   ${({ $variant = 'secondary' }) => {
-    switch ($variant) {
-      case 'primary':
-        return `
+		switch ($variant) {
+			case 'primary':
+				return `
           background-color: var(--brand-experiment);
           color: var(--white);
           &:hover {
             background-color: var(--brand-experiment-darker);
           }
         `;
-      default:
-        return `
+			default:
+				return `
           background-color: var(--background-secondary);
           color: var(--text-normal);
           border: 1px solid var(--background-modifier-accent);
@@ -127,8 +127,8 @@ const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
             background-color: var(--background-modifier-hover);
           }
         `;
-    }
-  }}
+		}
+	}}
 
   &:disabled {
     opacity: 0.5;
@@ -151,203 +151,195 @@ const NoResults = styled.div`
 `;
 
 interface UserSearchProps {
-  onUserSelect?: (user: User) => void;
-  placeholder?: string;
-  showActions?: boolean;
+	onUserSelect?: (user: User) => void;
+	placeholder?: string;
+	showActions?: boolean;
 }
 
 export const UserSearch: FC<UserSearchProps> = ({
-  onUserSelect,
-  placeholder = 'Search users...',
-  showActions = true,
+	onUserSelect,
+	placeholder = 'Search users...',
+	showActions = true,
 }) => {
-  const { authToken } = useHandcash();
-  const { connected } = useYours();
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const session = useSelector((state: RootState) => state.session);
+	const { authToken } = useHandcash();
+	const { connected } = useYours();
+	const dispatch = useDispatch<AppDispatch>();
+	const navigate = useNavigate();
+	const session = useSelector((state: RootState) => state.session);
 
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+	const [query, setQuery] = useState('');
+	const [results, setResults] = useState<User[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [showResults, setShowResults] = useState(false);
+	const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const isAuthenticated = authToken || connected;
+	const isAuthenticated = authToken || connected;
 
-  const searchUsers = useCallback(
-    async (searchQuery: string) => {
-      if (!searchQuery.trim() || !isAuthenticated) return;
+	const searchUsers = useCallback(
+		async (searchQuery: string) => {
+			if (!searchQuery.trim() || !isAuthenticated) return;
 
-      try {
-        setLoading(true);
-        const params: Record<string, string> = {};
-        if (searchQuery.includes('@')) {
-          params.paymail = searchQuery;
-        } else {
-          params.username = searchQuery;
-        }
+			try {
+				setLoading(true);
+				const params: Record<string, string> = {};
+				if (searchQuery.includes('@')) {
+					params.paymail = searchQuery;
+				} else {
+					params.username = searchQuery;
+				}
 
-        const users = await api.get<User[]>('/users', { params });
+				const users = await api.get<User[]>('/users', { params });
 
-        // Filter out current user
-        const filteredUsers = users.filter(
-          (user) => user.paymail !== session.user?.paymail,
-        );
+				// Filter out current user
+				const filteredUsers = users.filter((user) => user.paymail !== session.user?.paymail);
 
-        setResults(filteredUsers);
-      } catch (error) {
-        console.error('Failed to search users:', error);
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [isAuthenticated, session.user?.paymail],
-  );
+				setResults(filteredUsers);
+			} catch (error) {
+				console.error('Failed to search users:', error);
+				setResults([]);
+			} finally {
+				setLoading(false);
+			}
+		},
+		[isAuthenticated, session.user?.paymail],
+	);
 
-  const handleSendFriendRequest = useCallback(
-    async (user: User) => {
-      if (!session.user?.idKey || !user.idKey) return;
+	const handleSendFriendRequest = useCallback(
+		async (user: User) => {
+			if (!session.user?.idKey || !user.idKey) return;
 
-      try {
-        setActionLoading(`friend-${user.id}`);
-        await api.post('/friend-requests', {
-          from: session.user.idKey,
-          to: user.idKey,
-        });
-        await dispatch(loadFriends());
-      } catch (error) {
-        console.error('Failed to send friend request:', error);
-      } finally {
-        setActionLoading(null);
-      }
-    },
-    [session.user?.idKey, dispatch],
-  );
+			try {
+				setActionLoading(`friend-${user.id}`);
+				await api.post('/friend-requests', {
+					from: session.user.idKey,
+					to: user.idKey,
+				});
+				await dispatch(loadFriends());
+			} catch (error) {
+				console.error('Failed to send friend request:', error);
+			} finally {
+				setActionLoading(null);
+			}
+		},
+		[session.user?.idKey, dispatch],
+	);
 
-  const handleMessage = useCallback(
-    async (user: User) => {
-      if (!session.user?.idKey || !user.idKey) return;
+	const handleMessage = useCallback(
+		async (user: User) => {
+			if (!session.user?.idKey || !user.idKey) return;
 
-      try {
-        setActionLoading(`message-${user.id}`);
-        const channel = await api.post<{ id: string }>('/channels', {
-          type: 'dm',
-          members: [session.user.idKey, user.idKey],
-        });
-        navigate(`/channels/${channel.id}`);
-        setShowResults(false);
-        setQuery('');
-      } catch (error) {
-        console.error('Failed to create DM:', error);
-      } finally {
-        setActionLoading(null);
-      }
-    },
-    [session.user?.idKey, navigate],
-  );
+			try {
+				setActionLoading(`message-${user.id}`);
+				const channel = await api.post<{ id: string }>('/channels', {
+					type: 'dm',
+					members: [session.user.idKey, user.idKey],
+				});
+				navigate(`/channels/${channel.id}`);
+				setShowResults(false);
+				setQuery('');
+			} catch (error) {
+				console.error('Failed to create DM:', error);
+			} finally {
+				setActionLoading(null);
+			}
+		},
+		[session.user?.idKey, navigate],
+	);
 
-  const handleUserClick = useCallback(
-    (user: User) => {
-      if (onUserSelect) {
-        onUserSelect(user);
-      } else if (user.paymail) {
-        navigate(`/@/${user.paymail}`);
-      }
-      setShowResults(false);
-      setQuery('');
-    },
-    [onUserSelect, navigate],
-  );
+	const handleUserClick = useCallback(
+		(user: User) => {
+			if (onUserSelect) {
+				onUserSelect(user);
+			} else if (user.paymail) {
+				navigate(`/@/${user.paymail}`);
+			}
+			setShowResults(false);
+			setQuery('');
+		},
+		[onUserSelect, navigate],
+	);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (query.length >= 2) {
-        searchUsers(query);
-      } else {
-        setResults([]);
-      }
-    }, 300);
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			if (query.length >= 2) {
+				searchUsers(query);
+			} else {
+				setResults([]);
+			}
+		}, 300);
 
-    return () => clearTimeout(timeoutId);
-  }, [query, searchUsers]);
+		return () => clearTimeout(timeoutId);
+	}, [query, searchUsers]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (!target.closest('[data-user-search]')) {
-        setShowResults(false);
-      }
-    };
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			const target = event.target as Element;
+			if (!target.closest('[data-user-search]')) {
+				setShowResults(false);
+			}
+		};
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, []);
 
-  return (
-    <Container data-user-search>
-      <SearchIcon>🔍</SearchIcon>
-      <SearchInput
-        type="text"
-        placeholder={placeholder}
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setShowResults(true);
-        }}
-        onFocus={() => query.length >= 2 && setShowResults(true)}
-      />
+	return (
+		<Container data-user-search>
+			<SearchIcon>🔍</SearchIcon>
+			<SearchInput
+				type="text"
+				placeholder={placeholder}
+				value={query}
+				onChange={(e) => {
+					setQuery(e.target.value);
+					setShowResults(true);
+				}}
+				onFocus={() => query.length >= 2 && setShowResults(true)}
+			/>
 
-      {showResults && query.length >= 2 && (
-        <ResultsContainer>
-          {loading ? (
-            <LoadingText>Searching...</LoadingText>
-          ) : results.length === 0 ? (
-            <NoResults>No users found</NoResults>
-          ) : (
-            results.map((user) => (
-              <ResultItem key={user.id}>
-                <Avatar size="36px" paymail={user.paymail} icon={user.avatar} />
-                <UserInfo onClick={() => handleUserClick(user)}>
-                  <UserName>
-                    {user.name || user.paymail?.split('@')[0] || 'Anonymous'}
-                  </UserName>
-                  <UserPaymail>@{user.paymail}</UserPaymail>
-                </UserInfo>
+			{showResults && query.length >= 2 && (
+				<ResultsContainer>
+					{loading ? (
+						<LoadingText>Searching...</LoadingText>
+					) : results.length === 0 ? (
+						<NoResults>No users found</NoResults>
+					) : (
+						results.map((user) => (
+							<ResultItem key={user.id}>
+								<Avatar size="36px" paymail={user.paymail} icon={user.avatar} />
+								<UserInfo onClick={() => handleUserClick(user)}>
+									<UserName>{user.name || user.paymail?.split('@')[0] || 'Anonymous'}</UserName>
+									<UserPaymail>@{user.paymail}</UserPaymail>
+								</UserInfo>
 
-                {showActions && isAuthenticated && (
-                  <>
-                    <ActionButton
-                      $variant="primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMessage(user);
-                      }}
-                      disabled={actionLoading === `message-${user.id}`}
-                    >
-                      {actionLoading === `message-${user.id}`
-                        ? '...'
-                        : 'Message'}
-                    </ActionButton>
-                    <ActionButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSendFriendRequest(user);
-                      }}
-                      disabled={actionLoading === `friend-${user.id}`}
-                    >
-                      {actionLoading === `friend-${user.id}`
-                        ? '...'
-                        : 'Add Friend'}
-                    </ActionButton>
-                  </>
-                )}
-              </ResultItem>
-            ))
-          )}
-        </ResultsContainer>
-      )}
-    </Container>
-  );
+								{showActions && isAuthenticated && (
+									<>
+										<ActionButton
+											$variant="primary"
+											onClick={(e) => {
+												e.stopPropagation();
+												handleMessage(user);
+											}}
+											disabled={actionLoading === `message-${user.id}`}
+										>
+											{actionLoading === `message-${user.id}` ? '...' : 'Message'}
+										</ActionButton>
+										<ActionButton
+											onClick={(e) => {
+												e.stopPropagation();
+												handleSendFriendRequest(user);
+											}}
+											disabled={actionLoading === `friend-${user.id}`}
+										>
+											{actionLoading === `friend-${user.id}` ? '...' : 'Add Friend'}
+										</ActionButton>
+									</>
+								)}
+							</ResultItem>
+						))
+					)}
+				</ResultsContainer>
+			)}
+		</Container>
+	);
 };

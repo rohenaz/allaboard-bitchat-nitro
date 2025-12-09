@@ -8,7 +8,7 @@ import { MemberList } from './MemberList';
 import Sidebar from './Sidebar';
 
 interface DashboardProps {
-  isFriendsPage: boolean;
+	isFriendsPage: boolean;
 }
 
 const Container = styled.div`
@@ -33,30 +33,30 @@ const ContentWrapper = styled.div`
 `;
 
 export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
-  const params = useParams<{ user?: string; channel?: string }>();
-  const isUserPage = Boolean(params.user);
+	const params = useParams<{ user?: string; channel?: string }>();
+	const isUserPage = Boolean(params.user);
 
-  const renderMainContent = () => {
-    if (isFriendsPage) {
-      return <Friends />;
-    }
+	const renderMainContent = () => {
+		if (isFriendsPage) {
+			return <Friends />;
+		}
 
-    if (isUserPage) {
-      // For now, redirect to chat area since UserProfile doesn't exist
-      return <ChatArea />;
-    }
+		if (isUserPage) {
+			// For now, redirect to chat area since UserProfile doesn't exist
+			return <ChatArea />;
+		}
 
-    return <ChatArea />;
-  };
+		return <ChatArea />;
+	};
 
-  return (
-    <Container>
-      <Sidebar />
-      <ContentWrapper>
-        <Header isFriendsPage={isFriendsPage} />
-        {renderMainContent()}
-      </ContentWrapper>
-      <MemberList />
-    </Container>
-  );
+	return (
+		<Container>
+			<Sidebar />
+			<ContentWrapper>
+				<Header isFriendsPage={isFriendsPage} />
+				{renderMainContent()}
+			</ContentWrapper>
+			<MemberList />
+		</Container>
+	);
 };

@@ -1,3 +1,4 @@
+import { ThemeTokenProvider } from '@theme-token/sdk/react';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
@@ -8,7 +9,6 @@ import { BitcoinProvider } from './context/bitcoin';
 import { BmapProvider } from './context/bmap';
 import { HandcashProvider } from './context/handcash';
 import { ThemeProvider } from './context/theme';
-import { ThemeTokenProvider } from '@theme-token/sdk/react';
 import { AutoYoursProvider } from './context/yours';
 import './index.css';
 import store from './store';
@@ -22,25 +22,25 @@ const root = createRoot(rootElement);
 // OAuth authentication does not use the iframe - it's a pure redirect flow
 
 root.render(
-  <React.StrictMode>
-    <ThemeProvider>
-      <ThemeTokenProvider>
-        <Provider store={store}>
-          <YoursProvider>
-            <AutoYoursProvider autoconnect={false}>
-              <HandcashProvider>
-                <BmapProvider>
-                  <BapProvider>
-                    <BitcoinProvider>
-                      <App />
-                    </BitcoinProvider>
-                  </BapProvider>
-                </BmapProvider>
-              </HandcashProvider>
-            </AutoYoursProvider>
-          </YoursProvider>
-        </Provider>
-      </ThemeTokenProvider>
-    </ThemeProvider>
-  </React.StrictMode>,
+	<React.StrictMode>
+		<ThemeProvider>
+			<ThemeTokenProvider>
+				<Provider store={store}>
+					<YoursProvider>
+						<AutoYoursProvider autoconnect={false}>
+							<HandcashProvider>
+								<BmapProvider>
+									<BapProvider>
+										<BitcoinProvider>
+											<App />
+										</BitcoinProvider>
+									</BapProvider>
+								</BmapProvider>
+							</HandcashProvider>
+						</AutoYoursProvider>
+					</YoursProvider>
+				</Provider>
+			</ThemeTokenProvider>
+		</ThemeProvider>
+	</React.StrictMode>,
 );

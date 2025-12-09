@@ -2,13 +2,13 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 import styled from 'styled-components';
 
 interface Props {
-  children?: ReactNode;
+	children?: ReactNode;
 }
 
 interface State {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: ErrorInfo;
+	hasError: boolean;
+	error?: Error;
+	errorInfo?: ErrorInfo;
 }
 
 const ErrorContainer = styled.div`
@@ -68,17 +68,17 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
   min-width: 120px;
 
   ${({ $variant = 'primary' }) => {
-    switch ($variant) {
-      case 'primary':
-        return `
+		switch ($variant) {
+			case 'primary':
+				return `
           background-color: var(--brand-experiment);
           color: white;
           &:hover {
             background-color: var(--brand-experiment-darker);
           }
         `;
-      default:
-        return `
+			default:
+				return `
           background-color: var(--background-secondary);
           color: var(--text-normal);
           border: 1px solid var(--background-modifier-accent);
@@ -86,8 +86,8 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
             background-color: var(--background-modifier-hover);
           }
         `;
-    }
-  }}
+		}
+	}}
 
   &:focus {
     outline: 2px solid var(--brand-experiment);
@@ -96,51 +96,43 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
 `;
 
 class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-  };
+	public state: State = {
+		hasError: false,
+	};
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
-  }
+	public static getDerivedStateFromError(error: Error): State {
+		return { hasError: true, error };
+	}
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.setState({ error, errorInfo });
-    console.error('Uncaught error:', error, errorInfo);
-  }
+	public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+		this.setState({ error, errorInfo });
+		console.error('Uncaught error:', error, errorInfo);
+	}
 
-  public render() {
-    if (this.state.hasError) {
-      return (
-        <ErrorContainer>
-          <ErrorContent>
-            <ErrorTitle>Sorry.. there was an error</ErrorTitle>
-            <ErrorDetails>
-              <ErrorText>{this.state.error?.toString()}</ErrorText>
-            </ErrorDetails>
-            <ButtonGroup>
-              <Button
-                type="button"
-                $variant="primary"
-                onClick={() => window.location.reload()}
-              >
-                Reload Page
-              </Button>
-              <Button
-                type="button"
-                $variant="secondary"
-                onClick={() => window.history.back()}
-              >
-                Go Back
-              </Button>
-            </ButtonGroup>
-          </ErrorContent>
-        </ErrorContainer>
-      );
-    }
+	public render() {
+		if (this.state.hasError) {
+			return (
+				<ErrorContainer>
+					<ErrorContent>
+						<ErrorTitle>Sorry.. there was an error</ErrorTitle>
+						<ErrorDetails>
+							<ErrorText>{this.state.error?.toString()}</ErrorText>
+						</ErrorDetails>
+						<ButtonGroup>
+							<Button type="button" $variant="primary" onClick={() => window.location.reload()}>
+								Reload Page
+							</Button>
+							<Button type="button" $variant="secondary" onClick={() => window.history.back()}>
+								Go Back
+							</Button>
+						</ButtonGroup>
+					</ErrorContent>
+				</ErrorContainer>
+			);
+		}
 
-    return this.props.children;
-  }
+		return this.props.children;
+	}
 }
 
 export default ErrorBoundary;

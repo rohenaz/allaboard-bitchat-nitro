@@ -10,27 +10,27 @@ import type { AppDispatch, RootState } from '../../store';
 import Avatar from './Avatar';
 
 interface Server {
-  _id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  paymail?: string;
+	_id: string;
+	name: string;
+	description?: string;
+	icon?: string;
+	paymail?: string;
 }
 
 interface ServerState {
-  loading: boolean;
-  error: string | null;
-  data: Server[];
+	loading: boolean;
+	error: string | null;
+	data: Server[];
 }
 
 interface SessionUser {
-  idKey?: string;
-  paymail?: string;
-  logo?: string;
+	idKey?: string;
+	paymail?: string;
+	logo?: string;
 }
 
 interface SessionState {
-  user?: SessionUser | null;
+	user?: SessionUser | null;
 }
 
 const Container = styled.nav`
@@ -117,84 +117,71 @@ const PlusIcon = styled.svg`
 `;
 
 const ServerList: FC = () => {
-  const { authToken } = useHandcash();
-  const { connected } = useYours();
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
+	const { authToken } = useHandcash();
+	const { connected } = useYours();
+	const dispatch = useDispatch<AppDispatch>();
+	const navigate = useNavigate();
 
-  const servers = useSelector<RootState, ServerState>((state) => state.servers);
-  const session = useSelector<RootState, SessionState>(
-    (state) => state.session,
-  );
+	const servers = useSelector<RootState, ServerState>((state) => state.servers);
+	const session = useSelector<RootState, SessionState>((state) => state.session);
 
-  const handleServerClick = useCallback(
-    (serverId: string) => {
-      // BitChat server goes to channels view, others go to settings
-      if (serverId === 'bitchat') {
-        navigate('/channels');
-      } else {
-        navigate(`/servers/${serverId}`);
-      }
-    },
-    [navigate],
-  );
+	const handleServerClick = useCallback(
+		(serverId: string) => {
+			// BitChat server goes to channels view, others go to settings
+			if (serverId === 'bitchat') {
+				navigate('/channels');
+			} else {
+				navigate(`/servers/${serverId}`);
+			}
+		},
+		[navigate],
+	);
 
-  const handleHomeClick = useCallback(() => {
-    navigate('/friends');
-  }, [navigate]);
+	const handleHomeClick = useCallback(() => {
+		navigate('/friends');
+	}, [navigate]);
 
-  const handleAddServer = useCallback(() => {
-    navigate('/servers/new');
-  }, [navigate]);
+	const handleAddServer = useCallback(() => {
+		navigate('/servers/new');
+	}, [navigate]);
 
-  useEffect(() => {
-    if (authToken || connected) {
-      void dispatch(loadChannels());
-    }
-  }, [authToken, connected, dispatch]);
+	useEffect(() => {
+		if (authToken || connected) {
+			void dispatch(loadChannels());
+		}
+	}, [authToken, connected, dispatch]);
 
-  return (
-    <Container>
-      <HomeButton onClick={handleHomeClick}>
-        <Avatar
-          size="48px"
-          paymail="bitchat@bitchatnitro.com"
-          icon="/images/blockpost-logo.svg"
-        />
-      </HomeButton>
+	return (
+		<Container>
+			<HomeButton onClick={handleHomeClick}>
+				<Avatar size="48px" paymail="bitchat@bitchatnitro.com" icon="/images/blockpost-logo.svg" />
+			</HomeButton>
 
-      <Separator />
+			<Separator />
 
-      {servers.data.map((server) => (
-        <ServerButton
-          key={server._id}
-          onClick={() => handleServerClick(server._id)}
-        >
-          {server.icon ? (
-            <Avatar size="48px" paymail={server.name} icon={server.icon} />
-          ) : (
-            <ServerIcon>{server.name.charAt(0).toUpperCase()}</ServerIcon>
-          )}
-        </ServerButton>
-      ))}
+			{servers.data.map((server) => (
+				<ServerButton key={server._id} onClick={() => handleServerClick(server._id)}>
+					{server.icon ? (
+						<Avatar size="48px" paymail={server.name} icon={server.icon} />
+					) : (
+						<ServerIcon>{server.name.charAt(0).toUpperCase()}</ServerIcon>
+					)}
+				</ServerButton>
+			))}
 
-      <AddButton onClick={handleAddServer}>
-        <PlusIcon
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 4.5v15m7.5-7.5h-15"
-          />
-        </PlusIcon>
-      </AddButton>
-    </Container>
-  );
+			<AddButton onClick={handleAddServer}>
+				<PlusIcon
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					strokeWidth={1.5}
+					stroke="currentColor"
+				>
+					<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+				</PlusIcon>
+			</AddButton>
+		</Container>
+	);
 };
 
 export default ServerList;

@@ -15,12 +15,12 @@ const Container = styled.main`
 `;
 
 const ChatArea: React.FC = () => {
-  return (
-    <Container>
-      <Messages />
-      <WriteArea />
-    </Container>
-  );
+	return (
+		<Container>
+			<Messages />
+			<WriteArea />
+		</Container>
+	);
 };
 
 export default ChatArea;

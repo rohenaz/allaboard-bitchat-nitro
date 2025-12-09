@@ -7,9 +7,9 @@ import { Modal } from '../../../components/common/Modal';
 export const minutesPerUnit = 60;
 
 interface PinChannelModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (units: number) => void;
+	isOpen: boolean;
+	onClose: () => void;
+	onConfirm: (units: number) => void;
 }
 
 const Container = styled.div`
@@ -58,46 +58,42 @@ const ButtonContainer = styled.div`
   margin-top: 16px;
 `;
 
-const PinChannelModal: React.FC<PinChannelModalProps> = ({
-  isOpen,
-  onClose,
-  onConfirm,
-}) => {
-  const [units, setUnits] = useState(1);
+const PinChannelModal: React.FC<PinChannelModalProps> = ({ isOpen, onClose, onConfirm }) => {
+	const [units, setUnits] = useState(1);
 
-  const handleConfirm = () => {
-    onConfirm(units);
-    onClose();
-  };
+	const handleConfirm = () => {
+		onConfirm(units);
+		onClose();
+	};
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <Container>
-        <Title>Pin Channel</Title>
-        <Description>
-          Enter the number of units to pin this channel. Each unit represents{' '}
-          {minutesPerUnit} minutes.
-        </Description>
-        <InputContainer>
-          <Input
-            type="number"
-            min="1"
-            value={units}
-            onChange={(e) => setUnits(Number.parseInt(e.target.value, 10) || 1)}
-          />
-          <span>units</span>
-        </InputContainer>
-        <ButtonContainer>
-          <Button onClick={onClose} variant="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirm} variant="primary">
-            Pin Channel
-          </Button>
-        </ButtonContainer>
-      </Container>
-    </Modal>
-  );
+	return (
+		<Modal isOpen={isOpen} onClose={onClose}>
+			<Container>
+				<Title>Pin Channel</Title>
+				<Description>
+					Enter the number of units to pin this channel. Each unit represents {minutesPerUnit}{' '}
+					minutes.
+				</Description>
+				<InputContainer>
+					<Input
+						type="number"
+						min="1"
+						value={units}
+						onChange={(e) => setUnits(Number.parseInt(e.target.value, 10) || 1)}
+					/>
+					<span>units</span>
+				</InputContainer>
+				<ButtonContainer>
+					<Button onClick={onClose} variant="secondary">
+						Cancel
+					</Button>
+					<Button onClick={handleConfirm} variant="primary">
+						Pin Channel
+					</Button>
+				</ButtonContainer>
+			</Container>
+		</Modal>
+	);
 };
 
 export default PinChannelModal;

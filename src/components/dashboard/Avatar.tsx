@@ -3,12 +3,12 @@ import styled from 'styled-components';
 import { API_BASE_URL } from '../../config/constants';
 
 interface AvatarProps {
-  size?: string;
-  paymail?: string;
-  icon?: string;
-  status?: 'online' | 'offline' | 'away' | 'dnd';
-  showStatus?: boolean;
-  className?: string;
+	size?: string;
+	paymail?: string;
+	icon?: string;
+	status?: 'online' | 'offline' | 'away' | 'dnd';
+	showStatus?: boolean;
+	className?: string;
 }
 
 const AvatarWrapper = styled.div`
@@ -60,8 +60,8 @@ const AvatarFallback = styled.div<{ size: string }>`
 `;
 
 const StatusIndicator = styled.div<{
-  status: 'online' | 'offline' | 'away' | 'dnd';
-  size: string;
+	status: 'online' | 'offline' | 'away' | 'dnd';
+	size: string;
 }>`
   position: absolute;
   bottom: -2px;
@@ -71,87 +71,85 @@ const StatusIndicator = styled.div<{
   border-radius: 50%;
   border: 2px solid var(--background-primary);
   background-color: ${({ status }) => {
-    switch (status) {
-      case 'online':
-        return 'var(--status-positive)';
-      case 'away':
-        return 'var(--status-warning)';
-      case 'dnd':
-        return 'var(--status-danger)';
-      default:
-        return 'var(--text-muted)';
-    }
-  }};
+		switch (status) {
+			case 'online':
+				return 'var(--status-positive)';
+			case 'away':
+				return 'var(--status-warning)';
+			case 'dnd':
+				return 'var(--status-danger)';
+			default:
+				return 'var(--text-muted)';
+		}
+	}};
   box-shadow: 0 0 8px ${({ status }) => {
-    switch (status) {
-      case 'online':
-        return 'var(--status-positive-glow)';
-      case 'away':
-        return 'var(--status-warning-glow)';
-      case 'dnd':
-        return 'var(--status-danger-glow)';
-      default:
-        return 'transparent';
-    }
-  }};
+		switch (status) {
+			case 'online':
+				return 'var(--status-positive-glow)';
+			case 'away':
+				return 'var(--status-warning-glow)';
+			case 'dnd':
+				return 'var(--status-danger-glow)';
+			default:
+				return 'transparent';
+		}
+	}};
   transition: all 0.2s ease;
   
   ${({ status }) =>
-    status === 'online' &&
-    `
+		status === 'online' &&
+		`
     animation: pulse 2s infinite;
   `}
 `;
 
 const Avatar: React.FC<AvatarProps> = ({
-  size = '40px',
-  paymail = '',
-  icon = '',
-  status = 'offline',
-  showStatus = false,
-  className = '',
+	size = '40px',
+	paymail = '',
+	icon = '',
+	status = 'offline',
+	showStatus = false,
+	className = '',
 }): React.ReactElement => {
-  const [imgError, setImgError] = React.useState(false);
+	const [imgError, setImgError] = React.useState(false);
 
-  const getInitials = (paymail: string) => {
-    const parts = paymail.split('@')[0].split('.');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`;
-    }
-    return parts[0].slice(0, 2);
-  };
+	const getInitials = (paymail: string) => {
+		const parts = paymail.split('@')[0].split('.');
+		if (parts.length >= 2) {
+			return `${parts[0][0]}${parts[1][0]}`;
+		}
+		return parts[0].slice(0, 2);
+	};
 
-  const handleError = () => {
-    setImgError(true);
-  };
+	const handleError = () => {
+		setImgError(true);
+	};
 
-  const avatarContent =
-    !icon || imgError ? (
-      <AvatarContainer size={size} className={className}>
-        <AvatarFallback size={size}>
-          {paymail ? getInitials(paymail) : '??'}
-        </AvatarFallback>
-      </AvatarContainer>
-    ) : (
-      <AvatarContainer size={size} className={className}>
-        <AvatarImage
-          src={icon.startsWith('http') ? icon : `${API_BASE_URL}/files/${icon}`}
-          alt={paymail || 'avatar'}
-          onError={handleError}
-        />
-      </AvatarContainer>
-    );
+	const avatarContent =
+		!icon || imgError ? (
+			<AvatarContainer size={size} className={className}>
+				<AvatarFallback size={size}>{paymail ? getInitials(paymail) : '??'}</AvatarFallback>
+			</AvatarContainer>
+		) : (
+			<AvatarContainer size={size} className={className}>
+				<AvatarImage
+					src={icon.startsWith('http') ? icon : `${API_BASE_URL}/files/${icon}`}
+					alt={paymail || 'avatar'}
+					onError={handleError}
+				/>
+			</AvatarContainer>
+		);
 
-  if (showStatus) {
-    return (
-      <AvatarWrapper>
-        {avatarContent}
-        <StatusIndicator status={status} size={size} />
-      </AvatarWrapper>
-    );
-  }
+	if (showStatus) {
+		return (
+			<AvatarWrapper>
+				{avatarContent}
+				<StatusIndicator status={status} size={size} />
+			</AvatarWrapper>
+		);
+	}
 
-  return avatarContent;
+	return avatarContent;
 };
 
 export default Avatar;

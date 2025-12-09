@@ -14,11 +14,11 @@ import Avatar from './Avatar';
 import MessageFiles from './MessageFiles';
 
 interface MessageProps {
-  message: BmapTx;
-  reactions: {
-    byTxTarget: Record<string, BmapTx[]>;
-    byMessageTarget: Record<string, BmapTx[]>;
-  };
+	message: BmapTx;
+	reactions: {
+		byTxTarget: Record<string, BmapTx[]>;
+		byMessageTarget: Record<string, BmapTx[]>;
+	};
 }
 
 const MessageContainer = styled.div`
@@ -200,142 +200,130 @@ const EmojiPickerContainer = styled.div`
 `;
 
 const Message: FC<MessageProps> = ({ message, reactions }) => {
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
-  const { likeMessage } = useBitcoin();
-  const session = useSelector((state: RootState) => state.session);
-  const _isVerified = isValidEmail(head(message.MAP)?.paymail || '');
+	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+	const emojiPickerRef = useRef<HTMLDivElement>(null);
+	const { likeMessage } = useBitcoin();
+	const session = useSelector((state: RootState) => state.session);
+	const _isVerified = isValidEmail(head(message.MAP)?.paymail || '');
 
-  // Handle outside clicks for emoji picker
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        emojiPickerRef.current &&
-        !emojiPickerRef.current.contains(event.target as Node)
-      ) {
-        setShowEmojiPicker(false);
-      }
-    };
+	// Handle outside clicks for emoji picker
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+				setShowEmojiPicker(false);
+			}
+		};
 
-    if (showEmojiPicker) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+		if (showEmojiPicker) {
+			document.addEventListener('mousedown', handleClickOutside);
+		}
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showEmojiPicker]);
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [showEmojiPicker]);
 
-  const handleEmojiClick = async (emoji: string, messageId: string) => {
-    if (!session.user?.paymail) return;
-    await likeMessage(session.user.paymail, 'tx', messageId, emoji);
-    setShowEmojiPicker(false);
-  };
+	const handleEmojiClick = async (emoji: string, messageId: string) => {
+		if (!session.user?.paymail) return;
+		await likeMessage(session.user.paymail, 'tx', messageId, emoji);
+		setShowEmojiPicker(false);
+	};
 
-  const messageContent = useMemo(() => {
-    const firstB = head(message.B);
-    if (!firstB) return '';
+	const messageContent = useMemo(() => {
+		const firstB = head(message.B);
+		if (!firstB) return '';
 
-    // Try to get content from any available source
-    return firstB.content || '';
-  }, [message]);
+		// Try to get content from any available source
+		return firstB.content || '';
+	}, [message]);
 
-  const sender = head(message.MAP)?.paymail || '';
-  const messageReactions = message.tx?.h
-    ? reactions?.byTxTarget?.[message.tx.h] || []
-    : [];
+	const sender = head(message.MAP)?.paymail || '';
+	const messageReactions = message.tx?.h ? reactions?.byTxTarget?.[message.tx.h] || [] : [];
 
-  // Group reactions by emoji
-  const groupedReactions = messageReactions.reduce(
-    (acc: { [key: string]: number }, reaction) => {
-      const emoji = head(reaction.MAP)?.emoji;
-      if (emoji) {
-        acc[emoji] = (acc[emoji] || 0) + 1;
-      }
-      return acc;
-    },
-    {},
-  );
+	// Group reactions by emoji
+	const groupedReactions = messageReactions.reduce((acc: { [key: string]: number }, reaction) => {
+		const emoji = head(reaction.MAP)?.emoji;
+		if (emoji) {
+			acc[emoji] = (acc[emoji] || 0) + 1;
+		}
+		return acc;
+	}, {});
 
-  /**
-   * When a message contains text, the files are after the text.
-   * When a message contains only files, the files are the message.
-   */
-  const messageFiles = useMemo(
-    () => (messageContent ? tail(message.B) : message.B),
-    [message, messageContent],
-  );
+	/**
+	 * When a message contains text, the files are after the text.
+	 * When a message contains only files, the files are the message.
+	 */
+	const messageFiles = useMemo(
+		() => (messageContent ? tail(message.B) : message.B),
+		[message, messageContent],
+	);
 
-  return (
-    <MessageContainer>
-      <ReactionToolbar>
-        <ReactionButton
-          type="button"
-          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          aria-label="Add reaction"
-        >
-          <MdAddReaction size={16} />
-        </ReactionButton>
-      </ReactionToolbar>
+	return (
+		<MessageContainer>
+			<ReactionToolbar>
+				<ReactionButton
+					type="button"
+					onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+					aria-label="Add reaction"
+				>
+					<MdAddReaction size={16} />
+				</ReactionButton>
+			</ReactionToolbar>
 
-      <AvatarContainer>
-        <Avatar icon="" paymail={sender} size="40px" />
-      </AvatarContainer>
+			<AvatarContainer>
+				<Avatar icon="" paymail={sender} size="40px" />
+			</AvatarContainer>
 
-      <MessageContent>
-        <MessageHeader>
-          <SenderButton type="button" aria-label={`View ${sender}'s profile`}>
-            {sender}
-          </SenderButton>
-          <Timestamp>
-            {message.timestamp
-              ? new Date(message.timestamp * 1000).toLocaleString()
-              : message.blk?.t
-                ? new Date(message.blk.t * 1000).toLocaleString()
-                : ''}
-          </Timestamp>
-        </MessageHeader>
+			<MessageContent>
+				<MessageHeader>
+					<SenderButton type="button" aria-label={`View ${sender}'s profile`}>
+						{sender}
+					</SenderButton>
+					<Timestamp>
+						{message.timestamp
+							? new Date(message.timestamp * 1000).toLocaleString()
+							: message.blk?.t
+								? new Date(message.blk.t * 1000).toLocaleString()
+								: ''}
+					</Timestamp>
+				</MessageHeader>
 
-        <MessageBody>
-          <ReactMarkdown
-            components={{
-              p: ({ children }) => <span>{children}</span>,
-              a: ({ href, children }) => (
-                <a href={href} target="_blank" rel="noopener noreferrer">
-                  {children}
-                </a>
-              ),
-            }}
-          >
-            {messageContent}
-          </ReactMarkdown>
-        </MessageBody>
+				<MessageBody>
+					<ReactMarkdown
+						components={{
+							p: ({ children }) => <span>{children}</span>,
+							a: ({ href, children }) => (
+								<a href={href} target="_blank" rel="noopener noreferrer">
+									{children}
+								</a>
+							),
+						}}
+					>
+						{messageContent}
+					</ReactMarkdown>
+				</MessageBody>
 
-        {messageFiles && <MessageFiles files={messageFiles} />}
+				{messageFiles && <MessageFiles files={messageFiles} />}
 
-        <ReactionsContainer>
-          {Object.entries(groupedReactions).map(([emoji, count]) => (
-            <ReactionPill
-              key={`${emoji}-${Object.keys(groupedReactions).indexOf(emoji)}`}
-            >
-              <span>{emoji}</span>
-              {count > 1 && <span>{count}</span>}
-            </ReactionPill>
-          ))}
+				<ReactionsContainer>
+					{Object.entries(groupedReactions).map(([emoji, count]) => (
+						<ReactionPill key={`${emoji}-${Object.keys(groupedReactions).indexOf(emoji)}`}>
+							<span>{emoji}</span>
+							{count > 1 && <span>{count}</span>}
+						</ReactionPill>
+					))}
 
-          {showEmojiPicker && (
-            <EmojiPickerContainer ref={emojiPickerRef}>
-              <EmojiPicker
-                onEmojiSelect={(emoji) =>
-                  message.tx?.h && handleEmojiClick(emoji, message.tx.h)
-                }
-              />
-            </EmojiPickerContainer>
-          )}
-        </ReactionsContainer>
-      </MessageContent>
-    </MessageContainer>
-  );
+					{showEmojiPicker && (
+						<EmojiPickerContainer ref={emojiPickerRef}>
+							<EmojiPicker
+								onEmojiSelect={(emoji) => message.tx?.h && handleEmojiClick(emoji, message.tx.h)}
+							/>
+						</EmojiPickerContainer>
+					)}
+				</ReactionsContainer>
+			</MessageContent>
+		</MessageContainer>
+	);
 };
 
 export default Message;

@@ -5,11 +5,11 @@
  * Uses sigma-auth plugin for verification.
  */
 
+import type { SubscriptionStatus, SubscriptionTier } from "@sigma-auth/better-auth-plugin/client";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import type { RootState } from "../store";
-import type { SubscriptionStatus, SubscriptionTier } from "@sigma-auth/better-auth-plugin/client";
 import { SIGMA_AUTH_URL } from "../config/constants";
+import type { RootState } from "../store";
 
 // Feature to minimum tier mapping
 const FEATURE_TIERS: Record<string, SubscriptionTier> = {

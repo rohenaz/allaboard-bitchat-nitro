@@ -57,41 +57,37 @@ const SectionTitle = styled.h3`
 `;
 
 const ProfilePanel: React.FC = () => {
-  const _dispatch = useDispatch();
-  const session = useSelector((state: RootState) => state.session);
-  const isOpen = useSelector((state: RootState) => state.profile.isOpen);
+	const _dispatch = useDispatch();
+	const session = useSelector((state: RootState) => state.session);
+	const isOpen = useSelector((state: RootState) => state.profile.isOpen);
 
-  if (!session.user) {
-    return null;
-  }
+	if (!session.user) {
+		return null;
+	}
 
-  return (
-    <Container isOpen={isOpen}>
-      <Header>
-        <UserInfo>
-          <Avatar
-            size="80px"
-            paymail={session.user.paymail}
-            icon={session.user.icon || ''}
-          />
-          <div>
-            <Username>{session.user.paymail}</Username>
-            <Status>Online</Status>
-          </div>
-        </UserInfo>
-      </Header>
-      <Section>
-        <SectionTitle>Wallet</SectionTitle>
-        <div>{session.user.wallet}</div>
-      </Section>
-      {session.user.address && (
-        <Section>
-          <SectionTitle>Address</SectionTitle>
-          <div style={{ wordBreak: 'break-all' }}>{session.user.address}</div>
-        </Section>
-      )}
-    </Container>
-  );
+	return (
+		<Container isOpen={isOpen}>
+			<Header>
+				<UserInfo>
+					<Avatar size="80px" paymail={session.user.paymail} icon={session.user.icon || ''} />
+					<div>
+						<Username>{session.user.paymail}</Username>
+						<Status>Online</Status>
+					</div>
+				</UserInfo>
+			</Header>
+			<Section>
+				<SectionTitle>Wallet</SectionTitle>
+				<div>{session.user.wallet}</div>
+			</Section>
+			{session.user.address && (
+				<Section>
+					<SectionTitle>Address</SectionTitle>
+					<div style={{ wordBreak: 'break-all' }}>{session.user.address}</div>
+				</Section>
+			)}
+		</Container>
+	);
 };
 
 export default ProfilePanel;

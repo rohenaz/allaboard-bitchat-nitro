@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 interface LabelProps {
-  error?: boolean;
+	error?: boolean;
 }
 
 const Label = styled.label<LabelProps>`

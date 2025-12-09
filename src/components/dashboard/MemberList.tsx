@@ -9,78 +9,77 @@ import type { AppDispatch, RootState } from '../../store';
 import { UserList } from './UserList';
 
 export const MemberList: FC = () => {
-  const { authToken } = useHandcash();
-  const { connected } = useYours();
-  const dispatch = useDispatch<AppDispatch>();
-  const params = useParams();
+	const { authToken } = useHandcash();
+	const { connected } = useYours();
+	const dispatch = useDispatch<AppDispatch>();
+	const params = useParams();
 
-  const memberList = useSelector((state: RootState) => state.memberList);
-  const chat = useSelector((state: RootState) => state.chat);
-  const isOpen = memberList.isOpen;
-  const activeChannel = params.channel;
+	const memberList = useSelector((state: RootState) => state.memberList);
+	const chat = useSelector((state: RootState) => state.chat);
+	const isOpen = memberList.isOpen;
+	const activeChannel = params.channel;
 
-  // Filter users based on active channel
-  const filteredUsers = memberList.allIds
-    .map((id) => {
-      const user = memberList.byId[id];
-      if (!user?.idKey) return null;
+	// Filter users based on active channel
+	const filteredUsers = memberList.allIds
+		.map((id) => {
+			const user = memberList.byId[id];
+			if (!user?.idKey) return null;
 
-      // If no active channel, show all users
-      if (!activeChannel) return user;
+			// If no active channel, show all users
+			if (!activeChannel) return user;
 
-      // Check if user has sent messages in this channel
-      const hasMessagesInChannel = chat.messages.data.some((msg) => {
-        // Check if this user is the sender (AIP[0].address matches user's currentAddress)
-        const senderAddress = msg.AIP?.[0]?.address;
-        const isMessageSender =
-          senderAddress && user.currentAddress === senderAddress;
+			// Check if user has sent messages in this channel
+			const hasMessagesInChannel = chat.messages.data.some((msg) => {
+				// Check if this user is the sender (AIP[0].address matches user's currentAddress)
+				const senderAddress = msg.AIP?.[0]?.address;
+				const isMessageSender = senderAddress && user.currentAddress === senderAddress;
 
-        if (senderAddress) {
-        }
+				if (senderAddress) {
+				}
 
-        return isMessageSender;
-      });
+				return isMessageSender;
+			});
 
-      return hasMessagesInChannel ? user : null;
-    })
-    .filter((user): user is NonNullable<typeof user> => user !== null)
-    .map((user) => ({
-      id: user.idKey,
-      name: user.displayName || user.paymail || user.idKey,
-      avatar: user.icon || user.logo || '',
-      paymail: user.paymail || undefined,
-      bapId: user.idKey,
-      idKey: user.idKey,
-      status: 'online' as const,
-    }));
+			return hasMessagesInChannel ? user : null;
+		})
+		.filter((user): user is NonNullable<typeof user> => user !== null)
+		.map((user) => ({
+			id: user.idKey,
+			name: user.displayName || user.paymail || user.idKey,
+			avatar: user.icon || user.logo || '',
+			paymail: user.paymail || undefined,
+			bapId: user.idKey,
+			idKey: user.idKey,
+			status: 'online' as const,
+		}));
 
-  const fetchMemberList = useCallback(() => {
-    // Only load if we don't have any users AND we're not already loading
-    if ((authToken || connected) && !memberList.allIds.length && !memberList.loading) {
-      if (activeChannel) {
-        void dispatch(loadUsers());
-      } else {
-        void dispatch(loadFriends());
-      }
-    }
-  }, [authToken, connected, dispatch, memberList.allIds.length, memberList.loading, activeChannel]);
+	const fetchMemberList = useCallback(() => {
+		// Only load if we don't have any users AND we're not already loading
+		if ((authToken || connected) && !memberList.allIds.length && !memberList.loading) {
+			if (activeChannel) {
+				void dispatch(loadUsers());
+			} else {
+				void dispatch(loadFriends());
+			}
+		}
+	}, [authToken, connected, dispatch, memberList.allIds.length, memberList.loading, activeChannel]);
 
-  useEffect(() => {
-    fetchMemberList();
-  }, [fetchMemberList]);
+	useEffect(() => {
+		fetchMemberList();
+	}, [fetchMemberList]);
 
-  if (!isOpen) {
-    return null;
-  }
+	if (!isOpen) {
+		return null;
+	}
 
-  return (
-    <div className="w-60 min-w-60 bg-base-200 flex-col overflow-hidden relative shrink-0 hidden md:flex">
-      <UserList
-        users={filteredUsers}
-        loading={memberList.loading}
-        title={activeChannel ? `#${activeChannel} Members` : 'Friends'}
-        showFriendRequests={!activeChannel}
-      />
-    </div>
-  );
+	return (
+		<div className="w-60 min-w-60 bg-base-200 flex-col overflow-hidden relative shrink-0 hidden md:flex">
+			<UserList
+				users={filteredUsers}
+				loading={memberList.loading}
+				title={activeChannel ? `#${activeChannel} Members` : 'Friends'}
+				showFriendRequests={!activeChannel}
+			/>
+		</div>
+	);
 };
