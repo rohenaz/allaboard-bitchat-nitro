@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
+import { Button } from '@/components/ui/button';
 import { api } from '../../api/fetch';
 import { useBitcoin } from '../../context/bitcoin';
 import { useHandcash } from '../../context/handcash';
@@ -354,16 +355,9 @@ export const UserPopover: FC<UserPopoverProps> = ({
 
 	return (
 		<>
-			<button
-				type="button"
-				style={{
-					position: 'fixed',
-					inset: 0,
-					zIndex: 999,
-					background: 'transparent',
-					border: 'none',
-					cursor: 'default',
-				}}
+			<Button
+				variant="ghost"
+				className="fixed inset-0 z-[999] bg-transparent border-none cursor-default h-auto w-auto rounded-none p-0 hover:bg-transparent"
 				onClick={onClose}
 				onKeyDown={(e) => {
 					if (e.key === 'Escape') {
