@@ -154,24 +154,24 @@ const ImportIDModal: React.FC = () => {
 	if (!isProfileOpen) return null;
 
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+		<div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
 			<div
-				className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl max-w-md w-full"
+				className="bg-card border border-border p-8 rounded-lg shadow-xl max-w-md w-full"
 				ref={modalRef}
 			>
 				{identity ? (
 					<div className="text-center">
-						<div className="text-green-500 text-5xl mb-4">
+						<div className="text-primary text-5xl mb-4">
 							<FaCheck className="mx-auto" />
 						</div>
 						<h3 className="text-xl font-bold mb-2">Import Successful!</h3>
-						<p className="text-gray-600 dark:text-gray-300 mb-6">
+						<p className="text-muted-foreground mb-6">
 							Your messages will be signed with your identity key.
 						</p>
 						<button
 							type="button"
 							onClick={() => dispatch(toggleProfile())}
-							className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-md hover:opacity-80 transition-opacity"
+							className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:opacity-80 transition-opacity"
 						>
 							<FaCheck className="inline mr-2" /> Got it
 						</button>
@@ -179,16 +179,16 @@ const ImportIDModal: React.FC = () => {
 				) : needsPassword ? (
 					<div>
 						<div className="flex items-center mb-6">
-							<FaKey className="text-3xl mr-3 text-blue-500" />
+							<FaKey className="text-3xl mr-3 text-primary" />
 							<div>
 								<h2 className="text-xl font-bold">Password Required</h2>
-								<p className="text-sm text-gray-600 dark:text-gray-400">
+								<p className="text-sm text-muted-foreground">
 									{getBackupTypeLabel(detectedType)} detected
 								</p>
 							</div>
 						</div>
 
-						<p className="text-gray-600 dark:text-gray-300 mb-4">
+						<p className="text-muted-foreground mb-4">
 							This backup file is encrypted. Please enter your password to decrypt it.
 						</p>
 
@@ -198,18 +198,18 @@ const ImportIDModal: React.FC = () => {
 							onChange={(e) => setPassword(e.target.value)}
 							onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
 							placeholder="Enter password..."
-							className="w-full px-4 py-2 border rounded-md mb-4 dark:bg-gray-700 dark:border-gray-600"
+							className="w-full px-4 py-2 border border-border rounded-md mb-4 bg-background text-foreground"
 							disabled={isProcessing}
 						/>
 
-						{passwordError && <p className="text-red-500 text-sm mb-4">{passwordError}</p>}
+						{passwordError && <p className="text-destructive text-sm mb-4">{passwordError}</p>}
 
 						<div className="flex gap-3">
 							<button
 								type="button"
 								onClick={handlePasswordSubmit}
 								disabled={isProcessing || !password}
-								className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+								className="flex-1 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								{isProcessing ? 'Decrypting...' : 'Decrypt'}
 							</button>
@@ -221,7 +221,7 @@ const ImportIDModal: React.FC = () => {
 									setPasswordError('');
 								}}
 								disabled={isProcessing}
-								className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md hover:opacity-80"
+								className="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:opacity-80"
 							>
 								Cancel
 							</button>
@@ -230,19 +230,19 @@ const ImportIDModal: React.FC = () => {
 				) : (
 					<div>
 						<div className="flex items-center mb-6">
-							<ImProfile className="text-3xl mr-3 text-blue-500" />
+							<ImProfile className="text-3xl mr-3 text-primary" />
 							<h2 className="text-xl font-bold">Import Identity</h2>
 						</div>
 
 						{loadIdentityStatus === FetchStatus.Error && (
-							<div className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 p-3 rounded-md mb-4">
+							<div className="bg-destructive/10 text-destructive border border-destructive/20 p-3 rounded-md mb-4">
 								Error loading identity file. Please try again.
 							</div>
 						)}
 
-						<div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md mb-6">
+						<div className="bg-muted p-4 rounded-md mb-6">
 							<h3 className="font-semibold mb-2">Supported Formats:</h3>
-							<ul className="text-sm space-y-1 text-gray-600 dark:text-gray-300">
+							<ul className="text-sm space-y-1 text-muted-foreground">
 								<li>• BAP Master Backup (encrypted/decrypted)</li>
 								<li>• BAP Member Backup (encrypted/decrypted)</li>
 								<li>• WIF Backup</li>
@@ -255,13 +255,13 @@ const ImportIDModal: React.FC = () => {
 								type="button"
 								onClick={uploadIdentity}
 								disabled={isProcessing}
-								className="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+								className="bg-primary text-primary-foreground px-6 py-3 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
 							>
 								<FaFileImport className="mr-2" />
 								{isProcessing ? 'Processing...' : 'Choose Backup File'}
 							</button>
 
-							<p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
+							<p className="text-sm text-muted-foreground mt-3">
 								Files are processed locally and never uploaded
 							</p>
 						</div>

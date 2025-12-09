@@ -33,10 +33,10 @@ const LoadingSpinner = styled.div`
 const ErrorMessage = styled.div`
   margin-top: 16px;
   padding: 12px;
-  background-color: rgba(250, 124, 124, 0.1);
-  border: 1px solid var(--text-danger);
+  background-color: hsl(var(--destructive) / 0.1);
+  border: 1px solid hsl(var(--destructive));
   border-radius: 4px;
-  color: var(--text-danger);
+  color: hsl(var(--destructive));
   font-size: 14px;
   text-align: center;
 `;

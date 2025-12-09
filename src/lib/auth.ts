@@ -10,7 +10,7 @@ import { createAuthClient } from 'better-auth/client';
 import { NITRO_API_URL, SIGMA_AUTH_URL } from '../config/constants';
 
 // Create Better Auth client with Sigma plugin
-const authClient = createAuthClient({
+export const authClient = createAuthClient({
 	baseURL: SIGMA_AUTH_URL,
 	plugins: [sigmaClient()],
 });

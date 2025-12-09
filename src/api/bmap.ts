@@ -99,8 +99,30 @@ export interface Friend {
 	status: 'pending' | 'accepted' | 'blocked';
 }
 
+// Confirmed friend with encryption keys (from BMAP API)
+export interface ConfirmedFriend {
+	bapID: string;
+	mePublicKey: string; // Our derived public key for this friend
+	themPublicKey: string; // Their public key for ECIES encryption
+}
+
+// Friend request from blockchain
+export interface BmapFriendRequest {
+	bapID: string;
+	txid: string;
+	height: number;
+	publicKey?: string;
+}
+
+// Full response from /social/friend/{bapId}
+export interface FriendsResponse {
+	friends: ConfirmedFriend[];
+	incomingRequests: BmapFriendRequest[];
+	outgoingRequests: BmapFriendRequest[];
+}
+
 export const getFriendRelationships = async (bapId: string) => {
-	return api.get<Friend[]>(`/social/friend/${bapId}`);
+	return api.get<FriendsResponse>(`/social/friend/${bapId}`);
 };
 
 // Direct Messages

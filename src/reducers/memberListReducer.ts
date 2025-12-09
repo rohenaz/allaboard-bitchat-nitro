@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { head } from 'lodash';
 import * as channelAPI from '../api/channel';
 import * as userAPI from '../api/user';
+import * as bmapAPI from '../api/bmap';
+import type { ConfirmedFriend, BmapFriendRequest, FriendsResponse } from '../api/bmap';
 import type { AppDispatch, RootState } from '../store';
 
 // Define Signer interface
@@ -71,6 +73,11 @@ export interface MemberListState {
 			allIds: string[];
 		};
 	};
+	// Confirmed friends with encryption keys
+	confirmedFriends: {
+		byId: Record<string, ConfirmedFriend>;
+		allIds: string[];
+	};
 }
 
 // Initial state
@@ -89,6 +96,10 @@ const initialState: MemberListState = {
 		loading: true,
 		incoming: { allIds: [], byId: {} },
 		outgoing: { allIds: [], byId: {} },
+	},
+	confirmedFriends: {
+		byId: {},
+		allIds: [],
 	},
 };
 
@@ -111,7 +122,13 @@ export const loadUsers = createAsyncThunk(
 );
 
 export const loadFriends = createAsyncThunk<
-	{ friend: FriendRequest[]; signers: Signer[]; bapId: string },
+	{
+		friends: ConfirmedFriend[];
+		incomingRequests: BmapFriendRequest[];
+		outgoingRequests: BmapFriendRequest[];
+		signers: Signer[];
+		bapId: string;
+	},
 	void,
 	{ state: RootState; rejectValue: string }
 >('memberList/loadFriends', async (_, { getState, rejectWithValue }) => {
@@ -122,8 +139,11 @@ export const loadFriends = createAsyncThunk<
 	}
 
 	try {
+		// Call BMAP API which returns friends with encryption keys
+		const response = await bmapAPI.getFriendRelationships(bapId);
+
+		// Also fetch user details for signers
 		const users = await userAPI.getFriends(bapId);
-		// Convert User[] to LoadFriendsResponse format
 		const signers = users.map((user) => ({
 			idKey: user.idKey || '',
 			paymail: user.paymail,
@@ -131,7 +151,14 @@ export const loadFriends = createAsyncThunk<
 			displayName: user.name,
 			isFriend: true,
 		}));
-		return { friend: [], signers, bapId };
+
+		return {
+			friends: response.friends || [],
+			incomingRequests: response.incomingRequests || [],
+			outgoingRequests: response.outgoingRequests || [],
+			signers,
+			bapId,
+		};
 	} catch (error) {
 		const err = error as Error;
 		return rejectWithValue(err.message || 'Failed to load friends');
@@ -256,57 +283,57 @@ const memberListSlice = createSlice({
 			})
 			.addCase(loadFriends.fulfilled, (state, action) => {
 				state.friendRequests.loading = false;
-				const { friend, signers, bapId } = action.payload;
+				const { friends, incomingRequests, outgoingRequests, signers, bapId } = action.payload;
 
-				const brokenTxHashes = [
-					'bb83989697819428c0e8aadaf1bdff0a16bc14ab5e36310ff1e22b5bf835574c',
-					'95a4c088bd32c4547d64e7d1405ceae2143e3a45324a9f8c4eb6bba9ef53be98',
-					'7182af3be9c258068df78adc68ee7a628721a5e6aa0dda2a0e21dc160bf20bbe',
-				];
-
+				// Store signers
 				for (const s of signers) {
 					if (!state.signers.allIds.includes(s.idKey)) {
 						state.signers.allIds.push(s.idKey);
 						state.signers.byId[s.idKey] = s;
 					}
+					// Also add to byId for member display
+					if (!state.allIds.includes(s.idKey)) {
+						state.allIds.push(s.idKey);
+						state.byId[s.idKey] = { ...s, isFriend: true };
+					} else {
+						state.byId[s.idKey].isFriend = true;
+					}
 				}
 
-				for (const f of friend) {
-					if (brokenTxHashes.includes(f.tx.h)) return;
-
-					const requesterAddress = head(f.AIP)?.address;
-					const requester = signers.find((si) => si.currentAddress === requesterAddress)?.idKey;
-					const recipient = head(f.MAP)?.bapID;
-					if (!requester || !recipient) return;
-
-					if (recipient === bapId) {
-						const friendWithSigner = {
-							...f,
-							signer: signers.find((si) => si.idKey === requester),
-						};
-						state.friendRequests.incoming.allIds.push(requester);
-						state.friendRequests.incoming.byId[requester] = friendWithSigner;
-					} else if (requester === bapId) {
-						const friendWithSigner = {
-							...f,
-							signer: signers.find((si) => si.idKey === requester),
-						};
-						state.friendRequests.outgoing.allIds.push(recipient);
-						state.friendRequests.outgoing.byId[recipient] = friendWithSigner;
+				// Store confirmed friends with encryption keys
+				for (const friend of friends) {
+					if (!state.confirmedFriends.allIds.includes(friend.bapID)) {
+						state.confirmedFriends.allIds.push(friend.bapID);
 					}
+					state.confirmedFriends.byId[friend.bapID] = friend;
+				}
 
-					// If mutual friend requests
-					if (
-						(state.friendRequests.outgoing.allIds.includes(requester) &&
-							state.friendRequests.incoming.allIds.includes(recipient)) ||
-						(state.friendRequests.incoming.allIds.includes(requester) &&
-							state.friendRequests.outgoing.allIds.includes(recipient))
-					) {
-						const userId = recipient === bapId ? requester : recipient;
-						if (state.byId[userId]) {
-							state.byId[userId].isFriend = true;
-						}
-					}
+				// Store incoming friend requests
+				state.friendRequests.incoming.allIds = [];
+				state.friendRequests.incoming.byId = {};
+				for (const req of incomingRequests) {
+					const signer = signers.find((s) => s.idKey === req.bapID);
+					state.friendRequests.incoming.allIds.push(req.bapID);
+					state.friendRequests.incoming.byId[req.bapID] = {
+						tx: { h: req.txid },
+						AIP: [{ bapId: req.bapID }],
+						MAP: [{ bapID: bapId, publicKey: req.publicKey }],
+						signer,
+					};
+				}
+
+				// Store outgoing friend requests
+				state.friendRequests.outgoing.allIds = [];
+				state.friendRequests.outgoing.byId = {};
+				for (const req of outgoingRequests) {
+					const signer = signers.find((s) => s.idKey === req.bapID);
+					state.friendRequests.outgoing.allIds.push(req.bapID);
+					state.friendRequests.outgoing.byId[req.bapID] = {
+						tx: { h: req.txid },
+						AIP: [{ bapId: bapId }],
+						MAP: [{ bapID: req.bapID }],
+						signer,
+					};
 				}
 			})
 			.addCase(loadFriends.rejected, (state, action) => {

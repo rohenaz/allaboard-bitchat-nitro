@@ -3,7 +3,7 @@ import {
 	Hash,
 	HD,
 	type PrivateKey,
-	type PublicKey,
+	PublicKey,
 	Script,
 	Transaction,
 	Utils,
@@ -62,6 +62,12 @@ interface Session {
 	};
 }
 
+interface ConfirmedFriend {
+	bapID: string;
+	mePublicKey: string;
+	themPublicKey: string;
+}
+
 interface MemberListState {
 	byId: Record<
 		string,
@@ -84,6 +90,10 @@ interface MemberListState {
 				}
 			>;
 		};
+	};
+	confirmedFriends: {
+		byId: Record<string, ConfirmedFriend>;
+		allIds: string[];
 	};
 }
 
@@ -138,6 +148,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 	const dispatch = useDispatch();
 	const params = useParams();
 	const session = useSelector((state: RootState) => state.session);
+	const confirmedFriends = useSelector((state: RootState) => state.memberList.confirmedFriends);
 	const isYoursWallet = session.user?.walletType === 'yours';
 
 	const activeUserId = useMemo(() => params.user, [params.user]);
@@ -338,12 +349,45 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 			setPostStatus(FetchStatus.Loading);
 
 			try {
-				const contentPayload = content
+				// Encrypt content for DMs if we have the friend's public key
+				let messageContent = content;
+				let contentType = 'text/plain';
+				let contentEncoding = 'utf-8';
+
+				if (userId && content) {
+					const friend = confirmedFriends?.byId?.[userId];
+					if (friend?.themPublicKey) {
+						// Use Sigma Auth plugin for encryption (keys stay in auth server)
+						const { authClient } = await import('../../lib/auth');
+						if (authClient.sigma.isReady()) {
+							try {
+								// Encrypt using Type42 key derivation via Sigma iframe
+								messageContent = await authClient.sigma.encrypt(
+									content,
+									userId,
+									friend.themPublicKey,
+								);
+								contentType = 'application/octet-stream';
+								contentEncoding = 'base64';
+								console.log('[Message] Content encrypted via Sigma Auth for DM');
+							} catch (encryptError) {
+								console.error('[Message] Failed to encrypt content, sending unencrypted:', encryptError);
+								// Fall back to unencrypted if encryption fails
+							}
+						} else {
+							console.warn('[Message] Sigma identity not ready, sending unencrypted');
+						}
+					} else {
+						console.warn('[Message] No confirmed friend key found for DM, sending unencrypted');
+					}
+				}
+
+				const contentPayload = messageContent
 					? [
 							B_PREFIX, // B Prefix
-							content,
-							'text/plain',
-							'utf-8',
+							messageContent,
+							contentType,
+							contentEncoding,
 						]
 					: [];
 
@@ -675,6 +719,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 			signOpReturnWithAIP,
 			isYoursWallet,
 			decIdentity,
+			confirmedFriends,
 		],
 	);
 

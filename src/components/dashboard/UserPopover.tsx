@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { api } from '../../api/fetch';
+import { useBap } from '../../context/bap';
+import { useBitcoin } from '../../context/bitcoin';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { loadFriends } from '../../reducers/memberListReducer';
@@ -244,6 +246,8 @@ export const UserPopover: FC<UserPopoverProps> = ({
 }) => {
 	const { authToken } = useHandcash();
 	const { connected } = useYours();
+	const { sendFriendRequest } = useBitcoin();
+	const { decIdentity } = useBap();
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 
@@ -319,14 +323,15 @@ export const UserPopover: FC<UserPopoverProps> = ({
 	}, [user.idKey, session.user?.idKey, navigate, onClose]);
 
 	const handleAddFriend = useCallback(async () => {
-		if (!user.idKey || !session.user?.idKey) return;
+		if (!user.idKey || !decIdentity?.xprv) {
+			console.error('Cannot send friend request: missing user ID or identity');
+			return;
+		}
 
 		try {
 			setActionLoading('friend');
-			await api.post('/friend-requests', {
-				from: session.user.idKey,
-				to: user.idKey,
-			});
+			// Use Bitcoin context to broadcast friend request with public key
+			await sendFriendRequest(user.idKey, decIdentity.xprv);
 			await dispatch(loadFriends());
 			onClose();
 		} catch (error) {
@@ -334,7 +339,7 @@ export const UserPopover: FC<UserPopoverProps> = ({
 		} finally {
 			setActionLoading(null);
 		}
-	}, [user.idKey, session.user?.idKey, dispatch, onClose]);
+	}, [user.idKey, decIdentity?.xprv, sendFriendRequest, dispatch, onClose]);
 
 	const handleViewProfile = useCallback(() => {
 		navigate(`/@/${user.paymail}`);

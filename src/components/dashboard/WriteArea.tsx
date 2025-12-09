@@ -278,7 +278,7 @@ const WriteArea = () => {
 									data={`data:${file.type};base64,${file.data}`}
 								/>
 							</div>
-							<div className="absolute bottom-0 left-0 right-0 px-2 py-1 bg-black/50 text-white text-xs truncate">
+							<div className="absolute bottom-0 left-0 right-0 px-2 py-1 bg-background/80 text-foreground text-xs truncate">
 								{file.name}
 							</div>
 							<button
@@ -288,7 +288,7 @@ const WriteArea = () => {
 									newFiles.splice(idx, 1);
 									setPendingFiles(newFiles);
 								}}
-								className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 text-white border-none cursor-pointer flex items-center justify-center transition-colors hover:bg-destructive"
+								className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/80 text-foreground border-none cursor-pointer flex items-center justify-center transition-colors hover:bg-destructive"
 								aria-label="Remove attachment"
 							>
 								<IoMdClose size={16} />

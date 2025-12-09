@@ -1,10 +1,13 @@
 import { head, tail } from 'lodash';
+import { Lock } from 'lucide-react';
 import type { FC } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MdAddReaction } from 'react-icons/md';
 import ReactMarkdown from 'react-markdown';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import { useBitcoin } from '../../context/bitcoin';
+import { authClient } from '../../lib/auth';
 import type { BmapTx } from '../../reducers/chatReducer';
 import type { RootState } from '../../store';
 import { isValidEmail } from '../../utils/validation';
@@ -26,10 +29,64 @@ interface MessageProps {
 const MessageCard: FC<MessageProps> = ({ message, reactions }) => {
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
+	const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
+	const [isDecrypting, setIsDecrypting] = useState(false);
 	const emojiPickerRef = useRef<HTMLDivElement>(null);
+	const params = useParams();
 	const { likeMessage } = useBitcoin();
 	const session = useSelector((state: RootState) => state.session);
+	const confirmedFriends = useSelector((state: RootState) => state.memberList.confirmedFriends);
 	const _isVerified = isValidEmail(head(message.MAP)?.paymail || '');
+
+	// Check if message is encrypted
+	const isEncrypted = head(message.MAP)?.encrypted === 'true';
+	// Get the friend's BAP ID - from URL params (DM view) or from message
+	const friendBapId = params.user || head(message.AIP)?.bapId || head(message.MAP)?.bapID;
+
+	// Get raw content
+	const rawContent = useMemo(() => {
+		const firstB = head(message.B);
+		return firstB?.content || '';
+	}, [message]);
+
+	// Decrypt encrypted messages using Sigma Auth plugin
+	useEffect(() => {
+		if (!isEncrypted || !rawContent || !friendBapId) {
+			setDecryptedContent(null);
+			return;
+		}
+
+		const friend = confirmedFriends?.byId?.[friendBapId];
+		if (!friend?.themPublicKey) {
+			setDecryptedContent('[Encrypted message - add as friend to decrypt]');
+			return;
+		}
+
+		// Check if sigma identity is ready
+		if (!authClient.sigma.isReady()) {
+			setDecryptedContent('[Encrypted - unlock wallet to decrypt]');
+			return;
+		}
+
+		const decryptMessage = async () => {
+			setIsDecrypting(true);
+			try {
+				const decrypted = await authClient.sigma.decrypt(
+					rawContent,
+					friendBapId,
+					friend.themPublicKey,
+				);
+				setDecryptedContent(decrypted);
+			} catch (error) {
+				console.error('[MessageCard] Failed to decrypt message:', error);
+				setDecryptedContent('[Unable to decrypt message]');
+			} finally {
+				setIsDecrypting(false);
+			}
+		};
+
+		decryptMessage();
+	}, [isEncrypted, rawContent, friendBapId, confirmedFriends]);
 
 	// Handle outside clicks for emoji picker
 	useEffect(() => {
@@ -54,13 +111,14 @@ const MessageCard: FC<MessageProps> = ({ message, reactions }) => {
 		setShowEmojiPicker(false);
 	};
 
+	// Display content: decrypted for encrypted messages, raw for plain messages
 	const messageContent = useMemo(() => {
-		const firstB = head(message.B);
-		if (!firstB) return '';
-
-		// Try to get content from any available source
-		return firstB.content || '';
-	}, [message]);
+		if (isEncrypted) {
+			if (isDecrypting) return '[Decrypting...]';
+			return decryptedContent ?? rawContent;
+		}
+		return rawContent;
+	}, [isEncrypted, isDecrypting, decryptedContent, rawContent]);
 
 	const sender = head(message.MAP)?.paymail || '';
 	const messageReactions = message.tx?.h ? reactions?.byTxTarget?.[message.tx.h] || [] : [];

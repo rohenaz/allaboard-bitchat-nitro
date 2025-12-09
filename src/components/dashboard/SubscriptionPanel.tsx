@@ -24,9 +24,9 @@ import type { RootState } from '../../store';
 const TIER_CONFIG: Record<SubscriptionTier, { label: string; color: string; icon: string }> = {
 	free: { label: 'Free', color: 'bg-muted text-muted-foreground', icon: '' },
 	plus: { label: 'Plus', color: 'bg-primary text-primary-foreground', icon: '' },
-	pro: { label: 'Pro', color: 'bg-purple-500 text-white', icon: '' },
-	premium: { label: 'Premium', color: 'bg-amber-500 text-white', icon: '' },
-	enterprise: { label: 'Enterprise', color: 'bg-blue-600 text-white', icon: '' },
+	pro: { label: 'Pro', color: 'bg-chart-3 text-primary-foreground', icon: '' },
+	premium: { label: 'Premium', color: 'bg-chart-4 text-primary-foreground', icon: '' },
+	enterprise: { label: 'Enterprise', color: 'bg-chart-2 text-primary-foreground', icon: '' },
 };
 
 export function SubscriptionPanel() {
