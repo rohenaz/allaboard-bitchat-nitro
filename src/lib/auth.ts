@@ -122,16 +122,31 @@ export const sigmaAuth = {
       throw new Error('No public key in userinfo response');
     }
 
-    // Extract address (required)
-    const address = rawUserInfo.bitcoin_address || rawUserInfo.address;
-    if (!address) {
-      throw new Error('No Bitcoin address in userinfo response');
-    }
-
     // Extract member BAP ID (required)
     const memberBapId = rawUserInfo.bap_id;
     if (!memberBapId) {
       throw new Error('No BAP ID in userinfo response');
+    }
+
+    // Extract address - try top-level first, then parse from bap JSON
+    let address = rawUserInfo.bitcoin_address || rawUserInfo.address;
+    let paymail = rawUserInfo.email;
+
+    if (!address && rawUserInfo.bap) {
+      try {
+        const bapProfile: BAPProfile = JSON.parse(rawUserInfo.bap);
+        address = bapProfile.currentAddress || bapProfile.rootAddress;
+        // Also extract paymail from BAP identity if not at top level
+        if (!paymail && bapProfile.identity?.paymail) {
+          paymail = bapProfile.identity.paymail;
+        }
+      } catch (e) {
+        console.error('[Sigma Auth] Failed to parse BAP profile:', e);
+      }
+    }
+
+    if (!address) {
+      throw new Error('No Bitcoin address in userinfo response');
     }
 
     // Build strictly typed user info
@@ -140,9 +155,9 @@ export const sigmaAuth = {
       idKey: memberBapId,
       public_key: publicKey,
       address: address,
-      paymail: rawUserInfo.email,
+      paymail: paymail,
       displayName: rawUserInfo.name,
-      avatar: rawUserInfo.avatar || rawUserInfo.image,
+      avatar: rawUserInfo.picture || rawUserInfo.avatar || rawUserInfo.image,
     };
 
     console.log('[Sigma Auth] Validated user info:', userInfo);
@@ -188,7 +203,21 @@ export interface SigmaOAuthUserInfo {
   address?: string;               // Alternate field name
   avatar?: string;                // Avatar URL
   image?: string;                 // Alternate field name for avatar
+  picture?: string;               // OIDC standard field for avatar
   bap_id: string;                 // Member BAP ID (required)
+  bap?: string;                   // BAP profile JSON string (contains addresses)
+}
+
+/**
+ * Parsed BAP profile from userinfo response
+ */
+interface BAPProfile {
+  id: string;
+  rootAddress: string;
+  currentAddress: string;
+  identity?: {
+    paymail?: string;
+  };
 }
 
 /**
