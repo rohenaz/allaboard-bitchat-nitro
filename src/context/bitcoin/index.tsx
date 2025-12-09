@@ -356,30 +356,26 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 
 				if (userId && content) {
 					const friend = confirmedFriends?.byId?.[userId];
-					if (friend?.themPublicKey) {
-						// Use Sigma Auth plugin for encryption (keys stay in auth server)
-						const { authClient } = await import('../../lib/auth');
-						if (authClient.sigma.isReady()) {
-							try {
-								// Encrypt using Type42 key derivation via Sigma iframe
-								messageContent = await authClient.sigma.encrypt(
-									content,
-									userId,
-									friend.themPublicKey,
-								);
-								contentType = 'application/octet-stream';
-								contentEncoding = 'base64';
-								console.log('[Message] Content encrypted via Sigma Auth for DM');
-							} catch (encryptError) {
-								console.error('[Message] Failed to encrypt content, sending unencrypted:', encryptError);
-								// Fall back to unencrypted if encryption fails
-							}
-						} else {
-							console.warn('[Message] Sigma identity not ready, sending unencrypted');
-						}
-					} else {
-						console.warn('[Message] No confirmed friend key found for DM, sending unencrypted');
+					if (!friend?.themPublicKey) {
+						throw new Error('Cannot send DM: friend encryption key not found. Add as friend first.');
 					}
+
+					// Use Sigma Auth plugin for encryption (keys stay in auth server)
+					const { authClient } = await import('../../lib/auth');
+					if (!authClient.sigma.isReady()) {
+						throw new Error('Cannot send DM: wallet not unlocked. Please unlock your wallet first.');
+					}
+
+					// Encrypt using Type42 key derivation via Sigma iframe
+					// If encryption fails, do NOT send - DMs must always be encrypted
+					messageContent = await authClient.sigma.encrypt(
+						content,
+						userId,
+						friend.themPublicKey,
+					);
+					contentType = 'application/octet-stream';
+					contentEncoding = 'base64';
+					console.log('[Message] Content encrypted via Sigma Auth for DM');
 				}
 
 				const contentPayload = messageContent
