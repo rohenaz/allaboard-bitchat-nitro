@@ -47,7 +47,7 @@ const MessageFiles: React.FC<MessageFilesProps> = ({ files }) => {
 			<FilePreviewModal
 				open={!!selectedFile}
 				file={selectedFile}
-				onClose={() => setSelectedFile(null)}
+				onOpenChange={(open) => !open && setSelectedFile(null)}
 			/>
 		</>
 	);

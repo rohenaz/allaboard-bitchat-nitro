@@ -23,8 +23,8 @@ const Container = styled.div`
   padding: 0 8px;
   height: 52px;
   min-height: 52px;
-  background-color: var(--background-secondary);
-  border-top: 1px solid var(--background-modifier-accent);
+  background-color: var(--card);
+  border-top: 1px solid var(--border);
   position: relative;
 `;
 
@@ -39,7 +39,7 @@ const UserInfo = styled.div`
   transition: background-color 0.15s ease-out;
 
   &:hover {
-    background-color: var(--background-modifier-hover);
+    background-color: var(--accent);
   }
 `;
 
@@ -53,7 +53,7 @@ const UserName = styled.div`
   font-size: 14px;
   font-weight: 600;
   line-height: 18px;
-  color: var(--text-normal);
+  color: var(--foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -62,7 +62,7 @@ const UserName = styled.div`
 const UserStatus = styled.div`
   font-size: 12px;
   line-height: 16px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -77,13 +77,13 @@ const ActionButton = styled.button`
   border-radius: 4px;
   border: none;
   background: transparent;
-  color: var(--interactive-normal);
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: all 0.15s ease-out;
 
   &:hover {
-    background-color: var(--background-modifier-hover);
-    color: var(--interactive-hover);
+    background-color: var(--accent);
+    color: var(--foreground);
   }
 
   svg {

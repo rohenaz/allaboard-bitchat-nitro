@@ -31,7 +31,7 @@ const Container = styled.div<ContainerProps>`
   display: flex;
   flex: 0 0 auto;
   height: 100vh;
-  background-color: var(--background-tertiary);
+  background-color: var(--muted);
   transition: transform 0.3s ease;
 
   @media (max-width: 768px) {
@@ -47,7 +47,7 @@ const ServerListWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 72px;
-  background-color: var(--background-tertiary);
+  background-color: var(--muted);
   padding: 12px 0;
 `;
 
@@ -55,7 +55,7 @@ const ListWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 240px;
-  background-color: var(--background-secondary);
+  background-color: var(--card);
 `;
 
 const Sidebar = () => {

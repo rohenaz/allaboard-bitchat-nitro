@@ -21,7 +21,7 @@ export interface Channel {
 const Container = styled.aside`
   display: flex;
   flex-direction: column;
-  background-color: var(--background-secondary);
+  background-color: var(--card);
   position: relative;
 `;
 
@@ -30,7 +30,7 @@ const TitleRow = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 16px 16px 8px 16px;
-  height: 48px; /* Fixed height for consistent alignment */
+  height: 48px;
 `;
 
 const Title = styled.h2`
@@ -38,7 +38,7 @@ const Title = styled.h2`
   font-weight: 600;
   font-size: 12px;
   line-height: 16px;
-  color: var(--channels-default);
+  color: var(--muted-foreground);
   margin: 0;
   user-select: none;
   display: flex;
@@ -53,21 +53,21 @@ const AddDMButton = styled.button`
   height: 18px;
   background: none;
   border: none;
-  color: var(--channels-default);
+  color: var(--muted-foreground);
   cursor: pointer;
   border-radius: 2px;
   transition: all 0.15s ease;
   flex-shrink: 0;
-  
+
   &:hover {
-    background-color: var(--background-modifier-hover);
-    color: var(--interactive-hover);
+    background-color: var(--accent);
+    color: var(--foreground);
   }
-  
+
   &:active {
     transform: scale(0.95);
   }
-  
+
   svg {
     width: 14px;
     height: 14px;
@@ -75,7 +75,7 @@ const AddDMButton = styled.button`
   }
 `;
 
-const ChannelList = styled.div`
+const ChannelListStyled = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -94,16 +94,16 @@ const ChannelItem = styled.div<{ $isActive: boolean }>`
   margin: 1px 0;
   border-radius: 4px;
   cursor: pointer;
-  color: ${({ $isActive }) => ($isActive ? 'var(--interactive-active)' : 'var(--interactive-normal)')};
-  background: ${({ $isActive }) => ($isActive ? 'var(--background-modifier-selected)' : 'transparent')};
+  color: ${({ $isActive }) => ($isActive ? 'var(--primary)' : 'var(--muted-foreground)')};
+  background: ${({ $isActive }) => ($isActive ? 'var(--accent)' : 'transparent')};
   transition: all 0.15s ease-out;
   height: 32px;
   max-width: 224px;
   position: relative;
 
   &:hover {
-    background: ${({ $isActive }) => ($isActive ? 'var(--background-modifier-selected)' : 'var(--background-modifier-hover)')};
-    color: var(--interactive-hover);
+    background: var(--accent);
+    color: var(--foreground);
   }
 
   ${({ $isActive }) =>
@@ -116,7 +116,7 @@ const ChannelItem = styled.div<{ $isActive: boolean }>`
       top: 0;
       bottom: 0;
       width: 4px;
-      background-color: var(--white-500);
+      background-color: var(--foreground);
       border-radius: 0 4px 4px 0;
     }
   `}
@@ -139,7 +139,7 @@ const HashtagIcon = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--channels-default);
+  color: var(--muted-foreground);
   &::before {
     content: '#';
   }
@@ -147,13 +147,13 @@ const HashtagIcon = styled.span`
 
 const LoadingText = styled.div`
   padding: 16px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   font-size: 14px;
   text-align: center;
 `;
 
 const NoChannelsText = styled(LoadingText)`
-  color: var(--text-muted);
+  color: var(--muted-foreground);
 `;
 
 const ChannelListContent: React.FC = () => {
@@ -206,7 +206,7 @@ const ChannelListContent: React.FC = () => {
 					</svg>
 				</AddDMButton>
 			</TitleRow>
-			<ChannelList>
+			<ChannelListStyled>
 				{!channels.length && <NoChannelsText>No channels found</NoChannelsText>}
 				{channels.map((channel) => (
 					<ChannelItem
@@ -220,9 +220,9 @@ const ChannelListContent: React.FC = () => {
 						</ChannelName>
 					</ChannelItem>
 				))}
-			</ChannelList>
+			</ChannelListStyled>
 			<UserPanel />
-			{showDMModal && <DirectMessageModal onClose={() => setShowDMModal(false)} />}
+			<DirectMessageModal open={showDMModal} onOpenChange={setShowDMModal} />
 		</Container>
 	);
 };

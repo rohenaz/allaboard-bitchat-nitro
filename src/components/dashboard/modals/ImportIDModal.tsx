@@ -1,24 +1,29 @@
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { FaCheck, FaFileImport, FaKey } from 'react-icons/fa';
 import { ImProfile } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
+import { Button } from '@/components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { useBap } from '../../../context/bap';
 import { toggleProfile } from '../../../reducers/profileReducer';
 import type { RootState } from '../../../store';
 import { processBackupFile } from '../../../utils/backupDecryptor';
-import {
-	type BackupDetectionResult,
-	BackupType,
-	detectBackupType,
-} from '../../../utils/backupDetector';
+import type { BackupDetectionResult } from '../../../utils/backupDetector';
+import { BackupType, detectBackupType } from '../../../utils/backupDetector';
 import { FetchStatus } from '../../../utils/common';
 
 const ImportIDModal: React.FC = () => {
 	const isProfileOpen = useSelector((state: RootState) => state.profile.isOpen);
 	const { onFileChange, identity, loadIdentityStatus } = useBap();
 	const inputFileRef = useRef<HTMLInputElement>(null);
-	const modalRef = useRef<HTMLDivElement>(null);
 	const dispatch = useDispatch();
 
 	const [fileContent, setFileContent] = useState<string>('');
@@ -28,22 +33,14 @@ const ImportIDModal: React.FC = () => {
 	const [detectedType, setDetectedType] = useState<BackupType>(BackupType.Unknown);
 	const [isProcessing, setIsProcessing] = useState(false);
 
-	// Handle outside clicks
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (modalRef.current && !modalRef.current.contains(event.target as Node) && !isProcessing) {
+	const handleOpenChange = useCallback(
+		(open: boolean) => {
+			if (!open && !isProcessing) {
 				dispatch(toggleProfile());
 			}
-		};
-
-		if (isProfileOpen) {
-			document.addEventListener('mousedown', handleClickOutside);
-		}
-
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
-	}, [isProfileOpen, isProcessing, dispatch]);
+		},
+		[isProcessing, dispatch],
+	);
 
 	const uploadIdentity = useCallback(() => {
 		inputFileRef.current?.click();
@@ -154,115 +151,103 @@ const ImportIDModal: React.FC = () => {
 		}
 	};
 
-	if (!isProfileOpen) return null;
-
 	return (
-		<div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-			<div
-				className="bg-card border border-border p-8 rounded-lg shadow-xl max-w-md w-full"
-				ref={modalRef}
-			>
+		<Dialog open={isProfileOpen} onOpenChange={handleOpenChange}>
+			<DialogContent className="sm:max-w-md">
 				{identity ? (
-					<div className="text-center">
+					<div className="text-center py-4">
 						<div className="text-primary text-5xl mb-4">
 							<FaCheck className="mx-auto" />
 						</div>
-						<h3 className="text-xl font-bold mb-2">Import Successful!</h3>
-						<p className="text-muted-foreground mb-6">
-							Your messages will be signed with your identity key.
-						</p>
-						<button
-							type="button"
-							onClick={() => dispatch(toggleProfile())}
-							className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:opacity-80 transition-opacity"
-						>
-							<FaCheck className="inline mr-2" /> Got it
-						</button>
+						<DialogHeader className="text-center">
+							<DialogTitle className="text-center">Import Successful!</DialogTitle>
+							<DialogDescription className="text-center">
+								Your messages will be signed with your identity key.
+							</DialogDescription>
+						</DialogHeader>
+						<Button onClick={() => dispatch(toggleProfile())} className="mt-6">
+							<FaCheck className="mr-2 h-4 w-4" /> Got it
+						</Button>
 					</div>
 				) : needsPassword ? (
 					<div>
-						<div className="flex items-center mb-6">
-							<FaKey className="text-3xl mr-3 text-primary" />
-							<div>
-								<h2 className="text-xl font-bold">Password Required</h2>
-								<p className="text-sm text-muted-foreground">
-									{getBackupTypeLabel(detectedType)} detected
-								</p>
+						<DialogHeader>
+							<div className="flex items-center gap-3">
+								<FaKey className="text-3xl text-primary" />
+								<div>
+									<DialogTitle>Password Required</DialogTitle>
+									<DialogDescription>{getBackupTypeLabel(detectedType)} detected</DialogDescription>
+								</div>
 							</div>
-						</div>
+						</DialogHeader>
 
-						<p className="text-muted-foreground mb-4">
+						<p className="text-muted-foreground my-4">
 							This backup file is encrypted. Please enter your password to decrypt it.
 						</p>
 
-						<input
+						<Input
 							type="password"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+							onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
 							placeholder="Enter password..."
-							className="w-full px-4 py-2 border border-border rounded-md mb-4 bg-background text-foreground"
 							disabled={isProcessing}
 						/>
 
-						{passwordError && <p className="text-destructive text-sm mb-4">{passwordError}</p>}
+						{passwordError && <p className="text-destructive text-sm mt-2">{passwordError}</p>}
 
-						<div className="flex gap-3">
-							<button
-								type="button"
+						<div className="flex gap-3 mt-4">
+							<Button
 								onClick={handlePasswordSubmit}
 								disabled={isProcessing || !password}
-								className="flex-1 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+								className="flex-1"
 							>
 								{isProcessing ? 'Decrypting...' : 'Decrypt'}
-							</button>
-							<button
-								type="button"
+							</Button>
+							<Button
+								variant="secondary"
 								onClick={() => {
 									setNeedsPassword(false);
 									setPassword('');
 									setPasswordError('');
 								}}
 								disabled={isProcessing}
-								className="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:opacity-80"
+								className="flex-1"
 							>
 								Cancel
-							</button>
+							</Button>
 						</div>
 					</div>
 				) : (
 					<div>
-						<div className="flex items-center mb-6">
-							<ImProfile className="text-3xl mr-3 text-primary" />
-							<h2 className="text-xl font-bold">Import Identity</h2>
-						</div>
+						<DialogHeader>
+							<div className="flex items-center gap-3">
+								<ImProfile className="text-3xl text-primary" />
+								<DialogTitle>Import Identity</DialogTitle>
+							</div>
+						</DialogHeader>
 
 						{loadIdentityStatus === FetchStatus.Error && (
-							<div className="bg-destructive/10 text-destructive border border-destructive/20 p-3 rounded-md mb-4">
+							<div className="bg-destructive/10 text-destructive border border-destructive/20 p-3 rounded-md my-4">
 								Error loading identity file. Please try again.
 							</div>
 						)}
 
-						<div className="bg-muted p-4 rounded-md mb-6">
+						<div className="bg-muted p-4 rounded-md my-4">
 							<h3 className="font-semibold mb-2">Supported Formats:</h3>
 							<ul className="text-sm space-y-1 text-muted-foreground">
-								<li>• BAP Master Backup (encrypted/decrypted)</li>
-								<li>• BAP Member Backup (encrypted/decrypted)</li>
-								<li>• WIF Backup</li>
-								<li>• Legacy Identity Files</li>
+								<li>BAP Master Backup (encrypted/decrypted)</li>
+								<li>BAP Member Backup (encrypted/decrypted)</li>
+								<li>WIF Backup</li>
+								<li>Legacy Identity Files</li>
 							</ul>
 						</div>
 
 						<div className="text-center">
-							<button
-								type="button"
-								onClick={uploadIdentity}
-								disabled={isProcessing}
-								className="bg-primary text-primary-foreground px-6 py-3 rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
-							>
-								<FaFileImport className="mr-2" />
+							<Button onClick={uploadIdentity} disabled={isProcessing}>
+								<FaFileImport className="mr-2 h-4 w-4" />
 								{isProcessing ? 'Processing...' : 'Choose Backup File'}
-							</button>
+							</Button>
 
 							<p className="text-sm text-muted-foreground mt-3">
 								Files are processed locally and never uploaded
@@ -270,16 +255,16 @@ const ImportIDModal: React.FC = () => {
 						</div>
 					</div>
 				)}
-			</div>
 
-			<input
-				type="file"
-				ref={inputFileRef}
-				onChange={handleFileSelect}
-				accept=".json,.txt,.bak,.backup"
-				className="hidden"
-			/>
-		</div>
+				<input
+					type="file"
+					ref={inputFileRef}
+					onChange={handleFileSelect}
+					accept=".json,.txt,.bak,.backup"
+					className="hidden"
+				/>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

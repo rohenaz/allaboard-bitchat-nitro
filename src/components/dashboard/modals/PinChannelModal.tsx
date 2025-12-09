@@ -1,98 +1,62 @@
 import type React from 'react';
 import { useState } from 'react';
-import styled from 'styled-components';
-import { Button } from '../../../components/common/Button';
-import { Modal } from '../../../components/common/Modal';
+import { Button } from '@/components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 export const minutesPerUnit = 60;
 
 interface PinChannelModalProps {
-	isOpen: boolean;
-	onClose: () => void;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 	onConfirm: (units: number) => void;
 }
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-`;
-
-const Title = styled.h2`
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-`;
-
-const Description = styled.p`
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-muted);
-`;
-
-const InputContainer = styled.div`
-  display: flex;
-  gap: 8px;
-  align-items: center;
-`;
-
-const Input = styled.input`
-  width: 80px;
-  padding: 8px;
-  border: 1px solid var(--background-tertiary);
-  border-radius: 4px;
-  background-color: var(--background-secondary);
-  color: var(--text-normal);
-  font-size: 14px;
-  &:focus {
-    outline: none;
-    border-color: var(--brand);
-  }
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 16px;
-`;
-
-const PinChannelModal: React.FC<PinChannelModalProps> = ({ isOpen, onClose, onConfirm }) => {
+const PinChannelModal: React.FC<PinChannelModalProps> = ({ open, onOpenChange, onConfirm }) => {
 	const [units, setUnits] = useState(1);
 
 	const handleConfirm = () => {
 		onConfirm(units);
-		onClose();
+		onOpenChange(false);
 	};
 
 	return (
-		<Modal isOpen={isOpen} onClose={onClose}>
-			<Container>
-				<Title>Pin Channel</Title>
-				<Description>
-					Enter the number of units to pin this channel. Each unit represents {minutesPerUnit}{' '}
-					minutes.
-				</Description>
-				<InputContainer>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-[400px]">
+				<DialogHeader>
+					<DialogTitle>Pin Channel</DialogTitle>
+					<DialogDescription>
+						Enter the number of units to pin this channel. Each unit represents {minutesPerUnit}{' '}
+						minutes.
+					</DialogDescription>
+				</DialogHeader>
+
+				<div className="flex gap-2 items-center py-4">
 					<Input
 						type="number"
 						min="1"
 						value={units}
 						onChange={(e) => setUnits(Number.parseInt(e.target.value, 10) || 1)}
+						className="w-20"
 					/>
-					<span>units</span>
-				</InputContainer>
-				<ButtonContainer>
-					<Button onClick={onClose} variant="secondary">
+					<span className="text-sm text-muted-foreground">units</span>
+				</div>
+
+				<DialogFooter>
+					<Button variant="outline" onClick={() => onOpenChange(false)}>
 						Cancel
 					</Button>
-					<Button onClick={handleConfirm} variant="primary">
-						Pin Channel
-					</Button>
-				</ButtonContainer>
-			</Container>
-		</Modal>
+					<Button onClick={handleConfirm}>Pin Channel</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

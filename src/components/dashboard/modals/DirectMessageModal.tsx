@@ -1,8 +1,17 @@
 import type { ChangeEvent, FormEvent } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import styled, { keyframes } from 'styled-components';
+import { Button } from '@/components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { autofill } from '../../../api/bmap';
 import { api } from '../../../api/fetch';
 import { loadChannels } from '../../../reducers/channelsReducer';
@@ -15,185 +24,17 @@ interface Channel {
 }
 
 interface DirectMessageModalProps {
-	onClose: () => void;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 }
 
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-`;
-
-const ModalBackdrop = styled.div`
-  position: fixed;
-  inset: 0;
-  background-color: rgb(0 0 0 / 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
-`;
-
-const ModalContainer = styled.div`
-  background-color: var(--background-floating);
-  border-radius: 8px;
-  box-shadow: var(--elevation-high);
-  border: 1px solid var(--background-modifier-accent);
-  width: 440px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow: hidden;
-  animation: ${fadeIn} 0.2s ease-out;
-`;
-
-const ModalHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--background-modifier-accent);
-`;
-
-const ModalTitle = styled.h2`
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-normal);
-  margin: 0;
-`;
-
-const CloseButton = styled.button`
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: var(--background-modifier-hover);
-    color: var(--text-normal);
-  }
-`;
-
-const ModalBody = styled.div`
-  padding: 20px;
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 16px;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  background-color: var(--background-secondary);
-  border: 1px solid var(--background-modifier-accent);
-  border-radius: 4px;
-  padding: 12px;
-  color: var(--text-normal);
-  font-size: 16px;
-  transition: all 0.15s ease;
-
-  &::placeholder {
-    color: var(--text-muted);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--brand-experiment);
-    box-shadow: 0 0 0 1px var(--brand-experiment);
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: var(--text-danger);
-  font-size: 14px;
-  margin-bottom: 16px;
-  padding: 8px 12px;
-  background-color: color-mix(in oklch, var(--destructive), transparent 90%);
-  border-radius: 4px;
-  border-left: 4px solid var(--text-danger);
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-`;
-
-const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  ${({ $variant = 'secondary' }) => {
-		switch ($variant) {
-			case 'primary':
-				return `
-          background-color: var(--primary);
-          color: var(--primary-foreground);
-          &:hover {
-            background-color: var(--primary);
-            opacity: 0.9;
-          }
-        `;
-			default:
-				return `
-          background-color: transparent;
-          color: var(--text-normal);
-          border: 1px solid var(--background-modifier-accent);
-          &:hover {
-            background-color: var(--background-modifier-hover);
-          }
-        `;
-		}
-	}}
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const DirectMessageModal = ({ onClose }: DirectMessageModalProps) => {
+const DirectMessageModal = ({ open, onOpenChange }: DirectMessageModalProps) => {
 	const [username, setUsername] = useState('');
 	const [error, setError] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const currentUser = useSelector((state: RootState) => state.session.user);
-
-	const handleEscapeKey = useCallback(
-		(e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				onClose();
-			}
-		},
-		[onClose],
-	);
-
-	useEffect(() => {
-		document.addEventListener('keydown', handleEscapeKey);
-		return () => {
-			document.removeEventListener('keydown', handleEscapeKey);
-		};
-	}, [handleEscapeKey]);
 
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -229,9 +70,9 @@ const DirectMessageModal = ({ onClose }: DirectMessageModalProps) => {
 
 			await dispatch(loadChannels());
 			navigate(`/channels/${channel.id}`);
-			onClose();
-		} catch (error) {
-			setError(error instanceof Error ? error.message : 'Failed to create DM');
+			onOpenChange(false);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to create DM');
 		} finally {
 			setIsLoading(false);
 		}
@@ -242,52 +83,49 @@ const DirectMessageModal = ({ onClose }: DirectMessageModalProps) => {
 	};
 
 	return (
-		<ModalBackdrop
-			onClick={onClose}
-			onKeyDown={(e) => e.key === 'Escape' && onClose()}
-			role="presentation"
-		>
-			<ModalContainer
-				onClick={(e) => e.stopPropagation()}
-				onKeyDown={(e) => e.stopPropagation()}
-				role="dialog"
-				aria-labelledby="dm-modal-title"
-				aria-modal="true"
-			>
-				<ModalHeader>
-					<ModalTitle id="dm-modal-title">Start Direct Message</ModalTitle>
-					<CloseButton type="button" onClick={onClose} aria-label="Close modal">
-						✕
-					</CloseButton>
-				</ModalHeader>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-[440px]">
+				<DialogHeader>
+					<DialogTitle>Start Direct Message</DialogTitle>
+					<DialogDescription>
+						Enter a username or paymail to start a conversation.
+					</DialogDescription>
+				</DialogHeader>
 
-				<ModalBody>
-					<form onSubmit={handleSubmit}>
-						{error && <ErrorMessage>{error}</ErrorMessage>}
+				<form onSubmit={handleSubmit}>
+					{error && (
+						<div className="mb-4 rounded-md border-l-4 border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+							{error}
+						</div>
+					)}
 
-						<FormGroup>
-							<Input
-								type="text"
-								placeholder="Enter username or paymail"
-								value={username}
-								onChange={handleInputChange}
-								disabled={isLoading}
-								autoFocus
-							/>
-						</FormGroup>
+					<div className="mb-4">
+						<Input
+							type="text"
+							placeholder="Enter username or paymail"
+							value={username}
+							onChange={handleInputChange}
+							disabled={isLoading}
+							autoFocus
+						/>
+					</div>
 
-						<ButtonGroup>
-							<Button type="button" onClick={onClose} disabled={isLoading}>
-								Cancel
-							</Button>
-							<Button type="submit" $variant="primary" disabled={!username.trim() || isLoading}>
-								{isLoading ? 'Creating...' : 'Start Conversation'}
-							</Button>
-						</ButtonGroup>
-					</form>
-				</ModalBody>
-			</ModalContainer>
-		</ModalBackdrop>
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => onOpenChange(false)}
+							disabled={isLoading}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={!username.trim() || isLoading}>
+							{isLoading ? 'Creating...' : 'Start Conversation'}
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
+		</Dialog>
 	);
 };
 
