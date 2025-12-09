@@ -1,8 +1,18 @@
+import { Loader2, MessageSquare, Search, UserPlus } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { Button } from '@/components/ui/button';
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from '@/components/ui/command';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { api } from '../../api/fetch';
 import type { User } from '../../api/user';
 import { useHandcash } from '../../context/handcash';
@@ -10,146 +20,6 @@ import { useYours } from '../../context/yours';
 import { loadFriends } from '../../reducers/memberListReducer';
 import type { AppDispatch, RootState } from '../../store';
 import Avatar from './Avatar';
-
-const Container = styled.div`
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 12px 16px 12px 40px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background-color: var(--card);
-  color: var(--foreground);
-  font-size: 14px;
-  outline: none;
-  transition: all 0.2s ease;
-
-  &:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--ring);
-  }
-
-  &::placeholder {
-    color: var(--muted-foreground);
-  }
-`;
-
-const SearchIcon = styled.div`
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted-foreground);
-  font-size: 16px;
-`;
-
-const ResultsContainer = styled.div`
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: var(--popover);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 8px 16px rgb(0 0 0 / 0.2);
-  max-height: 400px;
-  overflow-y: auto;
-  z-index: 1000;
-  margin-top: 4px;
-`;
-
-const ResultItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: var(--accent);
-  }
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--border);
-  }
-`;
-
-const UserInfo = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const UserName = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--foreground);
-  margin-bottom: 2px;
-`;
-
-const UserPaymail = styled.div`
-  font-size: 12px;
-  color: var(--muted-foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  ${({ $variant = 'secondary' }) => {
-		switch ($variant) {
-			case 'primary':
-				return `
-          background-color: var(--primary);
-          color: var(--primary-foreground);
-          &:hover {
-            background-color: var(--primary);
-            opacity: 0.9;
-          }
-        `;
-			default:
-				return `
-          background-color: var(--card);
-          color: var(--foreground);
-          border: 1px solid var(--border);
-          &:hover {
-            background-color: var(--accent);
-          }
-        `;
-		}
-	}}
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const LoadingText = styled.div`
-  padding: 16px;
-  text-align: center;
-  color: var(--muted-foreground);
-  font-size: 14px;
-`;
-
-const NoResults = styled.div`
-  padding: 16px;
-  text-align: center;
-  color: var(--muted-foreground);
-  font-size: 14px;
-`;
 
 interface UserSearchProps {
 	onUserSelect?: (user: User) => void;
@@ -168,10 +38,10 @@ export const UserSearch: FC<UserSearchProps> = ({
 	const navigate = useNavigate();
 	const session = useSelector((state: RootState) => state.session);
 
+	const [open, setOpen] = useState(false);
 	const [query, setQuery] = useState('');
 	const [results, setResults] = useState<User[]>([]);
 	const [loading, setLoading] = useState(false);
-	const [showResults, setShowResults] = useState(false);
 	const [actionLoading, setActionLoading] = useState<string | null>(null);
 
 	const isAuthenticated = authToken || connected;
@@ -206,7 +76,8 @@ export const UserSearch: FC<UserSearchProps> = ({
 	);
 
 	const handleSendFriendRequest = useCallback(
-		async (user: User) => {
+		async (e: React.MouseEvent, user: User) => {
+			e.stopPropagation();
 			if (!session.user?.idKey || !user.idKey) return;
 
 			try {
@@ -226,7 +97,8 @@ export const UserSearch: FC<UserSearchProps> = ({
 	);
 
 	const handleMessage = useCallback(
-		async (user: User) => {
+		async (e: React.MouseEvent, user: User) => {
+			e.stopPropagation();
 			if (!session.user?.idKey || !user.idKey) return;
 
 			try {
@@ -236,7 +108,7 @@ export const UserSearch: FC<UserSearchProps> = ({
 					members: [session.user.idKey, user.idKey],
 				});
 				navigate(`/channels/${channel.id}`);
-				setShowResults(false);
+				setOpen(false);
 				setQuery('');
 			} catch (error) {
 				console.error('Failed to create DM:', error);
@@ -247,14 +119,14 @@ export const UserSearch: FC<UserSearchProps> = ({
 		[session.user?.idKey, navigate],
 	);
 
-	const handleUserClick = useCallback(
+	const handleUserSelect = useCallback(
 		(user: User) => {
 			if (onUserSelect) {
 				onUserSelect(user);
 			} else if (user.paymail) {
 				navigate(`/@/${user.paymail}`);
 			}
-			setShowResults(false);
+			setOpen(false);
 			setQuery('');
 		},
 		[onUserSelect, navigate],
@@ -272,75 +144,118 @@ export const UserSearch: FC<UserSearchProps> = ({
 		return () => clearTimeout(timeoutId);
 	}, [query, searchUsers]);
 
+	// Keyboard shortcut to open search
 	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			const target = event.target as Element;
-			if (!target.closest('[data-user-search]')) {
-				setShowResults(false);
+		const down = (e: KeyboardEvent) => {
+			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault();
+				setOpen((open) => !open);
 			}
 		};
-
-		document.addEventListener('mousedown', handleClickOutside);
-		return () => document.removeEventListener('mousedown', handleClickOutside);
+		document.addEventListener('keydown', down);
+		return () => document.removeEventListener('keydown', down);
 	}, []);
 
 	return (
-		<Container data-user-search>
-			<SearchIcon>🔍</SearchIcon>
-			<SearchInput
-				type="text"
-				placeholder={placeholder}
-				value={query}
-				onChange={(e) => {
-					setQuery(e.target.value);
-					setShowResults(true);
-				}}
-				onFocus={() => query.length >= 2 && setShowResults(true)}
-			/>
+		<>
+			<Button
+				variant="outline"
+				onClick={() => setOpen(true)}
+				className="relative h-9 w-full max-w-[400px] justify-start rounded-md bg-muted/50 text-sm text-muted-foreground hover:bg-muted hover:text-foreground sm:pr-12"
+			>
+				<Search className="mr-2 h-4 w-4" />
+				<span className="hidden lg:inline-flex">{placeholder}</span>
+				<span className="inline-flex lg:hidden">Search...</span>
+				<kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+					<span className="text-xs">⌘</span>K
+				</kbd>
+			</Button>
 
-			{showResults && query.length >= 2 && (
-				<ResultsContainer>
-					{loading ? (
-						<LoadingText>Searching...</LoadingText>
-					) : results.length === 0 ? (
-						<NoResults>No users found</NoResults>
-					) : (
-						results.map((user) => (
-							<ResultItem key={user.id}>
-								<Avatar size="36px" paymail={user.paymail} icon={user.avatar} />
-								<UserInfo onClick={() => handleUserClick(user)}>
-									<UserName>{user.name || user.paymail?.split('@')[0] || 'Anonymous'}</UserName>
-									<UserPaymail>@{user.paymail}</UserPaymail>
-								</UserInfo>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent className="overflow-hidden p-0 sm:max-w-[500px]">
+					<DialogTitle className="sr-only">Search users</DialogTitle>
+					<Command shouldFilter={false} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground">
+						<CommandInput
+							placeholder={placeholder}
+							value={query}
+							onValueChange={setQuery}
+						/>
+						<CommandList className="max-h-[400px]">
+							{loading && (
+								<div className="flex items-center justify-center py-6">
+									<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+								</div>
+							)}
 
-								{showActions && isAuthenticated && (
-									<>
-										<ActionButton
-											$variant="primary"
-											onClick={(e) => {
-												e.stopPropagation();
-												handleMessage(user);
-											}}
-											disabled={actionLoading === `message-${user.id}`}
+							{!loading && query.length >= 2 && results.length === 0 && (
+								<CommandEmpty>No users found.</CommandEmpty>
+							)}
+
+							{!loading && query.length < 2 && (
+								<div className="py-6 text-center text-sm text-muted-foreground">
+									Type at least 2 characters to search
+								</div>
+							)}
+
+							{!loading && results.length > 0 && (
+								<CommandGroup heading="Users">
+									{results.map((user) => (
+										<CommandItem
+											key={user.id}
+											value={user.paymail || user.id}
+											onSelect={() => handleUserSelect(user)}
+											className="flex items-center gap-3 px-3 py-2"
 										>
-											{actionLoading === `message-${user.id}` ? '...' : 'Message'}
-										</ActionButton>
-										<ActionButton
-											onClick={(e) => {
-												e.stopPropagation();
-												handleSendFriendRequest(user);
-											}}
-											disabled={actionLoading === `friend-${user.id}`}
-										>
-											{actionLoading === `friend-${user.id}` ? '...' : 'Add Friend'}
-										</ActionButton>
-									</>
-								)}
-							</ResultItem>
-						))
-					)}
-				</ResultsContainer>
-			)}
-		</Container>
+											<Avatar size="36px" paymail={user.paymail} icon={user.avatar} />
+											<div className="flex flex-1 flex-col min-w-0">
+												<span className="font-medium truncate">
+													{user.name || user.paymail?.split('@')[0] || 'Anonymous'}
+												</span>
+												<span className="text-xs text-muted-foreground truncate">
+													@{user.paymail}
+												</span>
+											</div>
+
+											{showActions && isAuthenticated && (
+												<div className="flex items-center gap-1">
+													<Button
+														variant="ghost"
+														size="icon"
+														className="h-8 w-8"
+														onClick={(e) => handleMessage(e, user)}
+														disabled={actionLoading === `message-${user.id}`}
+														title="Send message"
+													>
+														{actionLoading === `message-${user.id}` ? (
+															<Loader2 className="h-4 w-4 animate-spin" />
+														) : (
+															<MessageSquare className="h-4 w-4" />
+														)}
+													</Button>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="h-8 w-8"
+														onClick={(e) => handleSendFriendRequest(e, user)}
+														disabled={actionLoading === `friend-${user.id}`}
+														title="Add friend"
+													>
+														{actionLoading === `friend-${user.id}` ? (
+															<Loader2 className="h-4 w-4 animate-spin" />
+														) : (
+															<UserPlus className="h-4 w-4" />
+														)}
+													</Button>
+												</div>
+											)}
+										</CommandItem>
+									))}
+								</CommandGroup>
+							)}
+						</CommandList>
+					</Command>
+				</DialogContent>
+			</Dialog>
+		</>
 	);
 };
