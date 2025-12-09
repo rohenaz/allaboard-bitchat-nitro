@@ -10,7 +10,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/context/theme';
-import { useThemeToken } from '@/context/theme-token';
+import { useThemeTokenContext } from '@theme-token/sdk/react';
 import {
   closeSettings,
   toggleHideUnverifiedMessages,
@@ -27,7 +27,7 @@ export const SettingsModal = () => {
     (state: RootState) => state.settings,
   );
   const { theme, setTheme } = useTheme();
-  const { activeTheme, activeOrigin, loadTheme, resetTheme, isLoading, error } = useThemeToken();
+  const { activeTheme, activeOrigin, loadTheme, resetTheme, isLoading, error } = useThemeTokenContext();
   const [themeOriginInput, setThemeOriginInput] = useState('');
 
   const handleClose = useCallback(() => {
