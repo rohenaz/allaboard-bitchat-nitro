@@ -48,10 +48,10 @@ const fadeIn = keyframes`
 const PopoverContainer = styled.div<{ $placement: string }>`
   position: absolute;
   z-index: 9999;
-  background-color: var(--background-floating);
+  background-color: var(--popover);
   border-radius: 8px;
   box-shadow: var(--elevation-high);
-  border: 1px solid var(--background-modifier-accent);
+  border: 1px solid var(--border);
   min-width: 300px;
   max-width: 350px;
   animation: ${fadeIn} 0.15s ease-out;
@@ -120,13 +120,13 @@ const StatusIndicator = styled.div<{ $status: string }>`
   background-color: ${({ $status }) => {
 		switch ($status) {
 			case 'online':
-				return 'var(--status-positive)';
+				return 'var(--chart-2)';
 			case 'away':
 				return 'var(--status-warning)';
 			case 'dnd':
-				return 'var(--status-danger)';
+				return 'var(--destructive)';
 			default:
-				return 'var(--text-muted)';
+				return 'var(--muted-foreground)';
 		}
 	}};
   border: 2px solid var(--primary-foreground);
@@ -158,14 +158,14 @@ const InfoSection = styled.div`
 const InfoLabel = styled.div`
   font-size: 12px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   text-transform: uppercase;
   margin-bottom: 4px;
 `;
 
 const InfoValue = styled.div`
   font-size: 14px;
-  color: var(--text-normal);
+  color: var(--foreground);
   word-break: break-word;
 `;
 
@@ -209,10 +209,10 @@ const ActionButton = styled.button<{
         `;
 			default:
 				return `
-          background-color: var(--background-secondary);
-          color: var(--text-normal);
+          background-color: var(--card);
+          color: var(--foreground);
           &:hover {
-            background-color: var(--background-modifier-hover);
+            background-color: var(--accent);
           }
         `;
 		}
@@ -226,7 +226,7 @@ const ActionButton = styled.button<{
 
 const Divider = styled.div`
   height: 1px;
-  background-color: var(--background-modifier-accent);
+  background-color: var(--border);
   margin: 12px 0;
 `;
 

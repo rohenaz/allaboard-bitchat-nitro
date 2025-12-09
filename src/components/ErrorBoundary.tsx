@@ -13,8 +13,8 @@ interface State {
 
 const ErrorContainer = styled.div`
   min-height: 100vh;
-  background-color: var(--background-primary);
-  color: var(--text-normal);
+  background-color: var(--background);
+  color: var(--foreground);
   padding: 32px;
   display: flex;
   align-items: center;
@@ -35,16 +35,16 @@ const ErrorTitle = styled.h1`
 `;
 
 const ErrorDetails = styled.div`
-  background-color: var(--background-secondary);
+  background-color: var(--card);
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 24px;
-  border: 1px solid var(--background-modifier-accent);
+  border: 1px solid var(--border);
 `;
 
 const ErrorText = styled.pre`
   white-space: pre-wrap;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   font-size: 14px;
   overflow-x: auto;
   text-align: left;
@@ -80,18 +80,18 @@ const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
         `;
 			default:
 				return `
-          background-color: var(--background-secondary);
-          color: var(--text-normal);
-          border: 1px solid var(--background-modifier-accent);
+          background-color: var(--card);
+          color: var(--foreground);
+          border: 1px solid var(--border);
           &:hover {
-            background-color: var(--background-modifier-hover);
+            background-color: var(--accent);
           }
         `;
 		}
 	}}
 
   &:focus {
-    outline: 2px solid var(--brand-experiment);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
   }
 `;

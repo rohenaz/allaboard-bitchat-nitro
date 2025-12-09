@@ -69,17 +69,17 @@ const StatusIndicator = styled.div<{
   width: ${({ size }) => `${Math.max(Number.parseInt(size, 10) * 0.25, 12)}px`};
   height: ${({ size }) => `${Math.max(Number.parseInt(size, 10) * 0.25, 12)}px`};
   border-radius: 50%;
-  border: 2px solid var(--background-primary);
+  border: 2px solid var(--background);
   background-color: ${({ status }) => {
 		switch (status) {
 			case 'online':
-				return 'var(--status-positive)';
+				return 'var(--chart-2)';
 			case 'away':
 				return 'var(--status-warning)';
 			case 'dnd':
-				return 'var(--status-danger)';
+				return 'var(--destructive)';
 			default:
-				return 'var(--text-muted)';
+				return 'var(--muted-foreground)';
 		}
 	}};
   box-shadow: 0 0 8px ${({ status }) => {
@@ -95,7 +95,7 @@ const StatusIndicator = styled.div<{
 		}
 	}};
   transition: all 0.2s ease;
-  
+
   ${({ status }) =>
 		status === 'online' &&
 		`

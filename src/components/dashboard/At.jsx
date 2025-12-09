@@ -10,7 +10,7 @@ export const Wrapper = styled.div`
   align-items: center;
   justify-content: center;
   ${baseIcon};
-  color: ${(p) => p.color || 'var(--text-muted)'};
+  color: ${(p) => p.color || 'var(--muted-foreground)'};
   ${(p) => p.bgColor && roundedBackground};
 `;
 

@@ -5,7 +5,7 @@ interface LabelProps {
 }
 
 const Label = styled.label<LabelProps>`
-  color: ${(p) => (p.error ? 'var(--text-danger)' : 'var(--text-normal)')};
+  color: ${(p) => (p.error ? 'var(--text-danger)' : 'var(--foreground)')};
   font-weight: 500;
   text-transform: uppercase;
   font-size: 12px;

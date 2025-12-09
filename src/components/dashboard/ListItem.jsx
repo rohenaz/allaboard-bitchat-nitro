@@ -7,16 +7,16 @@ const Text = styled.span`
   font-weight: 500;
   ${(p) =>
     `font-size: ${p.textStyle?.fontSize ? p.textStyle.fontSize : '15px'}`};
-  ${(p) => `color: ${p.$isActive ? 'var(--header-primary)' : 'var(--channels-default)'}`};
+  ${(p) => `color: ${p.$isActive ? 'var(--foreground)' : 'var(--muted-foreground)'}`};
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 `;
 
 const Icon = styled.div`
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   &:hover {
-    color: var(--text-link);
+    color: var(--primary);
   }
 `;
 
@@ -33,12 +33,12 @@ const Container = styled.div`
   border-radius: 4px;
 
   &:hover {
-    background-color: var(--background-modifier-hover);
+    background-color: var(--accent);
     cursor: pointer;
   }
 
   &:hover > ${Text} {
-    color: var(--interactive-hover);
+    color: var(--foreground);
   }
   ${(p) =>
     p.$isPinned &&
@@ -50,11 +50,11 @@ const Container = styled.div`
     css`
       &,
       &:hover {
-        background-color: var(--background-modifier-selected);
+        background-color: var(--accent);
       }
 
       & > ${Text}, &:hover > ${Text} {
-        color: var(--interactive-active);
+        color: var(--primary);
       }
     `}
 `;

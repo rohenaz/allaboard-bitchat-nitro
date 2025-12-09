@@ -20,21 +20,21 @@ const Container = styled.div`
 const SearchInput = styled.input`
   width: 100%;
   padding: 12px 16px 12px 40px;
-  border: 1px solid var(--background-modifier-accent);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background-color: var(--background-secondary);
-  color: var(--text-normal);
+  background-color: var(--card);
+  color: var(--foreground);
   font-size: 14px;
   outline: none;
   transition: all 0.2s ease;
 
   &:focus {
-    border-color: var(--brand-experiment);
+    border-color: var(--primary);
     box-shadow: 0 0 0 2px var(--ring);
   }
 
   &::placeholder {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 `;
 
@@ -43,7 +43,7 @@ const SearchIcon = styled.div`
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   font-size: 16px;
 `;
 
@@ -52,8 +52,8 @@ const ResultsContainer = styled.div`
   top: 100%;
   left: 0;
   right: 0;
-  background-color: var(--background-floating);
-  border: 1px solid var(--background-modifier-accent);
+  background-color: var(--popover);
+  border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 8px 16px rgb(0 0 0 / 0.2);
   max-height: 400px;
@@ -71,11 +71,11 @@ const ResultItem = styled.div`
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: var(--background-modifier-hover);
+    background-color: var(--accent);
   }
 
   &:not(:last-child) {
-    border-bottom: 1px solid var(--background-modifier-accent);
+    border-bottom: 1px solid var(--border);
   }
 `;
 
@@ -87,13 +87,13 @@ const UserInfo = styled.div`
 const UserName = styled.div`
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-normal);
+  color: var(--foreground);
   margin-bottom: 2px;
 `;
 
 const UserPaymail = styled.div`
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -121,11 +121,11 @@ const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
         `;
 			default:
 				return `
-          background-color: var(--background-secondary);
-          color: var(--text-normal);
-          border: 1px solid var(--background-modifier-accent);
+          background-color: var(--card);
+          color: var(--foreground);
+          border: 1px solid var(--border);
           &:hover {
-            background-color: var(--background-modifier-hover);
+            background-color: var(--accent);
           }
         `;
 		}
@@ -140,14 +140,14 @@ const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
 const LoadingText = styled.div`
   padding: 16px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   font-size: 14px;
 `;
 
 const NoResults = styled.div`
   padding: 16px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   font-size: 14px;
 `;
 

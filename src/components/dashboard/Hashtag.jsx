@@ -7,7 +7,7 @@ import { baseIcon, roundedBackground } from '../../design/mixins';
 
 export const Wrapper = styled.div`
   ${baseIcon};
-  color: ${(p) => p.color || 'var(--text-muted)'};
+  color: ${(p) => p.color || 'var(--muted-foreground)'};
   ${(p) => p.bgColor && roundedBackground};
 `;
 

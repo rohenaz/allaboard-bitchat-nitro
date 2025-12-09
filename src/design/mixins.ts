@@ -7,17 +7,17 @@ export const hideInDesktop = css`
 `;
 
 export const interactiveColor = css`
-  color: var(--channels-default);
+  color: var(--muted-foreground);
   &:hover {
-    color: var(--interactive-hover);
+    color: var(--foreground);
   }
   &:active {
-    color: var(--interactive-active);
+    color: var(--primary);
   }
 `;
 
 export const textLink = css`
-  color: var(--text-link);
+  color: var(--primary);
   &:hover {
     text-decoration: underline;
   }
@@ -81,4 +81,17 @@ export const scrollbarLight = css`
   ::-webkit-scrollbar-thumb:hover {
     background-color: var(--scrollbar-auto-thumb-hover);
   }
+`;
+
+export const baseIcon = css`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+`;
+
+export const roundedBackground = css`
+  background-color: var(--muted);
+  border-radius: 50%;
 `;

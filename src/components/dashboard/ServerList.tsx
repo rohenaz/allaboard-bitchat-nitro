@@ -37,7 +37,7 @@ const Container = styled.nav`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: var(--background-tertiary);
+  background-color: var(--muted);
   padding: 12px 0;
   gap: 8px;
   overflow-y: auto;
@@ -55,7 +55,7 @@ const ServerButton = styled.button`
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: var(--background-primary);
+  background-color: var(--background);
   border: none;
   cursor: pointer;
   transition: all 0.15s ease-out;
@@ -64,38 +64,38 @@ const ServerButton = styled.button`
 
   &:hover {
     border-radius: 16px;
-    background-color: var(--brand-experiment);
+    background-color: var(--primary);
   }
 
   &.active {
     border-radius: 16px;
-    background-color: var(--brand-experiment);
+    background-color: var(--primary);
   }
 `;
 
 const HomeButton = styled(ServerButton)`
-  background-color: var(--brand-experiment);
+  background-color: var(--primary);
   border-radius: 16px;
-  
+
   &:hover {
     background-color: var(--brand-experiment-hover);
   }
 `;
 
 const AddButton = styled(ServerButton)`
-  background-color: var(--background-primary);
+  background-color: var(--background);
   color: var(--green-360);
-  
+
   &:hover {
     background-color: var(--green-360);
-    color: var(--white-500);
+    color: var(--foreground);
   }
 `;
 
 const Separator = styled.div`
   width: 32px;
   height: 2px;
-  background-color: var(--background-modifier-accent);
+  background-color: var(--border);
   border-radius: 1px;
   margin: 4px 0;
 `;
@@ -106,7 +106,7 @@ const ServerIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-normal);
+  color: var(--foreground);
   font-weight: 500;
   font-size: 18px;
 `;

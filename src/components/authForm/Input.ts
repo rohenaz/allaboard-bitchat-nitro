@@ -5,7 +5,7 @@ interface InputProps {
 }
 
 const Input = styled.input<InputProps>`
-  background-color: var(--background-modifier-accent);
+  background-color: var(--border);
   font-size: 14px;
   padding: 10px;
   margin-bottom: 12px;
@@ -15,16 +15,16 @@ const Input = styled.input<InputProps>`
   border: 1px solid
     ${(p) => (p.error ? 'var(--destructive)' : 'var(--border)')};
   outline: none;
-  color: var(--text-normal);
+  color: var(--foreground);
   transition: border-color 0.2s ease-in-out;
 
   &:focus {
     outline: none;
-    border: 1px solid ${(p) => (p.error ? 'var(--text-danger)' : 'var(--brand-experiment)')};
+    border: 1px solid ${(p) => (p.error ? 'var(--text-danger)' : 'var(--primary)')};
   }
 
   &::placeholder {
-    color: var(--text-muted);
+    color: var(--muted-foreground);
   }
 `;
 

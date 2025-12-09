@@ -4,9 +4,9 @@ const Select = styled.select`
   margin-top: 6px;
   margin-bottom: 12px;
   padding: 10px 8px 8px 12px;
-  background-color: var(--background-secondary);
-  border: 1px solid var(--background-secondary-alt);
-  color: var(--text-normal);
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
   font-size: 14px;
   border-radius: 5px;
   -webkit-appearance: none;

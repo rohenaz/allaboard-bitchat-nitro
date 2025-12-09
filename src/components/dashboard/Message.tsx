@@ -46,19 +46,19 @@ const ReactionButton = styled.button`
   justify-content: center;
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: var(--background-modifier-hover);
-    color: var(--text-normal);
+    background-color: var(--accent);
+    color: var(--foreground);
   }
 
   &:focus {
-    outline: 2px solid var(--brand-experiment);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
   }
 `;
@@ -112,7 +112,7 @@ const MessageHeader = styled.div`
 const SenderButton = styled.button`
   background: none;
   border: none;
-  color: var(--text-normal);
+  color: var(--foreground);
   font-weight: 600;
   font-size: 14px;
   margin-right: 8px;
@@ -134,17 +134,17 @@ const SenderButton = styled.button`
 `;
 
 const Timestamp = styled.div`
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   font-size: 12px;
   cursor: default;
 `;
 
 const MessageBody = styled.div`
-  color: var(--text-normal);
+  color: var(--foreground);
   font-size: 14px;
 
   a {
-    color: var(--text-link);
+    color: var(--primary);
     text-decoration: none;
 
     &:hover {
@@ -172,10 +172,10 @@ const ReactionPill = styled.div`
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-normal);
+  color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     background: var(--background-glass-light);
     border-color: var(--border-glass);

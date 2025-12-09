@@ -9,7 +9,7 @@ interface LayoutProps {
 const Container = styled.div`
   min-height: 100vh;
   width: 100%;
-  background-color: var(--background-tertiary);
+  background-color: var(--muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,7 +17,7 @@ const Container = styled.div`
 `;
 
 const Card = styled.div`
-  background-color: var(--background-primary);
+  background-color: var(--background);
   border-radius: 8px;
   box-shadow: var(--elevation-high);
   max-width: 480px;
@@ -42,13 +42,13 @@ const Logo = styled.img`
 const Heading = styled.h1`
   font-size: 24px;
   font-weight: 600;
-  color: var(--text-normal);
+  color: var(--foreground);
   margin: 0 0 8px 0;
 `;
 
 const SubHeading = styled.p`
   font-size: 14px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   margin: 0;
 `;
 

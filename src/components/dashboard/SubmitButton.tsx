@@ -8,7 +8,7 @@ interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
 const Button = styled.button<{ disabled?: boolean }>`
   background-color: ${({ disabled }) =>
 		disabled ? 'var(--button-secondary-background)' : 'var(--button-primary)'};
-  color: ${({ disabled }) => (disabled ? 'var(--text-muted)' : 'var(--text-normal)')};
+  color: ${({ disabled }) => (disabled ? 'var(--muted-foreground)' : 'var(--foreground)')};
   border: none;
   border-radius: 3px;
   padding: 0.5rem 1rem;

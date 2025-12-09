@@ -10,7 +10,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--background-primary);
+  background-color: var(--background);
   overflow: hidden;
 `;
 
@@ -19,8 +19,8 @@ const Header = styled.header`
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
-  background-color: var(--background-secondary);
-  border-bottom: 1px solid var(--background-modifier-accent);
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
   box-shadow: var(--elevation-low);
 `;
 
@@ -30,15 +30,15 @@ const BackButton = styled.button`
   gap: 8px;
   padding: 8px 16px;
   background-color: transparent;
-  border: 1px solid var(--background-modifier-accent);
+  border: 1px solid var(--border);
   border-radius: 4px;
-  color: var(--text-normal);
+  color: var(--foreground);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: var(--background-modifier-hover);
+    background-color: var(--accent);
   }
 
   svg {
@@ -58,7 +58,7 @@ const ServerIcon = styled.img`
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: var(--background-primary);
+  background-color: var(--background);
   padding: 8px;
 `;
 
@@ -70,13 +70,13 @@ const ServerInfo = styled.div`
 const ServerName = styled.h1`
   font-size: 20px;
   font-weight: 600;
-  color: var(--text-normal);
+  color: var(--foreground);
   margin: 0;
 `;
 
 const ServerDescription = styled.p`
   font-size: 14px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   margin: 4px 0 0 0;
 `;
 
@@ -87,17 +87,17 @@ const Content = styled.main`
 `;
 
 const Section = styled.section`
-  background-color: var(--background-secondary);
+  background-color: var(--card);
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 16px;
-  border: 1px solid var(--background-modifier-accent);
+  border: 1px solid var(--border);
 `;
 
 const SectionTitle = styled.h2`
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-normal);
+  color: var(--foreground);
   margin: 0 0 16px 0;
 `;
 
@@ -109,7 +109,7 @@ const SettingRow = styled.div`
   padding: 12px 0;
 
   &:not(:last-child) {
-    border-bottom: 1px solid var(--background-modifier-accent);
+    border-bottom: 1px solid var(--border);
   }
 `;
 
@@ -121,14 +121,14 @@ const SettingLabel = styled.label`
   display: block;
   font-size: 15px;
   font-weight: 500;
-  color: var(--text-normal);
+  color: var(--foreground);
   margin-bottom: 4px;
   cursor: pointer;
 `;
 
 const SettingDescription = styled.p`
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   margin: 0;
 `;
 
@@ -137,14 +137,14 @@ const Toggle = styled.input.attrs({ type: 'checkbox' })`
   width: 44px;
   height: 24px;
   appearance: none;
-  background-color: var(--background-modifier-accent);
+  background-color: var(--border);
   border-radius: 12px;
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:checked {
-    background-color: var(--brand-experiment);
+    background-color: var(--primary);
   }
 
   &::before {
@@ -164,7 +164,7 @@ const Toggle = styled.input.attrs({ type: 'checkbox' })`
   }
 
   &:focus {
-    outline: 2px solid var(--brand-experiment);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
   }
 `;

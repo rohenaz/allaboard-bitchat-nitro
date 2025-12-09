@@ -8,7 +8,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--background-primary);
+  background-color: var(--background);
   overflow: hidden;
 `;
 
@@ -17,8 +17,8 @@ const Header = styled.header`
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
-  background-color: var(--background-secondary);
-  border-bottom: 1px solid var(--background-modifier-accent);
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
   box-shadow: var(--elevation-low);
 `;
 
@@ -28,15 +28,15 @@ const BackButton = styled.button`
   gap: 8px;
   padding: 8px 16px;
   background-color: transparent;
-  border: 1px solid var(--background-modifier-accent);
+  border: 1px solid var(--border);
   border-radius: 4px;
-  color: var(--text-normal);
+  color: var(--foreground);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: var(--background-modifier-hover);
+    background-color: var(--accent);
   }
 
   svg {
@@ -55,7 +55,7 @@ const HeaderInfo = styled.div`
 const PageTitle = styled.h1`
   font-size: 20px;
   font-weight: 600;
-  color: var(--text-normal);
+  color: var(--foreground);
   margin: 0;
 `;
 
@@ -79,11 +79,11 @@ const ComingSoonBadge = styled.div`
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-accent);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 20px;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   margin-bottom: 24px;
 
   &::before {
@@ -99,17 +99,17 @@ const Label = styled.label`
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   margin-bottom: 8px;
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 10px 12px;
-  background-color: var(--background-secondary);
-  border: 1px solid var(--background-modifier-accent);
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: var(--text-normal);
+  color: var(--foreground);
   font-size: 14px;
   transition: all 0.15s ease;
 
@@ -122,10 +122,10 @@ const Input = styled.input`
 const TextArea = styled.textarea`
   width: 100%;
   padding: 10px 12px;
-  background-color: var(--background-secondary);
-  border: 1px solid var(--background-modifier-accent);
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: var(--text-normal);
+  color: var(--foreground);
   font-size: 14px;
   min-height: 100px;
   resize: vertical;

@@ -2,7 +2,9 @@ import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import styled from 'styled-components';
+import { Hash, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { loadChannels } from '../../reducers/channelsReducer';
 import type { AppDispatch, RootState } from '../../store';
 import ErrorBoundary from '../ErrorBoundary';
@@ -17,144 +19,6 @@ export interface Channel {
 	messages?: number;
 	creator?: string;
 }
-
-const Container = styled.aside`
-  display: flex;
-  flex-direction: column;
-  background-color: var(--card);
-  position: relative;
-`;
-
-const TitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 16px 8px 16px;
-  height: 48px;
-`;
-
-const Title = styled.h2`
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--muted-foreground);
-  margin: 0;
-  user-select: none;
-  display: flex;
-  align-items: center;
-`;
-
-const AddDMButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  background: none;
-  border: none;
-  color: var(--muted-foreground);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: var(--accent);
-    color: var(--foreground);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  svg {
-    width: 14px;
-    height: 14px;
-    stroke-width: 2.5;
-  }
-`;
-
-const ChannelListStyled = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding: 0 8px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;
-
-const ChannelItem = styled.div<{ $isActive: boolean }>`
-  display: flex;
-  align-items: center;
-  padding: 1px 8px;
-  margin: 1px 0;
-  border-radius: 4px;
-  cursor: pointer;
-  color: ${({ $isActive }) => ($isActive ? 'var(--primary)' : 'var(--muted-foreground)')};
-  background: ${({ $isActive }) => ($isActive ? 'var(--accent)' : 'transparent')};
-  transition: all 0.15s ease-out;
-  height: 32px;
-  max-width: 224px;
-  position: relative;
-
-  &:hover {
-    background: var(--accent);
-    color: var(--foreground);
-  }
-
-  ${({ $isActive }) =>
-		$isActive &&
-		`
-    &::before {
-      content: '';
-      position: absolute;
-      left: -8px;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background-color: var(--foreground);
-      border-radius: 0 4px 4px 0;
-    }
-  `}
-`;
-
-const ChannelName = styled.span<{ $isActive: boolean }>`
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 20px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const HashtagIcon = styled.span`
-  margin-right: 6px;
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted-foreground);
-  &::before {
-    content: '#';
-  }
-`;
-
-const LoadingText = styled.div`
-  padding: 16px;
-  color: var(--muted-foreground);
-  font-size: 14px;
-  text-align: center;
-`;
-
-const NoChannelsText = styled(LoadingText)`
-  color: var(--muted-foreground);
-`;
 
 const ChannelListContent: React.FC = () => {
 	const dispatch = useDispatch<AppDispatch>();
@@ -183,47 +47,61 @@ const ChannelListContent: React.FC = () => {
 
 	if (loading) {
 		return (
-			<Container>
-				<LoadingText>Loading channels...</LoadingText>
-			</Container>
+			<aside className="flex flex-col bg-card relative">
+				<div className="p-4 text-muted-foreground text-sm text-center">Loading channels...</div>
+			</aside>
 		);
 	}
 
 	return (
-		<Container>
-			<TitleRow>
-				<Title>Text Channels ({channels.length})</Title>
-				<AddDMButton onClick={() => setShowDMModal(true)} title="Start Direct Message">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						strokeWidth={2}
-						stroke="currentColor"
-						aria-hidden="true"
-					>
-						<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-					</svg>
-				</AddDMButton>
-			</TitleRow>
-			<ChannelListStyled>
-				{!channels.length && <NoChannelsText>No channels found</NoChannelsText>}
-				{channels.map((channel) => (
-					<ChannelItem
-						key={channel.channel}
-						$isActive={channel.channel === params.channel}
-						onClick={() => handleClick(channel.channel)}
-					>
-						<HashtagIcon />
-						<ChannelName $isActive={channel.channel === params.channel}>
-							{channel.channel}
-						</ChannelName>
-					</ChannelItem>
-				))}
-			</ChannelListStyled>
+		<aside className="flex flex-col bg-card relative">
+			<div className="flex items-center justify-between px-4 pt-4 pb-2 h-12">
+				<h2 className="uppercase font-semibold text-xs leading-4 text-muted-foreground m-0 select-none flex items-center">
+					Text Channels ({channels.length})
+				</h2>
+				<Button
+					variant="ghost"
+					size="icon"
+					onClick={() => setShowDMModal(true)}
+					title="Start Direct Message"
+					className="h-[18px] w-[18px] text-muted-foreground hover:text-foreground hover:bg-accent"
+				>
+					<Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+				</Button>
+			</div>
+
+			<div className="flex flex-col flex-1 px-2 overflow-y-auto scrollbar-none">
+				{!channels.length && (
+					<div className="p-4 text-muted-foreground text-sm text-center">No channels found</div>
+				)}
+				{channels.map((channel) => {
+					const isActive = channel.channel === params.channel;
+					return (
+						<div
+							key={channel.channel}
+							onClick={() => handleClick(channel.channel)}
+							onKeyDown={(e) => e.key === 'Enter' && handleClick(channel.channel)}
+							role="button"
+							tabIndex={0}
+							className={cn(
+								'flex items-center px-2 py-px my-px rounded cursor-pointer h-8 max-w-[224px] relative transition-all',
+								isActive
+									? 'text-primary bg-accent before:absolute before:left-[-8px] before:top-0 before:bottom-0 before:w-1 before:bg-foreground before:rounded-r'
+									: 'text-muted-foreground hover:bg-accent hover:text-foreground',
+							)}
+						>
+							<Hash className="mr-1.5 h-5 w-5 text-muted-foreground flex-shrink-0" />
+							<span className="font-medium text-base leading-5 overflow-hidden text-ellipsis whitespace-nowrap">
+								{channel.channel}
+							</span>
+						</div>
+					);
+				})}
+			</div>
+
 			<UserPanel />
 			<DirectMessageModal open={showDMModal} onOpenChange={setShowDMModal} />
-		</Container>
+		</aside>
 	);
 };
 

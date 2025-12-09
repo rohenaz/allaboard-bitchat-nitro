@@ -33,10 +33,10 @@ const fadeIn = keyframes`
 const MenuContainer = styled.div`
   position: fixed;
   z-index: 10001;
-  background-color: var(--background-floating);
+  background-color: var(--popover);
   border-radius: 6px;
   box-shadow: var(--elevation-high);
-  border: 1px solid var(--background-modifier-accent);
+  border: 1px solid var(--border);
   min-width: 180px;
   padding: 6px 0;
   animation: ${fadeIn} 0.1s ease-out;
@@ -52,10 +52,10 @@ const MenuItem = styled.button<{ $danger?: boolean; $disabled?: boolean }>`
   border: none;
   color: ${({ $danger, $disabled }) =>
     $disabled
-      ? 'var(--text-muted)'
+      ? 'var(--muted-foreground)'
       : $danger
-        ? 'var(--text-danger)'
-        : 'var(--text-normal)'};
+        ? 'var(--destructive)'
+        : 'var(--foreground)'};
   font-size: 14px;
   font-weight: 400;
   text-align: left;
@@ -67,18 +67,18 @@ const MenuItem = styled.button<{ $danger?: boolean; $disabled?: boolean }>`
       $disabled
         ? 'transparent'
         : $danger
-          ? 'var(--status-danger)'
-          : 'var(--background-modifier-hover)'};
+          ? 'var(--destructive)'
+          : 'var(--accent)'};
     color: ${({ $disabled, $danger }) =>
       $disabled
-        ? 'var(--text-muted)'
+        ? 'var(--muted-foreground)'
         : $danger
           ? 'white'
-          : 'var(--text-normal)'};
+          : 'var(--foreground)'};
   }
 
   &:focus-visible {
-    outline: 2px solid var(--brand-experiment);
+    outline: 2px solid var(--primary);
     outline-offset: -2px;
   }
 `;
@@ -99,7 +99,7 @@ const MenuLabel = styled.div`
 
 const MenuSeparator = styled.div`
   height: 1px;
-  background-color: var(--background-modifier-accent);
+  background-color: var(--border);
   margin: 4px 0;
 `;
 

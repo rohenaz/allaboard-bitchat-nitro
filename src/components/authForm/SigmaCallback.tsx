@@ -19,11 +19,11 @@ const LoadingContainer = styled.div`
 const LoadingSpinner = styled.div`
   width: 40px;
   height: 40px;
-  border: 3px solid var(--background-modifier-accent);
-  border-top: 3px solid var(--brand-experiment);
+  border: 3px solid var(--border);
+  border-top: 3px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  
+
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -33,16 +33,16 @@ const LoadingSpinner = styled.div`
 const ErrorMessage = styled.div`
   margin-top: 16px;
   padding: 12px;
-  background-color: hsl(var(--destructive) / 0.1);
-  border: 1px solid hsl(var(--destructive));
+  background-color: color-mix(in oklch, var(--destructive) 10%, transparent);
+  border: 1px solid var(--destructive);
   border-radius: 4px;
-  color: hsl(var(--destructive));
+  color: var(--destructive);
   font-size: 14px;
   text-align: center;
 `;
 
 const LoadingText = styled.p`
-  color: var(--text-normal);
+  color: var(--foreground);
   font-size: 16px;
   text-align: center;
 `;
@@ -139,9 +139,9 @@ export const SigmaCallback: FC = () => {
 							onClick={handleBackToLogin}
 							style={{
 								padding: '12px 24px',
-								backgroundColor: 'var(--background-modifier-accent)',
-								color: 'var(--text-normal)',
-								border: '1px solid var(--background-modifier-accent)',
+								backgroundColor: 'var(--border)',
+								color: 'var(--foreground)',
+								border: '1px solid var(--border)',
 								borderRadius: '4px',
 								cursor: 'pointer',
 							}}

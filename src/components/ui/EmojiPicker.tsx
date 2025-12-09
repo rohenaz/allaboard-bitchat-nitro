@@ -8,9 +8,9 @@ const StyledEmojiPicker = styled.div`
     height: 368px;
     width: fit-content;
     flex-direction: column;
-    background-color: var(--background-secondary);
+    background-color: var(--card);
     border-radius: 8px;
-    border: 1px solid var(--background-modifier-border);
+    border: 1px solid var(--border);
   }
 
   .frimousse-search {
@@ -19,14 +19,14 @@ const StyledEmojiPicker = styled.div`
     margin-bottom: 4px;
     appearance: none;
     border-radius: 6px;
-    background-color: var(--channeltextarea-background);
+    background-color: var(--input);
     padding: 8px 10px;
     font-size: 14px;
     border: none;
-    color: var(--text-normal);
-    
+    color: var(--foreground);
+
     &:focus {
-      outline: 2px solid var(--brand-experiment);
+      outline: 2px solid var(--primary);
       outline-offset: -2px;
     }
   }
@@ -45,7 +45,7 @@ const StyledEmojiPicker = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
     font-size: 14px;
   }
 
@@ -57,10 +57,10 @@ const StyledEmojiPicker = styled.div`
   }
 
   .frimousse-category-header {
-    background-color: var(--background-secondary);
+    background-color: var(--card);
     padding: 12px 12px 6px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--muted-foreground);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.02em;
@@ -86,7 +86,7 @@ const StyledEmojiPicker = styled.div`
 
     &:hover,
     &[data-active] {
-      background-color: var(--background-modifier-hover);
+      background-color: var(--accent);
     }
   }
 `;

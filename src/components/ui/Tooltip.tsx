@@ -31,15 +31,15 @@ const TooltipContainer = styled.div`
 const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
   position: absolute;
   z-index: 10000;
-  background-color: var(--background-floating);
-  color: var(--text-normal);
+  background-color: var(--popover);
+  color: var(--foreground);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
   box-shadow: var(--elevation-high);
-  border: 1px solid var(--background-modifier-accent);
+  border: 1px solid var(--border);
   opacity: ${({ $visible }) => ($visible ? 1 : 0)};
   pointer-events: ${({ $visible }) => ($visible ? 'auto' : 'none')};
   transition: opacity 0.15s ease;
@@ -53,7 +53,7 @@ const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
           left: 50%;
           transform: translateX(-50%);
           margin-bottom: 8px;
-          
+
           &::after {
             content: '';
             position: absolute;
@@ -61,7 +61,7 @@ const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
             left: 50%;
             transform: translateX(-50%);
             border: 4px solid transparent;
-            border-top-color: var(--background-floating);
+            border-top-color: var(--popover);
           }
         `;
       case 'bottom':
@@ -70,7 +70,7 @@ const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
           left: 50%;
           transform: translateX(-50%);
           margin-top: 8px;
-          
+
           &::after {
             content: '';
             position: absolute;
@@ -78,7 +78,7 @@ const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
             left: 50%;
             transform: translateX(-50%);
             border: 4px solid transparent;
-            border-bottom-color: var(--background-floating);
+            border-bottom-color: var(--popover);
           }
         `;
       case 'left':
@@ -87,7 +87,7 @@ const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
           top: 50%;
           transform: translateY(-50%);
           margin-right: 8px;
-          
+
           &::after {
             content: '';
             position: absolute;
@@ -95,7 +95,7 @@ const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
             top: 50%;
             transform: translateY(-50%);
             border: 4px solid transparent;
-            border-left-color: var(--background-floating);
+            border-left-color: var(--popover);
           }
         `;
       case 'right':
@@ -104,7 +104,7 @@ const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
           top: 50%;
           transform: translateY(-50%);
           margin-left: 8px;
-          
+
           &::after {
             content: '';
             position: absolute;
@@ -112,7 +112,7 @@ const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
             top: 50%;
             transform: translateY(-50%);
             border: 4px solid transparent;
-            border-right-color: var(--background-floating);
+            border-right-color: var(--popover);
           }
         `;
       default:

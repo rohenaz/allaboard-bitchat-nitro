@@ -1,8 +1,10 @@
 import type { FC } from 'react';
 import { useRef, useState } from 'react';
 import { FaComments, FaEllipsisV, FaUserCheck, FaUserMinus, FaUserPlus } from 'react-icons/fa';
+import { Loader2 } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import styled from 'styled-components';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { RootState } from '../../store';
 import { ContextMenu } from '../ui/ContextMenu';
 import { Tooltip } from '../ui/Tooltip';
@@ -27,145 +29,18 @@ interface UserListProps {
 	activeUserId?: string;
 }
 
-const Container = styled.div`
-  height: 100%;
-  background-color: var(--background-secondary);
-  border-left: 1px solid var(--background-modifier-accent);
-`;
+const StatusDot: FC<{ status: string }> = ({ status }) => {
+	const colorClass =
+		status === 'online'
+			? 'bg-chart-2'
+			: status === 'away'
+				? 'bg-yellow-500'
+				: status === 'dnd'
+					? 'bg-destructive'
+					: 'bg-muted-foreground';
 
-const Title = styled.div`
-  padding: 16px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--background-modifier-accent);
-`;
-
-const UserItem = styled.div<{ $isActive?: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-  background-color: ${({ $isActive }) =>
-		$isActive ? 'var(--background-modifier-selected)' : 'transparent'};
-  
-  &:hover {
-    background-color: var(--background-modifier-hover);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--brand-experiment);
-    outline-offset: -2px;
-  }
-`;
-
-const UserInfo = styled.div`
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-`;
-
-const Username = styled.div<{ $isActive?: boolean }>`
-  font-size: 14px;
-  font-weight: 500;
-  color: ${({ $isActive }) => ($isActive ? 'var(--text-normal)' : 'var(--channels-default)')};
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const UserStatus = styled.div`
-  font-size: 12px;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const StatusDot = styled.div<{ $status: string }>`
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: ${({ $status }) => {
-		switch ($status) {
-			case 'online':
-				return 'var(--status-positive)';
-			case 'away':
-				return 'var(--status-warning)';
-			case 'dnd':
-				return 'var(--status-danger)';
-			default:
-				return 'var(--text-muted)';
-		}
-	}};
-`;
-
-const ActionButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  opacity: 0;
-
-  ${UserItem}:hover & {
-    opacity: 1;
-  }
-
-  &:hover {
-    background-color: var(--background-modifier-hover);
-    color: var(--text-normal);
-  }
-
-  &:focus-visible {
-    opacity: 1;
-    outline: 2px solid var(--brand-experiment);
-    outline-offset: -2px;
-  }
-`;
-
-const Section = styled.div`
-  border-bottom: 1px solid var(--background-modifier-accent);
-`;
-
-const SectionTitle = styled.div`
-  padding: 8px 16px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  background-color: var(--background-secondary-alt);
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 16px;
-  color: var(--text-muted);
-`;
-
-const EmptyState = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px 16px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 14px;
-`;
+	return <div className={cn('w-2 h-2 rounded-full', colorClass)} />;
+};
 
 export const UserList: FC<UserListProps> = ({
 	activeUserId,
@@ -239,22 +114,32 @@ export const UserList: FC<UserListProps> = ({
 
 	if (isLoading) {
 		return (
-			<Container>
-				{title && <Title>{title}</Title>}
-				<LoadingContainer>
-					<div className="loading loading-spinner loading-md" />
-				</LoadingContainer>
-			</Container>
+			<div className="h-full bg-card border-l border-border">
+				{title && (
+					<div className="p-4 text-xs font-bold text-muted-foreground uppercase tracking-wide border-b border-border">
+						{title}
+					</div>
+				)}
+				<div className="flex items-center justify-center py-8 px-4 text-muted-foreground">
+					<Loader2 className="h-6 w-6 animate-spin" />
+				</div>
+			</div>
 		);
 	}
 
 	return (
-		<Container>
-			{title && <Title>{title}</Title>}
+		<div className="h-full bg-card border-l border-border">
+			{title && (
+				<div className="p-4 text-xs font-bold text-muted-foreground uppercase tracking-wide border-b border-border">
+					{title}
+				</div>
+			)}
 
 			{showFriendRequests && (
-				<Section>
-					<SectionTitle>Incoming Friend Requests</SectionTitle>
+				<div className="border-b border-border">
+					<div className="py-2 px-4 text-[11px] font-bold text-muted-foreground uppercase bg-card">
+						Incoming Friend Requests
+					</div>
 					{friendRequests.incoming.allIds.map((id) => {
 						const request = friendRequests.incoming.byId[id];
 						const signer = request.signer;
@@ -273,7 +158,7 @@ export const UserList: FC<UserListProps> = ({
 									status: 'offline' as const,
 								})}
 							>
-								<UserItem
+								<div
 									ref={(ref: HTMLDivElement | null) => {
 										if (ref) userRefs.current[id] = ref;
 									}}
@@ -288,71 +173,109 @@ export const UserList: FC<UserListProps> = ({
 											status: 'offline' as const,
 										})
 									}
+									onKeyDown={(e) =>
+										e.key === 'Enter' &&
+										handleUserClick({
+											id,
+											name: signer.paymail || 'Unknown',
+											avatar: signer.logo || '',
+											paymail: signer.paymail || '',
+											bapId: id,
+											idKey: id,
+											status: 'offline' as const,
+										})
+									}
 									role="button"
 									tabIndex={0}
 									aria-label={`User ${signer.paymail}`}
+									className="group flex items-center gap-3 py-2 px-4 cursor-pointer transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
 								>
 									<Avatar size="32px" paymail={signer.paymail || ''} icon={signer.logo || ''} />
-									<UserInfo>
-										<Username>{signer.paymail}</Username>
-										<UserStatus>
-											<StatusDot $status="offline" />
+									<div className="flex-1 min-w-0 flex flex-col gap-0.5">
+										<div className="text-sm font-medium text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+											{signer.paymail}
+										</div>
+										<div className="text-xs text-muted-foreground flex items-center gap-1">
+											<StatusDot status="offline" />
 											Friend Request
-										</UserStatus>
-									</UserInfo>
+										</div>
+									</div>
 
 									<Tooltip content="More options" placement="left">
-										<ActionButton aria-label="More options" onClick={(e) => e.stopPropagation()}>
-											<FaEllipsisV />
-										</ActionButton>
+										<Button
+											variant="ghost"
+											size="icon"
+											className="h-6 w-6 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+											aria-label="More options"
+											onClick={(e) => e.stopPropagation()}
+										>
+											<FaEllipsisV className="h-3 w-3" />
+										</Button>
 									</Tooltip>
-								</UserItem>
+								</div>
 							</ContextMenu>
 						);
 					})}
-				</Section>
+				</div>
 			)}
 
-			<Section>
-				<SectionTitle>
+			<div className="border-b border-border">
+				<div className="py-2 px-4 text-[11px] font-bold text-muted-foreground uppercase bg-card">
 					{showFriendRequests ? 'Friends' : 'Members'} — {users.length}
-				</SectionTitle>
+				</div>
 
 				{users.length === 0 ? (
-					<EmptyState>
+					<div className="flex flex-col items-center py-8 px-4 text-center text-muted-foreground text-sm">
 						{showFriendRequests
 							? 'No friends yet. Add some friends to get started!'
 							: 'No members online'}
-					</EmptyState>
+					</div>
 				) : (
 					users.map((user) => (
 						<ContextMenu key={user.id} items={createContextMenuItems(user)}>
-							<UserItem
+							<div
 								ref={(ref: HTMLDivElement | null) => {
 									if (ref) userRefs.current[user.id] = ref;
 								}}
-								$isActive={activeUserId === user.id}
 								onClick={() => handleUserClick(user)}
+								onKeyDown={(e) => e.key === 'Enter' && handleUserClick(user)}
 								role="button"
 								tabIndex={0}
 								aria-label={`User ${user.name}`}
 								aria-pressed={activeUserId === user.id}
+								className={cn(
+									'group flex items-center gap-3 py-2 px-4 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]',
+									activeUserId === user.id ? 'bg-accent' : 'hover:bg-accent',
+								)}
 							>
 								<Avatar size="32px" paymail={user.paymail || ''} icon={user.avatar} />
-								<UserInfo>
-									<Username $isActive={activeUserId === user.id}>{user.name}</Username>
-									<UserStatus>
-										<StatusDot $status={user.status} />
+								<div className="flex-1 min-w-0 flex flex-col gap-0.5">
+									<div
+										className={cn(
+											'text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap',
+											activeUserId === user.id ? 'text-foreground' : 'text-muted-foreground',
+										)}
+									>
+										{user.name}
+									</div>
+									<div className="text-xs text-muted-foreground flex items-center gap-1">
+										<StatusDot status={user.status} />
 										{user.status === 'online' ? 'Online' : 'Offline'}
-									</UserStatus>
-								</UserInfo>
+									</div>
+								</div>
 
 								<Tooltip content="More options" placement="left">
-									<ActionButton aria-label="More options" onClick={(e) => e.stopPropagation()}>
-										<FaEllipsisV />
-									</ActionButton>
+									<Button
+										variant="ghost"
+										size="icon"
+										className="h-6 w-6 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+										aria-label="More options"
+										onClick={(e) => e.stopPropagation()}
+									>
+										<FaEllipsisV className="h-3 w-3" />
+									</Button>
 								</Tooltip>
-							</UserItem>
+							</div>
 
 							{/* User Popover */}
 							{activePopover === user.id && userRefs.current[user.id] && (
@@ -374,7 +297,7 @@ export const UserList: FC<UserListProps> = ({
 						</ContextMenu>
 					))
 				)}
-			</Section>
-		</Container>
+			</div>
+		</div>
 	);
 };

@@ -22,7 +22,7 @@ const Container = styled.header`
   justify-content: space-between;
   height: 48px;
   min-height: 48px;
-  background-color: var(--background-primary);
+  background-color: var(--background);
   border-bottom: 1px solid var(--border);
   padding: 0 16px;
   position: relative;
@@ -55,7 +55,7 @@ const ChannelName = styled.h1`
   font-size: 16px;
   font-weight: 600;
   line-height: 20px;
-  color: var(--text-normal);
+  color: var(--foreground);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -81,15 +81,15 @@ const IconButton = styled.button<IconButtonProps>`
   height: 24px;
   border: none;
   background: transparent;
-  color: ${({ $isActive }) => ($isActive ? 'var(--interactive-active)' : 'var(--interactive-normal)')};
+  color: ${({ $isActive }) => ($isActive ? 'var(--primary)' : 'var(--muted-foreground)')};
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.15s ease-out;
   font-size: 20px;
 
   &:hover {
-    color: var(--interactive-hover);
-    background-color: var(--background-modifier-hover);
+    color: var(--foreground);
+    background-color: var(--accent);
   }
 
   ${({ $isHamburger }) => $isHamburger && hideInDesktop};
@@ -109,7 +109,7 @@ const HamburgerButton = styled(IconButton)`
 `;
 
 const HashtagIcon = styled.span`
-  color: var(--channels-default);
+  color: var(--muted-foreground);
   font-size: 24px;
   font-weight: 600;
   margin-right: 8px;
@@ -119,7 +119,7 @@ const HashtagIcon = styled.span`
 `;
 
 const AtIcon = styled.span`
-  color: var(--channels-default);
+  color: var(--muted-foreground);
   font-size: 24px;
   font-weight: 600;
   margin-right: 8px;

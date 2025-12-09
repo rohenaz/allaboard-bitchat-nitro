@@ -1,6 +1,5 @@
 import type React from 'react';
 import { useState } from 'react';
-import styled from 'styled-components';
 import MessageFile from './MessageFile';
 import FilePreviewModal from './modals/FilePreviewModal';
 
@@ -16,15 +15,6 @@ interface MessageFilesProps {
 	files?: File[];
 }
 
-const Container = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  margin: 8px 0;
-  padding: 8px 16px 12px 0;
-  position: relative;
-  gap: 8px;
-`;
-
 const MessageFiles: React.FC<MessageFilesProps> = ({ files }) => {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -34,7 +24,7 @@ const MessageFiles: React.FC<MessageFilesProps> = ({ files }) => {
 
 	return (
 		<>
-			<Container>
+			<div className="flex flex-wrap my-2 pr-4 pb-3 relative gap-2">
 				{files.map((file, index) => (
 					<MessageFile
 						key={file.txid || file.url || `file-${index}`}
@@ -42,7 +32,7 @@ const MessageFiles: React.FC<MessageFilesProps> = ({ files }) => {
 						onClick={() => setSelectedFile(file)}
 					/>
 				))}
-			</Container>
+			</div>
 
 			<FilePreviewModal
 				open={!!selectedFile}

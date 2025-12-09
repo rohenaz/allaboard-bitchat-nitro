@@ -14,13 +14,13 @@ const ListItemContainer = styled.div`
   display: flex;
   align-items: center;
   cursor: pointer;
-  color: var(--channels-default);
+  color: var(--muted-foreground);
   opacity: ${(props) => (props.$hasActivity ? 1 : 0.6)};
   background-color: ${(props) =>
-    props.$isActive ? 'var(--background-modifier-selected)' : 'transparent'};
+    props.$isActive ? 'var(--accent)' : 'transparent'};
   &:hover {
-    background-color: var(--background-modifier-hover);
-    color: var(--interactive-hover);
+    background-color: var(--accent);
+    color: var(--foreground);
     opacity: 1;
   }
 `;
@@ -28,9 +28,9 @@ const ListItemContainer = styled.div`
 const PinButton = styled.button`
   margin-left: auto;
   padding: 4px;
-  color: var(--text-muted);
+  color: var(--muted-foreground);
   &:hover {
-    color: var(--text-normal);
+    color: var(--foreground);
   }
 `;
 

@@ -14,7 +14,7 @@ const Container = styled.div`
   min-height: 0;
   width: 100%;
   overflow: hidden;
-  background-color: var(--background-primary);
+  background-color: var(--background);
 `;
 
 const MessagesContainer = styled.div`
@@ -52,7 +52,7 @@ const LoadingContainer = styled.div`
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--text-normal);
+  color: var(--foreground);
 `;
 
 const Messages: FC = () => {

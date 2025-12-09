@@ -39,13 +39,13 @@ const LoginButton = styled.button<LoginButtonProps>`
   transition: all 0.15s ease;
   border: none;
   cursor: pointer;
-  background-color: ${(props) => (props.$secondary ? 'var(--background-modifier-accent)' : 'var(--brand-experiment)')};
-  color: ${(props) => (props.$secondary ? 'var(--text-normal)' : 'var(--white-500)')};
-  
+  background-color: ${(props) => (props.$secondary ? 'var(--border)' : 'var(--primary)')};
+  color: ${(props) => (props.$secondary ? 'var(--foreground)' : 'var(--primary-foreground)')};
+
   &:hover:not(:disabled) {
-    background-color: ${(props) => (props.$secondary ? 'var(--background-modifier-hover)' : 'var(--brand-experiment-hover)')};
+    background-color: ${(props) => (props.$secondary ? 'var(--accent)' : 'var(--brand-experiment-hover)')};
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -66,17 +66,17 @@ const FooterLinks = styled.div`
   margin-top: 32px;
   text-align: center;
   font-size: 14px;
-  color: var(--text-muted);
-  
+  color: var(--muted-foreground);
+
   > div {
     margin-bottom: 8px;
   }
 `;
 
 const StyledLink = styled(Link)`
-  color: var(--text-link);
+  color: var(--primary);
   text-decoration: none;
-  
+
   &:hover {
     text-decoration: underline;
   }
@@ -256,8 +256,8 @@ export const LoginPage: FC = () => {
 						style={{
 							width: '40px',
 							height: '40px',
-							border: '3px solid var(--background-modifier-accent)',
-							borderTop: '3px solid var(--brand-experiment)',
+							border: '3px solid var(--border)',
+							borderTop: '3px solid var(--primary)',
 							borderRadius: '50%',
 							animation: 'spin 1s linear infinite',
 						}}
