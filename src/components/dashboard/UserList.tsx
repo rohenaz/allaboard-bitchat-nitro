@@ -1,9 +1,9 @@
-import { Loader2 } from 'lucide-react';
+import { Loader2, MessageSquare, MoreVertical, UserCheck, UserMinus, UserPlus } from 'lucide-react';
 import type { FC } from 'react';
 import { useRef, useState } from 'react';
-import { FaComments, FaEllipsisV, FaUserCheck, FaUserMinus, FaUserPlus } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import type { RootState } from '../../store';
 import { ContextMenu } from '../ui/ContextMenu';
@@ -68,7 +68,7 @@ export const UserList: FC<UserListProps> = ({
 		{
 			id: 'profile',
 			label: 'View Profile',
-			icon: <FaUserCheck />,
+			icon: <UserCheck className="h-4 w-4" />,
 			onClick: () => {
 				// Navigate to profile
 			},
@@ -76,7 +76,7 @@ export const UserList: FC<UserListProps> = ({
 		{
 			id: 'message',
 			label: 'Send Message',
-			icon: <FaComments />,
+			icon: <MessageSquare className="h-4 w-4" />,
 			onClick: () => {
 				// Create DM
 			},
@@ -90,7 +90,7 @@ export const UserList: FC<UserListProps> = ({
 		{
 			id: 'add-friend',
 			label: 'Add Friend',
-			icon: <FaUserPlus />,
+			icon: <UserPlus className="h-4 w-4" />,
 			onClick: () => {
 				// Send friend request
 			},
@@ -104,7 +104,7 @@ export const UserList: FC<UserListProps> = ({
 		{
 			id: 'remove',
 			label: 'Remove Friend',
-			icon: <FaUserMinus />,
+			icon: <UserMinus className="h-4 w-4" />,
 			danger: true,
 			onClick: () => {
 				// Remove friend
@@ -114,31 +114,18 @@ export const UserList: FC<UserListProps> = ({
 
 	if (isLoading) {
 		return (
-			<div className="h-full bg-card border-l border-border">
-				{title && (
-					<div className="p-4 text-xs font-bold text-muted-foreground uppercase tracking-wide border-b border-border">
-						{title}
-					</div>
-				)}
-				<div className="flex items-center justify-center py-8 px-4 text-muted-foreground">
-					<Loader2 className="h-6 w-6 animate-spin" />
-				</div>
+			<div className="flex items-center justify-center py-8 px-4 text-muted-foreground">
+				<Loader2 className="h-6 w-6 animate-spin" />
 			</div>
 		);
 	}
 
 	return (
-		<div className="h-full bg-card border-l border-border">
-			{title && (
-				<div className="p-4 text-xs font-bold text-muted-foreground uppercase tracking-wide border-b border-border">
-					{title}
-				</div>
-			)}
-
-			{showFriendRequests && (
-				<div className="border-b border-border">
-					<div className="py-2 px-4 text-[11px] font-bold text-muted-foreground uppercase bg-card">
-						Incoming Friend Requests
+		<>
+			{showFriendRequests && friendRequests.incoming.allIds.length > 0 && (
+				<SidebarMenu>
+					<div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground uppercase">
+						Friend Requests
 					</div>
 					{friendRequests.incoming.allIds.map((id) => {
 						const request = friendRequests.incoming.byId[id];
@@ -146,121 +133,87 @@ export const UserList: FC<UserListProps> = ({
 						if (!signer) return null;
 
 						return (
-							<ContextMenu
-								key={id}
-								items={createContextMenuItems({
-									id,
-									name: signer.paymail || 'Unknown',
-									avatar: signer.logo || '',
-									paymail: signer.paymail || '',
-									bapId: id,
-									idKey: id,
-									status: 'offline' as const,
-								})}
-							>
-								<Button
-									variant="ghost"
-									ref={(ref: HTMLButtonElement | null) => {
-										if (ref) userRefs.current[id] = ref as unknown as HTMLDivElement;
-									}}
-									onClick={() =>
-										handleUserClick({
-											id,
-											name: signer.paymail || 'Unknown',
-											avatar: signer.logo || '',
-											paymail: signer.paymail || '',
-											bapId: id,
-											idKey: id,
-											status: 'offline' as const,
-										})
-									}
-									aria-label={`User ${signer.paymail}`}
-									className="group flex items-center justify-start gap-3 py-2 px-4 h-auto w-full rounded-none"
+							<SidebarMenuItem key={id}>
+								<ContextMenu
+									items={createContextMenuItems({
+										id,
+										name: signer.paymail || 'Unknown',
+										avatar: signer.logo || '',
+										paymail: signer.paymail || '',
+										bapId: id,
+										idKey: id,
+										status: 'offline' as const,
+									})}
 								>
-									<Avatar size="32px" paymail={signer.paymail || ''} icon={signer.logo || ''} />
-									<div className="flex-1 min-w-0 flex flex-col gap-0.5">
-										<div className="text-sm font-medium text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
-											{signer.paymail}
+									<SidebarMenuButton
+										onClick={() =>
+											handleUserClick({
+												id,
+												name: signer.paymail || 'Unknown',
+												avatar: signer.logo || '',
+												paymail: signer.paymail || '',
+												bapId: id,
+												idKey: id,
+												status: 'offline' as const,
+											})
+										}
+										className="h-auto py-2"
+									>
+										<Avatar size="32px" paymail={signer.paymail || ''} icon={signer.logo || ''} />
+										<div className="flex-1 min-w-0 flex flex-col gap-0.5">
+											<span className="text-sm font-medium truncate">{signer.paymail}</span>
+											<span className="text-xs text-muted-foreground flex items-center gap-1">
+												<StatusDot status="offline" />
+												Friend Request
+											</span>
 										</div>
-										<div className="text-xs text-muted-foreground flex items-center gap-1">
-											<StatusDot status="offline" />
-											Friend Request
-										</div>
-									</div>
-
-									<Tooltip content="More options" placement="left">
-										<Button
-											variant="ghost"
-											size="icon"
-											className="h-6 w-6 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-											aria-label="More options"
-											onClick={(e) => e.stopPropagation()}
-										>
-											<FaEllipsisV className="h-3 w-3" />
-										</Button>
-									</Tooltip>
-								</Button>
-							</ContextMenu>
+									</SidebarMenuButton>
+								</ContextMenu>
+							</SidebarMenuItem>
 						);
 					})}
-				</div>
+				</SidebarMenu>
 			)}
 
-			<div className="border-b border-border">
-				<div className="py-2 px-4 text-[11px] font-bold text-muted-foreground uppercase bg-card">
-					{showFriendRequests ? 'Friends' : 'Members'} — {users.length}
-				</div>
-
+			<SidebarMenu>
 				{users.length === 0 ? (
 					<div className="flex flex-col items-center py-8 px-4 text-center text-muted-foreground text-sm">
 						{showFriendRequests
 							? 'No friends yet. Add some friends to get started!'
-							: 'No members online'}
+							: 'No members in this channel'}
 					</div>
 				) : (
 					users.map((user) => (
-						<ContextMenu key={user.id} items={createContextMenuItems(user)}>
-							<Button
-								variant="ghost"
-								ref={(ref: HTMLButtonElement | null) => {
-									if (ref) userRefs.current[user.id] = ref as unknown as HTMLDivElement;
-								}}
-								onClick={() => handleUserClick(user)}
-								aria-label={`User ${user.name}`}
-								aria-pressed={activeUserId === user.id}
-								className={cn(
-									'group flex items-center justify-start gap-3 py-2 px-4 h-auto w-full rounded-none',
-									activeUserId === user.id ? 'bg-accent' : '',
-								)}
-							>
-								<Avatar size="32px" paymail={user.paymail || ''} icon={user.avatar} />
-								<div className="flex-1 min-w-0 flex flex-col gap-0.5">
-									<div
-										className={cn(
-											'text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap',
-											activeUserId === user.id ? 'text-foreground' : 'text-muted-foreground',
-										)}
-									>
-										{user.name}
+						<SidebarMenuItem key={user.id}>
+							<ContextMenu items={createContextMenuItems(user)}>
+								<SidebarMenuButton
+									ref={(ref: HTMLButtonElement | null) => {
+										if (ref) userRefs.current[user.id] = ref as unknown as HTMLDivElement;
+									}}
+									onClick={() => handleUserClick(user)}
+									isActive={activeUserId === user.id}
+									className="h-auto py-2"
+								>
+									<Avatar size="32px" paymail={user.paymail || ''} icon={user.avatar} />
+									<div className="flex-1 min-w-0 flex flex-col gap-0.5">
+										<span className="text-sm font-medium truncate">{user.name}</span>
+										<span className="text-xs text-muted-foreground flex items-center gap-1">
+											<StatusDot status={user.status} />
+											{user.status === 'online' ? 'Online' : 'Offline'}
+										</span>
 									</div>
-									<div className="text-xs text-muted-foreground flex items-center gap-1">
-										<StatusDot status={user.status} />
-										{user.status === 'online' ? 'Online' : 'Offline'}
-									</div>
-								</div>
-
-								<Tooltip content="More options" placement="left">
-									<Button
-										variant="ghost"
-										size="icon"
-										className="h-6 w-6 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-										aria-label="More options"
-										onClick={(e) => e.stopPropagation()}
-									>
-										<FaEllipsisV className="h-3 w-3" />
-									</Button>
-								</Tooltip>
-							</Button>
+									<Tooltip content="More options" placement="left">
+										<Button
+											variant="ghost"
+											size="icon"
+											className="h-6 w-6 opacity-0 group-hover:opacity-100"
+											onClick={(e) => e.stopPropagation()}
+										>
+											<MoreVertical className="h-3 w-3" />
+										</Button>
+									</Tooltip>
+								</SidebarMenuButton>
+							</ContextMenu>
 
 							{/* User Popover */}
 							{activePopover === user.id && userRefs.current[user.id] && (
@@ -279,10 +232,10 @@ export const UserList: FC<UserListProps> = ({
 									placement="left"
 								/>
 							)}
-						</ContextMenu>
+						</SidebarMenuItem>
 					))
 				)}
-			</div>
-		</div>
+			</SidebarMenu>
+		</>
 	);
 };

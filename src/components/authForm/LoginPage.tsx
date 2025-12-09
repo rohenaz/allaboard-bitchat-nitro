@@ -199,7 +199,7 @@ export const LoginPage: FC = () => {
 				</a>
 				<Card className="overflow-hidden">
 					<CardContent className="grid p-0 md:grid-cols-1">
-						<div className={cn("flex flex-col gap-6", "p-6 md:p-8")}>
+						<div className={cn('flex flex-col gap-6', 'p-6 md:p-8')}>
 							<div className="flex flex-col items-center gap-2 text-center">
 								<h1 className="text-2xl font-bold">Welcome back</h1>
 								<p className="text-balance text-sm text-muted-foreground">
@@ -208,11 +208,7 @@ export const LoginPage: FC = () => {
 							</div>
 							<div className="grid gap-4">
 								{/* Primary: Sign in with Bitcoin (Sigma) */}
-								<Button
-									onClick={handleSigmaLogin}
-									disabled={isLoading}
-									className="w-full"
-								>
+								<Button onClick={handleSigmaLogin} disabled={isLoading} className="w-full">
 									{isLoading ? (
 										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 									) : (
@@ -238,11 +234,7 @@ export const LoginPage: FC = () => {
 
 								{/* Secondary wallet options */}
 								<div className="grid grid-cols-2 gap-4">
-									<Button
-										variant="outline"
-										onClick={handleHandcashLogin}
-										disabled={isLoading}
-									>
+									<Button variant="outline" onClick={handleHandcashLogin} disabled={isLoading}>
 										<HandcashIcon className="h-4 w-4" />
 										<span className="sr-only">HandCash</span>
 									</Button>
@@ -285,8 +277,8 @@ export const LoginPage: FC = () => {
 					</CardContent>
 				</Card>
 				<div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
-					By clicking continue, you agree to our <a href="#">Terms of Service</a>{' '}
-					and <a href="#">Privacy Policy</a>.
+					By clicking continue, you agree to our <a href="#">Terms of Service</a> and{' '}
+					<a href="#">Privacy Policy</a>.
 				</div>
 			</div>
 		</div>

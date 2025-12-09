@@ -1,20 +1,27 @@
+import { Users } from 'lucide-react';
 import type { FC } from 'react';
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { useHandcash } from '../../context/handcash';
-import { useYours } from '../../context/yours';
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
+	SidebarHeader,
+	SidebarProvider,
+} from '@/components/ui/sidebar';
 import { loadFriends, loadUsers } from '../../reducers/memberListReducer';
 import type { AppDispatch, RootState } from '../../store';
 import { UserList } from './UserList';
 
 export const MemberList: FC = () => {
-	const { authToken } = useHandcash();
-	const { connected } = useYours();
 	const dispatch = useDispatch<AppDispatch>();
 	const params = useParams();
 
 	const memberList = useSelector((state: RootState) => state.memberList);
+	const session = useSelector((state: RootState) => state.session);
 	const chat = useSelector((state: RootState) => state.chat);
 	const isOpen = memberList.isOpen;
 	const activeChannel = params.channel;
@@ -30,14 +37,8 @@ export const MemberList: FC = () => {
 
 			// Check if user has sent messages in this channel
 			const hasMessagesInChannel = chat.messages.data.some((msg) => {
-				// Check if this user is the sender (AIP[0].address matches user's currentAddress)
 				const senderAddress = msg.AIP?.[0]?.address;
-				const isMessageSender = senderAddress && user.currentAddress === senderAddress;
-
-				if (senderAddress) {
-				}
-
-				return isMessageSender;
+				return senderAddress && user.currentAddress === senderAddress;
 			});
 
 			return hasMessagesInChannel ? user : null;
@@ -54,15 +55,26 @@ export const MemberList: FC = () => {
 		}));
 
 	const fetchMemberList = useCallback(() => {
-		// Only load if we don't have any users AND we're not already loading
-		if ((authToken || connected) && !memberList.allIds.length && !memberList.loading) {
-			if (activeChannel) {
+		// Use session.isAuthenticated (includes guests) and require idKey for friends
+		const hasIdentity = session.isAuthenticated && session.user?.idKey;
+
+		if (!memberList.allIds.length && !memberList.loading) {
+			if (activeChannel && session.isAuthenticated) {
+				// Load channel members for authenticated users (including guests)
 				void dispatch(loadUsers());
-			} else {
+			} else if (hasIdentity) {
+				// Only load friends if user has a BAP identity
 				void dispatch(loadFriends());
 			}
 		}
-	}, [authToken, connected, dispatch, memberList.allIds.length, memberList.loading, activeChannel]);
+	}, [
+		session.isAuthenticated,
+		session.user?.idKey,
+		dispatch,
+		memberList.allIds.length,
+		memberList.loading,
+		activeChannel,
+	]);
 
 	useEffect(() => {
 		fetchMemberList();
@@ -73,13 +85,32 @@ export const MemberList: FC = () => {
 	}
 
 	return (
-		<div className="w-60 min-w-60 bg-base-200 flex-col overflow-hidden relative shrink-0 hidden md:flex">
-			<UserList
-				users={filteredUsers}
-				loading={memberList.loading}
-				title={activeChannel ? `#${activeChannel} Members` : 'Friends'}
-				showFriendRequests={!activeChannel}
-			/>
-		</div>
+		<SidebarProvider
+			defaultOpen={isOpen}
+			style={{ '--sidebar-width': '240px' } as React.CSSProperties}
+		>
+			<Sidebar side="right" collapsible="none" className="border-l border-border hidden md:flex">
+				<SidebarHeader className="p-4 border-b border-border">
+					<div className="flex items-center gap-2 text-sm font-semibold">
+						<Users className="h-4 w-4" />
+						{activeChannel ? `#${activeChannel}` : 'Friends'}
+					</div>
+				</SidebarHeader>
+				<SidebarContent>
+					<SidebarGroup>
+						<SidebarGroupLabel>
+							{activeChannel ? 'Members' : 'Online'} — {filteredUsers.length}
+						</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<UserList
+								users={filteredUsers}
+								loading={memberList.loading && session.isAuthenticated}
+								showFriendRequests={!activeChannel && !!session.user?.idKey}
+							/>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				</SidebarContent>
+			</Sidebar>
+		</SidebarProvider>
 	);
 };

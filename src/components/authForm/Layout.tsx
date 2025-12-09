@@ -12,11 +12,7 @@ const Layout: FC<LayoutProps> = ({ heading, children }) => {
 			<Card className="w-full max-w-md">
 				<CardHeader className="text-center space-y-4">
 					<div className="flex justify-center">
-						<img
-							src="/images/logo-noBgColor.svg"
-							alt="BitChat Logo"
-							className="w-16 h-16"
-						/>
+						<img src="/images/logo-noBgColor.svg" alt="BitChat Logo" className="w-16 h-16" />
 					</div>
 					<div className="space-y-2">
 						<CardTitle className="text-2xl">Welcome to BitChat</CardTitle>

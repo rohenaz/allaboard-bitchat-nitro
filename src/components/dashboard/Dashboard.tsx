@@ -1,37 +1,15 @@
 import type { FC } from 'react';
 import { useParams } from 'react-router-dom';
-import styled from 'styled-components';
 import ChatArea from './ChatArea';
 import { Friends } from './Friends';
 import Header from './Header';
 import { MemberList } from './MemberList';
-import Sidebar from './Sidebar';
 import { SettingsModal } from './modals/SettingsModal';
+import Sidebar from './Sidebar';
 
 interface DashboardProps {
 	isFriendsPage: boolean;
 }
-
-const Container = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  background-color: var(--background);
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const ContentWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  height: 100vh;
-  background-color: var(--background);
-`;
 
 export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
 	const params = useParams<{ user?: string; channel?: string }>();
@@ -43,7 +21,6 @@ export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
 		}
 
 		if (isUserPage) {
-			// For now, redirect to chat area since UserProfile doesn't exist
 			return <ChatArea />;
 		}
 
@@ -51,14 +28,14 @@ export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
 	};
 
 	return (
-		<Container>
+		<div className="grid grid-cols-[auto_1fr_auto] h-screen w-screen overflow-hidden bg-background md:grid-cols-[auto_1fr_auto]">
 			<Sidebar />
-			<ContentWrapper>
+			<div className="flex flex-col min-h-0 h-screen bg-background">
 				<Header isFriendsPage={isFriendsPage} />
 				{renderMainContent()}
-			</ContentWrapper>
+			</div>
 			<MemberList />
 			<SettingsModal />
-		</Container>
+		</div>
 	);
 };

@@ -1,191 +1,59 @@
-import type React from 'react';
-import type { FC, ReactNode } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import styled, { keyframes } from 'styled-components';
+import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
-interface TooltipProps {
-  content: ReactNode;
-  children: ReactNode;
-  placement?: 'top' | 'bottom' | 'left' | 'right';
-  delay?: number;
-  disabled?: boolean;
-  className?: string;
+import { cn } from "@/lib/utils"
+
+function TooltipProvider({
+  delayDuration = 0,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
+  return (
+    <TooltipPrimitive.Provider
+      data-slot="tooltip-provider"
+      delayDuration={delayDuration}
+      {...props}
+    />
+  )
 }
 
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-`;
-
-const TooltipContainer = styled.div`
-  position: relative;
-  display: inline-block;
-`;
-
-const TooltipContent = styled.div<{ $placement: string; $visible: boolean }>`
-  position: absolute;
-  z-index: 10000;
-  background-color: var(--popover);
-  color: var(--foreground);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-  box-shadow: var(--elevation-high);
-  border: 1px solid var(--border);
-  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
-  pointer-events: ${({ $visible }) => ($visible ? 'auto' : 'none')};
-  transition: opacity 0.15s ease;
-  animation: ${({ $visible }) => ($visible ? fadeIn : 'none')} 0.15s ease-out;
-
-  ${({ $placement }) => {
-    switch ($placement) {
-      case 'top':
-        return `
-          bottom: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          margin-bottom: 8px;
-
-          &::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 4px solid transparent;
-            border-top-color: var(--popover);
-          }
-        `;
-      case 'bottom':
-        return `
-          top: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          margin-top: 8px;
-
-          &::after {
-            content: '';
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 4px solid transparent;
-            border-bottom-color: var(--popover);
-          }
-        `;
-      case 'left':
-        return `
-          right: 100%;
-          top: 50%;
-          transform: translateY(-50%);
-          margin-right: 8px;
-
-          &::after {
-            content: '';
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            border: 4px solid transparent;
-            border-left-color: var(--popover);
-          }
-        `;
-      case 'right':
-        return `
-          left: 100%;
-          top: 50%;
-          transform: translateY(-50%);
-          margin-left: 8px;
-
-          &::after {
-            content: '';
-            position: absolute;
-            right: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            border: 4px solid transparent;
-            border-right-color: var(--popover);
-          }
-        `;
-      default:
-        return `
-          top: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          margin-top: 8px;
-        `;
-    }
-  }}
-`;
-
-export const Tooltip: FC<TooltipProps> = ({
-  content,
-  children,
-  placement = 'top',
-  delay = 500,
-  disabled = false,
-  className,
-}) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const showTooltip = useCallback(() => {
-    if (disabled || !content) return;
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      setIsVisible(true);
-    }, delay);
-  }, [disabled, content, delay]);
-
-  const hideTooltip = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    setIsVisible(false);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
+function Tooltip({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
   return (
-    <TooltipContainer
-      ref={containerRef}
-      className={className}
-      onMouseEnter={showTooltip}
-      onMouseLeave={hideTooltip}
-      onFocus={showTooltip}
-      onBlur={hideTooltip}
-    >
-      {children}
-      {content && (
-        <TooltipContent
-          $placement={placement}
-          $visible={isVisible}
-          role="tooltip"
-          aria-hidden={!isVisible}
-        >
-          {content}
-        </TooltipContent>
-      )}
-    </TooltipContainer>
-  );
-};
+    <TooltipProvider>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipProvider>
+  )
+}
+
+function TooltipTrigger({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+}
+
+function TooltipContent({
+  className,
+  sideOffset = 0,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+  return (
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-foreground text-background animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <TooltipPrimitive.Arrow className="bg-foreground fill-foreground z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+      </TooltipPrimitive.Content>
+    </TooltipPrimitive.Portal>
+  )
+}
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

@@ -65,8 +65,6 @@ export const MemberList = React.lazy(() =>
 );
 
 // Messages
-export const Message = React.lazy(() => import('../components/dashboard/Message'));
-
 export const MessageFiles = React.lazy(() => import('../components/dashboard/MessageFiles'));
 
 export const FileRenderer = React.lazy(() => import('../components/dashboard/FileRenderer'));

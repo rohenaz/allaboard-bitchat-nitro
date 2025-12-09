@@ -8,6 +8,9 @@
 // BMAP API - for SSE streams, messages, social features
 export const API_BASE_URL = 'https://bmap-api-production.up.railway.app';
 
+// Sigma API - for identity search, profiles, social overlay
+export const SIGMA_API_URL = 'https://api.sigmaidentity.com';
+
 // Nitro API - for Droplit proxy with platform auth
 export const NITRO_API_URL = 'https://api.bitchatnitro.com';
 

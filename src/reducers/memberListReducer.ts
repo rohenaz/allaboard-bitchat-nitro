@@ -86,13 +86,13 @@ const initialState: MemberListState = {
 	byId: {},
 	allIds: [],
 	isOpen: true,
-	loading: true,
+	loading: false,
 	signers: {
 		byId: {},
 		allIds: [],
 	},
 	friendRequests: {
-		loading: true,
+		loading: false,
 		incoming: { allIds: [], byId: {} },
 		outgoing: { allIds: [], byId: {} },
 	},

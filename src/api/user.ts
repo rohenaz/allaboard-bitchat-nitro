@@ -1,3 +1,4 @@
+import { SIGMA_API_URL } from '../config/constants';
 import { api } from './fetch';
 
 export interface User {
@@ -22,6 +23,7 @@ export interface Identity {
 }
 
 export interface UserQuery {
+	q?: string; // Search query for identity/search
 	username?: string;
 	paymail?: string;
 	bapId?: string;
@@ -36,6 +38,28 @@ export interface FriendRequest {
 	status: 'pending' | 'accepted' | 'rejected';
 	createdAt: string;
 	updatedAt?: string;
+}
+
+// Response from api.sigmaidentity.com/identity/search
+interface SigmaIdentitySearchResult {
+	idKey: string;
+	currentAddress?: string;
+	identity?: {
+		alternateName?: string;
+		description?: string;
+		image?: string;
+		logo?: string;
+		paymail?: string;
+	};
+	block?: number;
+	timestamp?: number;
+}
+
+interface SigmaSearchResponse {
+	results: SigmaIdentitySearchResult[];
+	total: number;
+	page: number;
+	limit: number;
 }
 
 export interface IdentityResponse {
@@ -63,6 +87,60 @@ export interface IdentityResponse {
 	valid?: boolean;
 }
 
+/**
+ * Search identities using api.sigmaidentity.com
+ */
+export async function searchIdentities(query: string): Promise<User[]> {
+	try {
+		const response = await fetch(
+			`${SIGMA_API_URL}/identity/search?q=${encodeURIComponent(query)}&limit=20`,
+		);
+		if (!response.ok) {
+			console.error('Identity search failed:', response.status);
+			return [];
+		}
+		const data: SigmaSearchResponse = await response.json();
+
+		return data.results.map((result) => ({
+			id: result.idKey,
+			name: result.identity?.alternateName || '',
+			avatar: result.identity?.image || result.identity?.logo || '',
+			paymail: result.identity?.paymail || '',
+			idKey: result.idKey,
+			currentAddress: result.currentAddress,
+			status: 'online' as const,
+			lastSeen: result.timestamp ? new Date(result.timestamp * 1000).toISOString() : undefined,
+		}));
+	} catch (error) {
+		console.error('Failed to search identities:', error);
+		return [];
+	}
+}
+
+/**
+ * Get profile by BAP ID using api.sigmaidentity.com
+ */
+export async function getProfile(bapId: string): Promise<User | null> {
+	try {
+		const response = await fetch(`${SIGMA_API_URL}/profile/${bapId}`);
+		if (!response.ok) return null;
+		const data = await response.json();
+
+		return {
+			id: data.idKey || bapId,
+			name: data.identity?.alternateName || '',
+			avatar: data.identity?.image || data.identity?.logo || '',
+			paymail: data.identity?.paymail || '',
+			idKey: data.idKey || bapId,
+			currentAddress: data.currentAddress,
+			status: 'online',
+		};
+	} catch (error) {
+		console.error('Failed to get profile:', error);
+		return null;
+	}
+}
+
 function parseIdentity(identityData: string | IdentityResponse['identity'] | null): Identity {
 	try {
 		if (!identityData) {
@@ -81,7 +159,6 @@ function parseIdentity(identityData: string | IdentityResponse['identity'] | nul
 			status: 'online',
 		};
 	} catch (e) {
-		// Keep error log for production debugging
 		console.error('Failed to parse identity:', e);
 		return {
 			name: '',
@@ -91,6 +168,12 @@ function parseIdentity(identityData: string | IdentityResponse['identity'] | nul
 }
 
 export async function getUsers(query?: UserQuery): Promise<User[]> {
+	// If we have a search query, use the sigma identity search
+	if (query?.q) {
+		return searchIdentities(query.q);
+	}
+
+	// Fall back to bmap API for listing (may not work)
 	const response = await api.get<IdentityResponse[]>('/social/identities', {
 		params: query as Record<string, string>,
 	});

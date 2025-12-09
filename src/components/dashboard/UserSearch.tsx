@@ -15,8 +15,7 @@ import {
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { api } from '../../api/fetch';
 import type { User } from '../../api/user';
-import { useHandcash } from '../../context/handcash';
-import { useYours } from '../../context/yours';
+import { searchIdentities } from '../../api/user';
 import { loadFriends } from '../../reducers/memberListReducer';
 import type { AppDispatch, RootState } from '../../store';
 import Avatar from './Avatar';
@@ -32,8 +31,6 @@ export const UserSearch: FC<UserSearchProps> = ({
 	placeholder = 'Search users...',
 	showActions = true,
 }) => {
-	const { authToken } = useHandcash();
-	const { connected } = useYours();
 	const dispatch = useDispatch<AppDispatch>();
 	const navigate = useNavigate();
 	const session = useSelector((state: RootState) => state.session);
@@ -44,22 +41,15 @@ export const UserSearch: FC<UserSearchProps> = ({
 	const [loading, setLoading] = useState(false);
 	const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-	const isAuthenticated = authToken || connected;
+	const isAuthenticated = session.isAuthenticated;
 
 	const searchUsers = useCallback(
 		async (searchQuery: string) => {
-			if (!searchQuery.trim() || !isAuthenticated) return;
+			if (!searchQuery.trim()) return;
 
 			try {
 				setLoading(true);
-				const params: Record<string, string> = {};
-				if (searchQuery.includes('@')) {
-					params.paymail = searchQuery;
-				} else {
-					params.username = searchQuery;
-				}
-
-				const users = await api.get<User[]>('/users', { params });
+				const users = await searchIdentities(searchQuery);
 
 				// Filter out current user
 				const filteredUsers = users.filter((user) => user.paymail !== session.user?.paymail);
@@ -72,7 +62,7 @@ export const UserSearch: FC<UserSearchProps> = ({
 				setLoading(false);
 			}
 		},
-		[isAuthenticated, session.user?.paymail],
+		[session.user?.paymail],
 	);
 
 	const handleSendFriendRequest = useCallback(
@@ -174,12 +164,11 @@ export const UserSearch: FC<UserSearchProps> = ({
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogContent className="overflow-hidden p-0 sm:max-w-[500px]">
 					<DialogTitle className="sr-only">Search users</DialogTitle>
-					<Command shouldFilter={false} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground">
-						<CommandInput
-							placeholder={placeholder}
-							value={query}
-							onValueChange={setQuery}
-						/>
+					<Command
+						shouldFilter={false}
+						className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
+					>
+						<CommandInput placeholder={placeholder} value={query} onValueChange={setQuery} />
 						<CommandList className="max-h-[400px]">
 							{loading && (
 								<div className="flex items-center justify-center py-6">
