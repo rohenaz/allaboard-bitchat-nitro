@@ -1,13 +1,4 @@
-import {
-	ECIES,
-	Hash,
-	HD,
-	type PrivateKey,
-	PublicKey,
-	Script,
-	Transaction,
-	Utils,
-} from '@bsv/sdk';
+import { ECIES, type PrivateKey, PublicKey, Script, Utils } from '@bsv/sdk';
 import bops from 'bops';
 import { BAP } from 'bsv-bap';
 import { head } from 'lodash';
@@ -27,13 +18,12 @@ import {
 import { pinPaymentAddress } from '../../reducers/channelsReducer';
 import { receiveNewMessage, receiveNewReaction } from '../../reducers/chatReducer';
 import { FetchStatus } from '../../utils/common';
-import { getSigningPathFromHex } from '../../utils/sign';
 import { useBap } from '../bap';
 import { useBmap } from '../bmap';
 import { useHandcash } from '../handcash';
 import { useYours } from '../yours';
 
-const { toHex, toArray } = Utils;
+const { toArray } = Utils;
 // Add type definitions
 interface DecIdentity {
 	xprv: string;
@@ -108,7 +98,7 @@ type FetchStatusType = (typeof FetchStatus)[keyof typeof FetchStatus];
 interface BitcoinContextValue {
 	sendPin: (pm: string, channel: string, units: number) => Promise<void>;
 	pinStatus: FetchStatusType;
-	sendFriendRequest: (friendIdKey: string, xprv: string) => Promise<void>;
+	sendFriendRequest: (friendIdKey: string) => Promise<void>;
 	friendRequestStatus: FetchStatusType;
 	sendMessage: (pm: string, content: string, channel: string, userId?: string) => Promise<void>;
 	postStatus: FetchStatusType;
@@ -799,21 +789,22 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 	}, [session, activeUserId]);
 
 	const sendFriendRequest = useCallback(
-		async (friendIdKey: string, xprv: string) => {
-			if (!xprv) {
-				// Keep error log for production debugging
-				console.error('No xprv provided for friend request');
-				return;
-			}
-
+		async (friendIdKey: string) => {
 			// Don't send friend request to yourself
 			if (self) {
 				return;
 			}
 
-			const publicFriendKey = friendPublicKeyFromSeedString(friendIdKey, xprv).toString();
+			// Check if sigma identity is ready for key derivation
+			const { authClient } = await import('../../lib/auth');
+			if (!authClient.sigma.isReady()) {
+				throw new Error('Cannot send friend request: wallet not unlocked. Please unlock your wallet first.');
+			}
 
 			setFriendRequestStatus(FetchStatus.Loading);
+
+			// Derive friend-specific public key using Type42 derivation via sigma plugin
+			const publicFriendKey = await authClient.sigma.getFriendPublicKey(friendIdKey);
 
 			try {
 				const dataPayload = [
@@ -997,19 +988,7 @@ export const encrypt = (data: string, privateKey: PrivateKey, publicKey: PublicK
 	return ECIES.electrumEncrypt(toArray(data), publicKey, privateKey);
 };
 
-export const friendPublicKeyFromSeedString = (seedString: string, xprv: string): PublicKey => {
-	return friendPrivateKeyFromSeedString(seedString, xprv).toPublicKey();
-};
-
-export const friendPrivateKeyFromSeedString = (seedString: string, xprv: string): PrivateKey => {
-	if (!xprv) {
-		throw new Error('no xprv!');
-	}
-	// Generate a key based on the other users id hash
-	const seedHex = toHex(Hash.sha256(toArray(seedString)));
-	const signingPath = getSigningPathFromHex(seedHex);
-
-	// Use @bsv/sdk HD class to derive the private key
-	const hdKey = HD.fromString(xprv).derive(signingPath);
-	return hdKey.privKey;
-};
+// NOTE: friendPublicKeyFromSeedString and friendPrivateKeyFromSeedString were removed
+// Key derivation now happens via sigma plugin using Type42 derivation from member WIF
+// See authClient.sigma.getFriendPublicKey() for public key derivation
+// See authClient.sigma.encrypt/decrypt() for encryption operations
