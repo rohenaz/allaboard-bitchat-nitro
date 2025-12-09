@@ -19,7 +19,13 @@ const authClient = createAuthClient({
 export const sigmaAuth = {
   authorize: () => {
     // Use the plugin's OAuth flow - handles PKCE automatically
+    const clientId = import.meta.env.VITE_SIGMA_CLIENT_ID;
+    if (!clientId) {
+      console.error('[Sigma Auth] VITE_SIGMA_CLIENT_ID environment variable not set');
+      throw new Error('VITE_SIGMA_CLIENT_ID is required for OAuth flow');
+    }
     authClient.signIn.sigma({
+      clientId,
       callbackURL: '/auth/sigma/callback',
     });
   },
