@@ -12,6 +12,8 @@ interface SessionUser {
 	public_key?: string; // Bitcoin public key
 	address?: string; // Bitcoin address
 	paymail?: string; // Paymail/email
+	displayName?: string; // Display name
+	avatar?: string; // Avatar URL (ordfs)
 
 	// Legacy fields (for backwards compatibility)
 	authToken?: string; // HandCash auth token
@@ -125,10 +127,12 @@ const sessionSlice = createSlice({
 			state.error = null;
 			state.user = {
 				wallet: 'sigma',
-				idKey: action.payload.idKey, // Member BAP ID from Sigma
+				idKey: action.payload.idKey,
 				public_key: action.payload.public_key,
 				address: action.payload.address,
 				paymail: action.payload.paymail,
+				displayName: action.payload.displayName,
+				avatar: action.payload.avatar,
 			};
 			saveSessionToStorage(state.user);
 		},
