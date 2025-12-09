@@ -15,7 +15,7 @@
         "@radix-ui/themes": "^3.2.1",
         "@reduxjs/toolkit": "^2.9.2",
         "@runonbitcoin/nimble": "^1.0.14",
-        "@sigma-auth/better-auth-plugin": "0.0.12",
+        "@sigma-auth/better-auth-plugin": "0.0.13",
         "@tanstack/react-query": "^5.90.5",
         "@types/redux-logger": "^3.0.13",
         "@types/remarkable": "^2.0.8",
@@ -563,7 +563,7 @@
 
     "@sentry/opentelemetry": ["@sentry/opentelemetry@9.46.0", "", { "dependencies": { "@sentry/core": "9.46.0" }, "peerDependencies": { "@opentelemetry/api": "^1.9.0", "@opentelemetry/context-async-hooks": "^1.30.1 || ^2.0.0", "@opentelemetry/core": "^1.30.1 || ^2.0.0", "@opentelemetry/sdk-trace-base": "^1.30.1 || ^2.0.0", "@opentelemetry/semantic-conventions": "^1.34.0" } }, "sha512-w2zTxqrdmwRok0cXBoh+ksXdGRUHUZhlpfL/H2kfTodOL+Mk8rW72qUmfqQceXoqgbz8UyK8YgJbyt+XS5H4Qg=="],
 
-    "@sigma-auth/better-auth-plugin": ["@sigma-auth/better-auth-plugin@0.0.12", "", { "dependencies": { "bitcoin-auth": "^0.0.5" }, "peerDependencies": { "@bsv/sdk": "^1.9.9", "@neondatabase/serverless": "^1.0.2", "better-auth": "^1.4.5", "zod": "^4.1.12" }, "optionalPeers": ["@bsv/sdk", "@neondatabase/serverless", "zod"] }, "sha512-bz0kU+ePKyWtsI7gXwxgNkBipwgUSVhbxvHX+ltMlFS42czkQNrI9IrbxWCKbfsXR846IZfBQh3euzRbYlS+mg=="],
+    "@sigma-auth/better-auth-plugin": ["@sigma-auth/better-auth-plugin@0.0.13", "", { "dependencies": { "bitcoin-auth": "^0.0.5" }, "peerDependencies": { "@bsv/sdk": "^1.9.9", "@neondatabase/serverless": "^1.0.2", "better-auth": "^1.4.5", "zod": "^4.1.12" }, "optionalPeers": ["@bsv/sdk", "@neondatabase/serverless", "zod"] }, "sha512-k+pj9BG4Rx/Gp+o/NOBGSlXcuPDBCuecm9rnbe2ZvAZmcHYhCuYs9bV9PdkljwKZtSwpaovlDGe9VuFtbKwx+A=="],
 
     "@socket.io/component-emitter": ["@socket.io/component-emitter@3.1.2", "", {}, "sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA=="],
 
