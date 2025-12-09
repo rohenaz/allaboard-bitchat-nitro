@@ -1,7 +1,7 @@
+import { Settings } from 'lucide-react';
 import type { FC } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logout } from '../../reducers/sessionReducer';
 import { toggleSettings } from '../../reducers/settingsReducer';

@@ -2,58 +2,9 @@ import { last } from 'lodash';
 import { type FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import styled from 'styled-components';
 import { fetchMessages, fetchMoreMessages } from '../../reducers/chatReducer';
 import type { AppDispatch, RootState } from '../../store';
 import MessageCard from './MessageCard';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  overflow: hidden;
-  background-color: var(--background);
-`;
-
-const MessagesContainer = styled.div`
-  display: flex;
-  flex-direction: column-reverse;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 1rem 0;
-  
-  /* Custom scrollbar styles */
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thin-thumb);
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb:hover {
-    background: var(--scrollbar-thin-thumb-hover);
-  }
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--foreground);
-`;
 
 const Messages: FC = () => {
 	const params = useParams();
@@ -145,15 +96,21 @@ const Messages: FC = () => {
 
 	if (messages.loading) {
 		return (
-			<Container>
-				<LoadingContainer>Loading messages...</LoadingContainer>
-			</Container>
+			<div className="flex flex-col flex-1 min-h-0 w-full overflow-hidden bg-background">
+				<div className="flex items-center justify-center h-full text-foreground">
+					Loading messages...
+				</div>
+			</div>
 		);
 	}
 
 	return (
-		<Container>
-			<MessagesContainer ref={messageListRef} onScroll={handleScroll}>
+		<div className="flex flex-col flex-1 min-h-0 w-full overflow-hidden bg-background">
+			<div
+				ref={messageListRef}
+				onScroll={handleScroll}
+				className="flex flex-col-reverse flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-4 scrollbar-thin"
+			>
 				{messages.data.map((message, index) => (
 					<MessageCard
 						key={`${message.tx?.h || index}-${message.timestamp || index}`}
@@ -161,8 +118,8 @@ const Messages: FC = () => {
 						reactions={reactions}
 					/>
 				))}
-			</MessagesContainer>
-		</Container>
+			</div>
+		</div>
 	);
 };
 

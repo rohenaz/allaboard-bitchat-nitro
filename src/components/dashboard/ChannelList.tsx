@@ -1,8 +1,8 @@
+import { Hash, Plus } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Hash, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { loadChannels } from '../../reducers/channelsReducer';
@@ -77,14 +77,12 @@ const ChannelListContent: React.FC = () => {
 				{channels.map((channel) => {
 					const isActive = channel.channel === params.channel;
 					return (
-						<div
+						<Button
 							key={channel.channel}
+							variant="ghost"
 							onClick={() => handleClick(channel.channel)}
-							onKeyDown={(e) => e.key === 'Enter' && handleClick(channel.channel)}
-							role="button"
-							tabIndex={0}
 							className={cn(
-								'flex items-center px-2 py-px my-px rounded cursor-pointer h-8 max-w-[224px] relative transition-all',
+								'flex items-center justify-start px-2 py-px my-px rounded h-8 max-w-[224px] relative transition-all w-full',
 								isActive
 									? 'text-primary bg-accent before:absolute before:left-[-8px] before:top-0 before:bottom-0 before:w-1 before:bg-foreground before:rounded-r'
 									: 'text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -94,7 +92,7 @@ const ChannelListContent: React.FC = () => {
 							<span className="font-medium text-base leading-5 overflow-hidden text-ellipsis whitespace-nowrap">
 								{channel.channel}
 							</span>
-						</div>
+						</Button>
 					);
 				})}
 			</div>

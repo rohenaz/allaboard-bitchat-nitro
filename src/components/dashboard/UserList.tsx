@@ -1,7 +1,7 @@
+import { Loader2 } from 'lucide-react';
 import type { FC } from 'react';
 import { useRef, useState } from 'react';
 import { FaComments, FaEllipsisV, FaUserCheck, FaUserMinus, FaUserPlus } from 'react-icons/fa';
-import { Loader2 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -158,9 +158,10 @@ export const UserList: FC<UserListProps> = ({
 									status: 'offline' as const,
 								})}
 							>
-								<div
-									ref={(ref: HTMLDivElement | null) => {
-										if (ref) userRefs.current[id] = ref;
+								<Button
+									variant="ghost"
+									ref={(ref: HTMLButtonElement | null) => {
+										if (ref) userRefs.current[id] = ref as unknown as HTMLDivElement;
 									}}
 									onClick={() =>
 										handleUserClick({
@@ -173,22 +174,8 @@ export const UserList: FC<UserListProps> = ({
 											status: 'offline' as const,
 										})
 									}
-									onKeyDown={(e) =>
-										e.key === 'Enter' &&
-										handleUserClick({
-											id,
-											name: signer.paymail || 'Unknown',
-											avatar: signer.logo || '',
-											paymail: signer.paymail || '',
-											bapId: id,
-											idKey: id,
-											status: 'offline' as const,
-										})
-									}
-									role="button"
-									tabIndex={0}
 									aria-label={`User ${signer.paymail}`}
-									className="group flex items-center gap-3 py-2 px-4 cursor-pointer transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
+									className="group flex items-center justify-start gap-3 py-2 px-4 h-auto w-full rounded-none"
 								>
 									<Avatar size="32px" paymail={signer.paymail || ''} icon={signer.logo || ''} />
 									<div className="flex-1 min-w-0 flex flex-col gap-0.5">
@@ -212,7 +199,7 @@ export const UserList: FC<UserListProps> = ({
 											<FaEllipsisV className="h-3 w-3" />
 										</Button>
 									</Tooltip>
-								</div>
+								</Button>
 							</ContextMenu>
 						);
 					})}
@@ -233,19 +220,17 @@ export const UserList: FC<UserListProps> = ({
 				) : (
 					users.map((user) => (
 						<ContextMenu key={user.id} items={createContextMenuItems(user)}>
-							<div
-								ref={(ref: HTMLDivElement | null) => {
-									if (ref) userRefs.current[user.id] = ref;
+							<Button
+								variant="ghost"
+								ref={(ref: HTMLButtonElement | null) => {
+									if (ref) userRefs.current[user.id] = ref as unknown as HTMLDivElement;
 								}}
 								onClick={() => handleUserClick(user)}
-								onKeyDown={(e) => e.key === 'Enter' && handleUserClick(user)}
-								role="button"
-								tabIndex={0}
 								aria-label={`User ${user.name}`}
 								aria-pressed={activeUserId === user.id}
 								className={cn(
-									'group flex items-center gap-3 py-2 px-4 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]',
-									activeUserId === user.id ? 'bg-accent' : 'hover:bg-accent',
+									'group flex items-center justify-start gap-3 py-2 px-4 h-auto w-full rounded-none',
+									activeUserId === user.id ? 'bg-accent' : '',
 								)}
 							>
 								<Avatar size="32px" paymail={user.paymail || ''} icon={user.avatar} />
@@ -275,7 +260,7 @@ export const UserList: FC<UserListProps> = ({
 										<FaEllipsisV className="h-3 w-3" />
 									</Button>
 								</Tooltip>
-							</div>
+							</Button>
 
 							{/* User Popover */}
 							{activePopover === user.id && userRefs.current[user.id] && (
