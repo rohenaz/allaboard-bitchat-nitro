@@ -1,9 +1,12 @@
+import { Loader2 } from 'lucide-react';
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
 import type { SocialProfile as BaseSocialProfile } from 'yours-wallet-provider';
 import { useYoursWallet } from 'yours-wallet-provider';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { NITRO_API_URL } from '../../config/constants';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
@@ -13,74 +16,6 @@ import { loadChannels } from '../../reducers/channelsReducer';
 import { setSigmaUser, setYoursUser } from '../../reducers/sessionReducer';
 import HandcashIcon from '../icons/HandcashIcon';
 import YoursIcon from '../icons/YoursIcon';
-import Layout from './Layout';
-
-const ButtonContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-`;
-
-interface LoginButtonProps {
-	$secondary?: boolean;
-}
-
-const LoginButton = styled.button<LoginButtonProps>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.15s ease;
-  border: none;
-  cursor: pointer;
-  background-color: ${(props) => (props.$secondary ? 'var(--border)' : 'var(--primary)')};
-  color: ${(props) => (props.$secondary ? 'var(--foreground)' : 'var(--primary-foreground)')};
-
-  &:hover:not(:disabled) {
-    background-color: ${(props) => (props.$secondary ? 'var(--accent)' : 'var(--brand-experiment-hover)')};
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  margin-top: 16px;
-  padding: 12px;
-  background-color: color-mix(in oklch, var(--destructive), transparent 90%);
-  border: 1px solid var(--text-danger);
-  border-radius: 4px;
-  color: var(--text-danger);
-  font-size: 14px;
-`;
-
-const FooterLinks = styled.div`
-  margin-top: 32px;
-  text-align: center;
-  font-size: 14px;
-  color: var(--muted-foreground);
-
-  > div {
-    margin-bottom: 8px;
-  }
-`;
-
-const StyledLink = styled(Link)`
-  color: var(--primary);
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
 
 interface ExtendedProfile extends BaseSocialProfile {
 	paymail?: string;
@@ -103,15 +38,11 @@ export const LoginPage: FC = () => {
 	useEffect(() => {
 		const checkExistingSession = async () => {
 			try {
-				// Check if user is already authenticated via sigma-auth
 				const isAuthenticated = await sigmaAuth.isAuthenticated();
 				if (isAuthenticated) {
 					const currentUser = await sigmaAuth.getCurrentUser();
 					if (currentUser) {
-						// currentUser is strictly typed SigmaUserInfo
 						dispatch(setSigmaUser(currentUser));
-
-						// Load channels and redirect
 						await dispatch(loadChannels());
 						navigate('/channels/nitro');
 						return;
@@ -119,7 +50,6 @@ export const LoginPage: FC = () => {
 				}
 			} catch (error) {
 				console.error('Error checking existing session:', error);
-				// Clear any corrupted session data
 				await sigmaAuth.clearSession();
 			} finally {
 				setCheckingSession(false);
@@ -247,70 +177,118 @@ export const LoginPage: FC = () => {
 		}
 	};
 
-	// Show loading state while checking existing session
 	if (checkingSession) {
 		return (
-			<Layout heading="Checking authentication...">
-				<div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}>
-					<div
-						style={{
-							width: '40px',
-							height: '40px',
-							border: '3px solid var(--border)',
-							borderTop: '3px solid var(--primary)',
-							borderRadius: '50%',
-							animation: 'spin 1s linear infinite',
-						}}
-					/>
+			<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+				<div className="flex w-full max-w-sm flex-col items-center gap-6">
+					<Loader2 className="h-10 w-10 animate-spin text-primary" />
+					<p className="text-sm text-muted-foreground">Checking authentication...</p>
 				</div>
-			</Layout>
+			</div>
 		);
 	}
 
 	return (
-		<Layout heading="Choose your login method">
-			<ButtonContainer>
-				<LoginButton type="button" onClick={handleSigmaLogin} disabled={isLoading}>
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-						<path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm-1 4v8h2V6h-2zm0 10v2h2v-2h-2z" />
-					</svg>
-					Sign in with Bitcoin
-				</LoginButton>
-				<LoginButton type="button" onClick={handleHandcashLogin} disabled={isLoading} $secondary>
-					<HandcashIcon className="w-5 h-5" />
-					Login with Handcash
-				</LoginButton>
-				<LoginButton
-					type="button"
-					onClick={handleYoursLogin}
-					disabled={!isReady || isLoading}
-					$secondary
-				>
-					<YoursIcon size="1.25rem" />
-					{isLoading ? 'Connecting...' : 'Login with Yours Wallet'}
-				</LoginButton>
-			</ButtonContainer>
+		<div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+			<div className="flex w-full max-w-sm flex-col gap-6">
+				<a href="/" className="flex items-center gap-2 self-center font-medium">
+					<div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+						<img src="/images/logo-noBgColor.svg" alt="BitChat" className="h-4 w-4" />
+					</div>
+					BitChat Nitro
+				</a>
+				<Card className="overflow-hidden">
+					<CardContent className="grid p-0 md:grid-cols-1">
+						<div className={cn("flex flex-col gap-6", "p-6 md:p-8")}>
+							<div className="flex flex-col items-center gap-2 text-center">
+								<h1 className="text-2xl font-bold">Welcome back</h1>
+								<p className="text-balance text-sm text-muted-foreground">
+									Sign in with your Bitcoin wallet to continue
+								</p>
+							</div>
+							<div className="grid gap-4">
+								{/* Primary: Sign in with Bitcoin (Sigma) */}
+								<Button
+									onClick={handleSigmaLogin}
+									disabled={isLoading}
+									className="w-full"
+								>
+									{isLoading ? (
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									) : (
+										<svg
+											width="16"
+											height="16"
+											viewBox="0 0 24 24"
+											fill="currentColor"
+											className="mr-2"
+											aria-hidden="true"
+										>
+											<path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm-1 4v8h2V6h-2zm0 10v2h2v-2h-2z" />
+										</svg>
+									)}
+									Sign in with Bitcoin
+								</Button>
 
-			{error && (
-				<ErrorMessage>
-					<span>{error}</span>
-				</ErrorMessage>
-			)}
-			<FooterLinks>
-				<div>
-					Need an account?{' '}
-					<StyledLink
-						to="https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Register
-					</StyledLink>
+								<div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+									<span className="relative z-10 bg-card px-2 text-muted-foreground">
+										Or continue with
+									</span>
+								</div>
+
+								{/* Secondary wallet options */}
+								<div className="grid grid-cols-2 gap-4">
+									<Button
+										variant="outline"
+										onClick={handleHandcashLogin}
+										disabled={isLoading}
+									>
+										<HandcashIcon className="h-4 w-4" />
+										<span className="sr-only">HandCash</span>
+									</Button>
+									<Button
+										variant="outline"
+										onClick={handleYoursLogin}
+										disabled={!isReady || isLoading}
+									>
+										<YoursIcon size="1rem" />
+										<span className="sr-only">Yours Wallet</span>
+									</Button>
+								</div>
+
+								{error && (
+									<div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+										{error}
+									</div>
+								)}
+							</div>
+							<div className="text-center text-sm">
+								Need a wallet?{' '}
+								<Link
+									to="https://chromewebstore.google.com/detail/yours-wallet/mlbnicldlpdimbjdcncnklfempedeipj"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="underline underline-offset-4 hover:text-primary"
+								>
+									Get Yours Wallet
+								</Link>
+							</div>
+							<div className="text-center text-sm text-muted-foreground">
+								<Link
+									to="/channels/nitro"
+									className="underline underline-offset-4 hover:text-primary"
+								>
+									Continue as guest (read only)
+								</Link>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+				<div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary">
+					By clicking continue, you agree to our <a href="#">Terms of Service</a>{' '}
+					and <a href="#">Privacy Policy</a>.
 				</div>
-				<div>
-					<StyledLink to="/channels/nitro">Continue as guest (read only)</StyledLink>
-				</div>
-			</FooterLinks>
-		</Layout>
+			</div>
+		</div>
 	);
 };
