@@ -18,6 +18,7 @@ export interface OwnedTheme {
 
 interface UseOwnedThemesResult {
 	themes: OwnedTheme[];
+	addresses: string[];
 	loading: boolean;
 	error: string | null;
 	refresh: () => Promise<void>;
@@ -26,6 +27,7 @@ interface UseOwnedThemesResult {
 export function useOwnedThemes(): UseOwnedThemesResult {
 	const session = useSelector((state: RootState) => state.session);
 	const [themes, setThemes] = useState<OwnedTheme[]>([]);
+	const [addresses, setAddresses] = useState<string[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +37,7 @@ export function useOwnedThemes(): UseOwnedThemesResult {
 	const fetchThemes = useCallback(async () => {
 		if (!accessToken || !session.isAuthenticated) {
 			setThemes([]);
+			setAddresses([]);
 			return;
 		}
 
@@ -52,11 +55,14 @@ export function useOwnedThemes(): UseOwnedThemesResult {
 				const themeTokens =
 					data.nfts?.filter((nft: { map?: { type?: string } }) => nft.map?.type === 'theme') || [];
 				setThemes(themeTokens);
+				setAddresses(data.addresses || []);
 			} else if (response.status === 404) {
 				// Endpoint not implemented yet
 				setThemes([]);
+				setAddresses([]);
 			} else {
 				setThemes([]);
+				setAddresses([]);
 			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to fetch themes');
@@ -70,5 +76,5 @@ export function useOwnedThemes(): UseOwnedThemesResult {
 		fetchThemes();
 	}, [fetchThemes]);
 
-	return { themes, loading, error, refresh: fetchThemes };
+	return { themes, addresses, loading, error, refresh: fetchThemes };
 }

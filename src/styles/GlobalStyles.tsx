@@ -2,72 +2,73 @@ import { Global } from '@emotion/react';
 
 const customStyles = {
 	':root': {
-		// 2025 Modern Dark Theme - Enhanced with glassmorphism and lighting
-		'--background-primary': '#0d1117', // Ultra-dark main background (GitHub-inspired)
-		'--background-secondary': 'rgba(22, 27, 34, 0.8)', // Glassmorphic sidebar
-		'--background-tertiary': 'rgba(33, 38, 45, 0.9)', // Glassmorphic server list
-		'--background-floating': 'rgba(13, 17, 23, 0.95)', // Ultra-dark glassmorphic modals
-		'--background-accent': 'rgba(56, 62, 70, 0.8)', // Hover states with transparency
-		'--background-mobile-primary': '#0d1117',
-		'--background-mobile-secondary': 'rgba(22, 27, 34, 0.8)',
-		'--background-modifier-hover': 'rgba(79, 84, 92, 0.12)',
-		'--background-modifier-active': 'rgba(79, 84, 92, 0.18)',
-		'--background-modifier-selected': 'rgba(79, 84, 92, 0.24)',
-		'--background-modifier-accent': 'rgba(79, 84, 92, 0.36)',
-		'--background-secondary-alt': 'rgba(13, 17, 23, 0.7)', // Glassmorphic cards
-		'--background-glass': 'rgba(255, 255, 255, 0.05)', // Pure glassmorphic overlay
-		'--background-glass-light': 'rgba(255, 255, 255, 0.08)', // Lighter glass overlay
+		// Map Discord-like semantic colors to shadcn theme variables
+		'--background-primary': 'hsl(var(--background))',
+		'--background-secondary': 'hsl(var(--card))',
+		'--background-tertiary': 'hsl(var(--muted))',
+		'--background-floating': 'hsl(var(--popover))',
+		'--background-accent': 'hsl(var(--accent))',
+		'--background-mobile-primary': 'hsl(var(--background))',
+		'--background-mobile-secondary': 'hsl(var(--card))',
+		'--background-modifier-hover': 'hsl(var(--accent) / 0.12)',
+		'--background-modifier-active': 'hsl(var(--accent) / 0.18)',
+		'--background-modifier-selected': 'hsl(var(--accent) / 0.24)',
+		'--background-modifier-accent': 'hsl(var(--accent) / 0.36)',
+		'--background-secondary-alt': 'hsl(var(--card) / 0.7)',
+		'--background-glass': 'hsl(var(--background) / 0.05)',
+		'--background-glass-light': 'hsl(var(--foreground) / 0.08)',
 
-		// Status colors with enhanced vibrancy for 2025
-		'--status-positive': '#22c55e', // Modern green (Tailwind-inspired)
-		'--status-positive-darker': '#16a34a',
-		'--status-positive-glow': 'rgba(34, 197, 94, 0.3)',
-		'--status-danger': '#ef4444', // Modern red
-		'--status-danger-darker': '#dc2626',
-		'--status-danger-glow': 'rgba(239, 68, 68, 0.3)',
-		'--status-warning': '#f59e0b', // Modern amber
-		'--status-warning-glow': 'rgba(245, 158, 11, 0.3)',
+		// Status colors using shadcn chart colors and destructive
+		'--status-positive': 'hsl(var(--chart-2))',
+		'--status-positive-darker': 'hsl(var(--chart-2) / 0.8)',
+		'--status-positive-glow': 'hsl(var(--chart-2) / 0.3)',
+		'--status-danger': 'hsl(var(--destructive))',
+		'--status-danger-darker': 'hsl(var(--destructive) / 0.8)',
+		'--status-danger-glow': 'hsl(var(--destructive) / 0.3)',
+		'--status-warning': 'hsl(var(--chart-4))',
+		'--status-warning-glow': 'hsl(var(--chart-4) / 0.3)',
 
-		// Text colors - enhanced for better readability and hierarchy
-		'--text-normal': '#f8fafc', // Near-white for primary text
-		'--text-muted': '#94a3b8', // Modern slate for secondary text
-		'--text-subtle': '#64748b', // Subtle text for tertiary content
-		'--text-link': '#3b82f6', // Modern blue
-		'--text-positive': '#22c55e', // Success green
-		'--text-warning': '#f59e0b', // Warning amber
-		'--text-danger': '#ef4444', // Danger red
+		// Text colors mapped to shadcn foreground variants
+		'--text-normal': 'hsl(var(--foreground))',
+		'--text-muted': 'hsl(var(--muted-foreground))',
+		'--text-subtle': 'hsl(var(--muted-foreground) / 0.7)',
+		'--text-link': 'hsl(var(--primary))',
+		'--text-positive': 'hsl(var(--chart-2))',
+		'--text-warning': 'hsl(var(--chart-4))',
+		'--text-danger': 'hsl(var(--destructive))',
 
-		// Interactive elements with modern touch
-		'--interactive-normal': '#94a3b8', // Default interactive
-		'--interactive-hover': '#e2e8f0', // Hover state
-		'--interactive-active': '#ffffff', // Active state
-		'--interactive-muted': '#475569', // Disabled state
+		// Interactive elements using primary and muted
+		'--interactive-normal': 'hsl(var(--muted-foreground))',
+		'--interactive-hover': 'hsl(var(--foreground))',
+		'--interactive-active': 'hsl(var(--primary))',
+		'--interactive-muted': 'hsl(var(--muted-foreground) / 0.5)',
 
 		// Channel colors
-		'--channels-default': '#9ca3af', // Modern gray for channels
-		'--channel-text-area-placeholder': 'rgba(248, 250, 252, 0.4)',
+		'--channels-default': 'hsl(var(--muted-foreground))',
+		'--channel-text-area-placeholder': 'hsl(var(--muted-foreground) / 0.4)',
 
-		// Brand colors - Updated for 2025 with enhanced vibrancy
-		'--brand-experiment': '#6366f1', // Modern indigo
-		'--brand-experiment-darker': '#4f46e5',
-		'--brand-experiment-lighter': '#818cf8',
-		'--brand-experiment-rgb': '99, 102, 241',
-		'--brand-experiment-glow': 'rgba(99, 102, 241, 0.4)',
+		// Brand colors using primary
+		'--brand-experiment': 'hsl(var(--primary))',
+		'--brand-experiment-darker': 'hsl(var(--primary) / 0.8)',
+		'--brand-experiment-lighter': 'hsl(var(--primary) / 1.2)',
+		'--brand-experiment-rgb': 'var(--primary)',
+		'--brand-experiment-glow': 'hsl(var(--primary) / 0.4)',
+		'--brand-experiment-hover': 'hsl(var(--primary) / 0.9)',
 
 		// Additional colors
-		'--control-brand-foreground': '#ffffff',
-		'--white': '#ffffff',
-		'--green-360': '#22c55e',
-		'--primary-dark-300': '#94a3b8',
-		'--primary-dark-360': '#64748b',
-		'--white-500': '#ffffff',
+		'--control-brand-foreground': 'hsl(var(--primary-foreground))',
+		'--white': 'hsl(var(--background))',
+		'--green-360': 'hsl(var(--chart-2))',
+		'--primary-dark-300': 'hsl(var(--muted-foreground))',
+		'--primary-dark-360': 'hsl(var(--muted-foreground) / 0.7)',
+		'--white-500': 'hsl(var(--foreground))',
 
-		// Modern shadows and effects for 2025
-		'--elevation-stroke': '0 0 0 1px rgba(255, 255, 255, 0.05)',
-		'--elevation-low': '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)',
-		'--elevation-medium': '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)',
-		'--elevation-high': '0 10px 25px rgba(0, 0, 0, 0.3), 0 6px 10px rgba(0, 0, 0, 0.15)',
-		'--elevation-glass': '0 8px 32px rgba(0, 0, 0, 0.2)',
+		// Modern shadows and effects
+		'--elevation-stroke': '0 0 0 1px hsl(var(--border))',
+		'--elevation-low': '0 1px 3px hsl(var(--foreground) / 0.12), 0 1px 2px hsl(var(--foreground) / 0.24)',
+		'--elevation-medium': '0 4px 6px hsl(var(--foreground) / 0.1), 0 2px 4px hsl(var(--foreground) / 0.06)',
+		'--elevation-high': '0 10px 25px hsl(var(--foreground) / 0.3), 0 6px 10px hsl(var(--foreground) / 0.15)',
+		'--elevation-glass': '0 8px 32px hsl(var(--foreground) / 0.2)',
 
 		// Glassmorphism blur effects
 		'--blur-light': '8px',
@@ -75,21 +76,22 @@ const customStyles = {
 		'--blur-heavy': '20px',
 
 		// Glow effects for modern lighting
-		'--glow-brand': '0 0 20px var(--brand-experiment-glow)',
-		'--glow-positive': '0 0 20px var(--status-positive-glow)',
-		'--glow-danger': '0 0 20px var(--status-danger-glow)',
-		'--glow-warning': '0 0 20px var(--status-warning-glow)',
+		'--glow-brand': '0 0 20px hsl(var(--primary) / 0.4)',
+		'--glow-positive': '0 0 20px hsl(var(--chart-2) / 0.3)',
+		'--glow-danger': '0 0 20px hsl(var(--destructive) / 0.3)',
+		'--glow-warning': '0 0 20px hsl(var(--chart-4) / 0.3)',
 
 		// Scrollbars with modern styling
-		'--scrollbar-thin-thumb': 'rgba(148, 163, 184, 0.3)',
+		'--scrollbar-thin-thumb': 'hsl(var(--muted-foreground) / 0.3)',
 		'--scrollbar-thin-track': 'transparent',
-		'--scrollbar-auto-thumb': 'rgba(148, 163, 184, 0.3)',
-		'--scrollbar-auto-track': 'rgba(22, 27, 34, 0.5)',
+		'--scrollbar-thin-thumb-hover': 'hsl(var(--muted-foreground) / 0.5)',
+		'--scrollbar-auto-thumb': 'hsl(var(--muted-foreground) / 0.3)',
+		'--scrollbar-auto-track': 'hsl(var(--muted) / 0.5)',
 
 		// Border styles
-		'--border-subtle': 'rgba(255, 255, 255, 0.08)',
-		'--border-muted': 'rgba(255, 255, 255, 0.05)',
-		'--border-glass': 'rgba(255, 255, 255, 0.1)',
+		'--border-subtle': 'hsl(var(--border) / 0.5)',
+		'--border-muted': 'hsl(var(--border) / 0.3)',
+		'--border-glass': 'hsl(var(--border))',
 	},
 	'html, body': {
 		margin: 0,
@@ -130,7 +132,7 @@ const customStyles = {
 		backgroundClip: 'padding-box',
 	},
 	'::-webkit-scrollbar-thumb:hover': {
-		backgroundColor: '#1a1b1e',
+		backgroundColor: 'var(--scrollbar-thin-thumb-hover)',
 	},
 	// Remove focus outlines, use custom focus states
 	'*:focus': {

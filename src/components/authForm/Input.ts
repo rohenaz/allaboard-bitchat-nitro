@@ -13,7 +13,7 @@ const Input = styled.input<InputProps>`
   width: 100%;
   border-radius: 4px;
   border: 1px solid
-    ${(p) => (p.error ? 'var(--text-danger)' : 'rgba(255, 255, 255, 0.1)')};
+    ${(p) => (p.error ? 'var(--destructive)' : 'var(--border)')};
   outline: none;
   color: var(--text-normal);
   transition: border-color 0.2s ease-in-out;
