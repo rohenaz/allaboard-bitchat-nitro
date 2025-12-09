@@ -1,33 +1,27 @@
 /**
  * Sigma OAuth Authentication
  *
- * Pure OAuth2 flow - no better-auth client needed since we're frontend-only
- * All auth happens on auth.sigmaidentity.com
+ * Uses @sigma-auth/better-auth-plugin for OAuth flow
+ * Token exchange happens via nitro-api backend
  */
 
+import { createAuthClient } from 'better-auth/client';
+import { sigmaClient } from '@sigma-auth/better-auth-plugin/client';
 import { NITRO_API_URL, SIGMA_AUTH_URL } from '../config/constants';
+
+// Create Better Auth client with Sigma plugin
+const authClient = createAuthClient({
+  baseURL: SIGMA_AUTH_URL,
+  plugins: [sigmaClient()],
+});
 
 // Direct replacements for existing sigmaAuth functions
 export const sigmaAuth = {
   authorize: () => {
-    // Direct OAuth2 authorization flow to Sigma
-    // Client is identified on nitro-api side via BITCHAT_MEMBER_WIF signature
-    const redirectUri = `${window.location.origin}/auth/sigma/callback`;
-
-    // Generate state for CSRF protection
-    const state = Math.random().toString(36).substring(7);
-    sessionStorage.setItem('oauth_state', state);
-
-    // Build OAuth authorization URL
-    const params = new URLSearchParams({
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      state: state,
-      scope: 'openid profile email',
+    // Use the plugin's OAuth flow - handles PKCE automatically
+    authClient.signIn.sigma({
+      callbackURL: '/auth/sigma/callback',
     });
-
-    // Redirect to OAuth authorization endpoint
-    window.location.href = `${SIGMA_AUTH_URL}/api/oauth/authorize?${params.toString()}`;
   },
 
   isAuthenticated: async (): Promise<boolean> => {
@@ -58,16 +52,21 @@ export const sigmaAuth = {
     // Clear stored tokens and user info
     localStorage.removeItem('sigma_access_token');
     localStorage.removeItem('sigma_user_info');
-    sessionStorage.removeItem('oauth_state');
+    sessionStorage.removeItem('sigma_oauth_state');
+    sessionStorage.removeItem('sigma_code_verifier');
   },
 
   handleCallback: async (code: string, state?: string): Promise<SigmaUserInfo> => {
     // Validate state for CSRF protection
-    const storedState = sessionStorage.getItem('oauth_state');
+    const storedState = sessionStorage.getItem('sigma_oauth_state');
     if (state && state !== storedState) {
       throw new Error('Invalid state parameter');
     }
-    sessionStorage.removeItem('oauth_state');
+    sessionStorage.removeItem('sigma_oauth_state');
+
+    // Get PKCE verifier (plugin stored this during signIn.sigma)
+    const codeVerifier = sessionStorage.getItem('sigma_code_verifier');
+    sessionStorage.removeItem('sigma_code_verifier');
 
     // Exchange the authorization code for a token via backend proxy
     // The backend signs the request with BITCHAT_MEMBER_WIF to prove client identity
@@ -81,6 +80,7 @@ export const sigmaAuth = {
       body: JSON.stringify({
         code,
         redirectUri,
+        codeVerifier, // Include PKCE verifier for token exchange
       }),
     });
 
@@ -92,7 +92,7 @@ export const sigmaAuth = {
     const tokenData = await tokenResponse.json();
 
     // Fetch user info using the access token
-    const userInfoResponse = await fetch(`${SIGMA_AUTH_URL}/api/oauth/userinfo`, {
+    const userInfoResponse = await fetch(`${SIGMA_AUTH_URL}/api/auth/oauth2/userinfo`, {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
       },
@@ -163,13 +163,14 @@ export const sigmaAuth = {
   clearSession: async () => {
     localStorage.removeItem('sigma_access_token');
     localStorage.removeItem('sigma_user_info');
-    sessionStorage.removeItem('oauth_state');
+    sessionStorage.removeItem('sigma_oauth_state');
+    sessionStorage.removeItem('sigma_code_verifier');
   },
 };
 
 /**
  * Strict type for Sigma OAuth userinfo response
- * Based on actual response from auth.sigmaidentity.com/api/oauth/userinfo
+ * Based on actual response from auth.sigmaidentity.com/api/auth/oauth2/userinfo
  */
 export interface SigmaOAuthUserInfo {
   sub: string;                    // OAuth user ID
