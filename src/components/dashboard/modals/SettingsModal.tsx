@@ -1,5 +1,15 @@
 import { useThemeTokenContext } from '@theme-token/sdk/react';
-import { Copy, ExternalLink, Loader2, Monitor, Moon, Palette, RefreshCw, Sun, X } from 'lucide-react';
+import {
+	Copy,
+	ExternalLink,
+	Loader2,
+	Monitor,
+	Moon,
+	Palette,
+	RefreshCw,
+	Sun,
+	X,
+} from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
@@ -168,9 +178,7 @@ export const SettingsModal = () => {
 								{/* Show wallet address for receiving themes */}
 								{walletAddresses.length > 0 && (
 									<div className="pt-2 border-t border-border">
-										<p className="text-xs text-muted-foreground mb-1">
-											Send ThemeTokens to:
-										</p>
+										<p className="text-xs text-muted-foreground mb-1">Send ThemeTokens to:</p>
 										<div className="flex items-center gap-2">
 											<code className="flex-1 text-xs bg-muted px-2 py-1 rounded truncate">
 												{walletAddresses[0]}

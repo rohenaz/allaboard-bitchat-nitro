@@ -65,9 +65,12 @@ const customStyles = {
 
 		// Modern shadows and effects
 		'--elevation-stroke': '0 0 0 1px hsl(var(--border))',
-		'--elevation-low': '0 1px 3px hsl(var(--foreground) / 0.12), 0 1px 2px hsl(var(--foreground) / 0.24)',
-		'--elevation-medium': '0 4px 6px hsl(var(--foreground) / 0.1), 0 2px 4px hsl(var(--foreground) / 0.06)',
-		'--elevation-high': '0 10px 25px hsl(var(--foreground) / 0.3), 0 6px 10px hsl(var(--foreground) / 0.15)',
+		'--elevation-low':
+			'0 1px 3px hsl(var(--foreground) / 0.12), 0 1px 2px hsl(var(--foreground) / 0.24)',
+		'--elevation-medium':
+			'0 4px 6px hsl(var(--foreground) / 0.1), 0 2px 4px hsl(var(--foreground) / 0.06)',
+		'--elevation-high':
+			'0 10px 25px hsl(var(--foreground) / 0.3), 0 6px 10px hsl(var(--foreground) / 0.15)',
 		'--elevation-glass': '0 8px 32px hsl(var(--foreground) / 0.2)',
 
 		// Glassmorphism blur effects

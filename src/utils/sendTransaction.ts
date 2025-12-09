@@ -122,7 +122,7 @@ async function requestAIPSignature(hexArray: string[]): Promise<number[][]> {
 		console.log('[sendTransaction] Requesting AIP signature:', {
 			requestId,
 			dataPartsCount: hexArray.length,
-			dataPreview: hexArray.map((h) => h.substring(0, 40) + '...'),
+			dataPreview: hexArray.map((h) => `${h.substring(0, 40)}...`),
 		});
 
 		// Check what identity is stored locally (should match what iframe has)

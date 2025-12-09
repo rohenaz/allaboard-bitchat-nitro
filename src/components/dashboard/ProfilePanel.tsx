@@ -1,7 +1,6 @@
 import type React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import { toggleProfile } from '../../reducers/profileReducer';
 import type { RootState } from '../../types';
 import Avatar from './Avatar';
 

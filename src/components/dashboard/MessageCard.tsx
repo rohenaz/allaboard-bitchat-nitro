@@ -1,5 +1,4 @@
 import { head, tail } from 'lodash';
-import { Lock } from 'lucide-react';
 import type { FC } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MdAddReaction } from 'react-icons/md';
@@ -142,7 +141,7 @@ const MessageCard: FC<MessageProps> = ({ message, reactions }) => {
 	);
 
 	return (
-		<div
+		<article
 			className="relative group"
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
@@ -244,7 +243,7 @@ const MessageCard: FC<MessageProps> = ({ message, reactions }) => {
 					</div>
 				</div>
 			</Card>
-		</div>
+		</article>
 	);
 };
 

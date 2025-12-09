@@ -1,4 +1,3 @@
-import type { UnknownAction } from '@reduxjs/toolkit';
 import { BAP } from 'bsv-bap';
 import { head } from 'lodash';
 import { Identities } from 'node_modules/bsv-bap/dist/interface';

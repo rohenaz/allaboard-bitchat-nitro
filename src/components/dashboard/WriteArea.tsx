@@ -12,7 +12,6 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { useBap } from '../../context/bap';
 import { useBitcoin } from '../../context/bitcoin';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
@@ -73,8 +72,7 @@ interface BmapTx {
 
 const WriteArea = () => {
 	const { authToken, profile } = useHandcash();
-	const { connected, pandaProfile } = useYours();
-	const { decIdentity } = useBap();
+	const { pandaProfile } = useYours();
 	const { sendMessage: postMessage, postStatus, pendingFiles, setPendingFiles } = useBitcoin();
 	const params = useParams();
 	const [searchParams] = useSearchParams();
@@ -226,7 +224,6 @@ const WriteArea = () => {
 			activeUserId,
 			pendingFiles,
 			postMessage,
-			decIdentity,
 			dispatch,
 		],
 	);

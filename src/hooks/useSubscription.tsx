@@ -5,20 +5,20 @@
  * Uses sigma-auth plugin for verification.
  */
 
-import type { SubscriptionStatus, SubscriptionTier } from "@sigma-auth/better-auth-plugin/client";
-import { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { SIGMA_AUTH_URL } from "../config/constants";
-import type { RootState } from "../store";
+import type { SubscriptionStatus, SubscriptionTier } from '@sigma-auth/better-auth-plugin/client';
+import { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { SIGMA_AUTH_URL } from '../config/constants';
+import type { RootState } from '../store';
 
 // Feature to minimum tier mapping
 const FEATURE_TIERS: Record<string, SubscriptionTier> = {
-	"custom-channels": "plus",
-	"unlimited-messages": "pro",
-	"file-uploads-large": "plus",
-	"analytics": "pro",
-	"priority-support": "pro",
-	"custom-themes": "plus",
+	'custom-channels': 'plus',
+	'unlimited-messages': 'pro',
+	'file-uploads-large': 'plus',
+	analytics: 'pro',
+	'priority-support': 'pro',
+	'custom-themes': 'plus',
 };
 
 // Tier priority for comparison
@@ -46,13 +46,12 @@ export function useSubscription(): UseSubscriptionResult {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const accessToken = typeof window !== "undefined"
-		? localStorage.getItem("sigma_access_token")
-		: null;
+	const accessToken =
+		typeof window !== 'undefined' ? localStorage.getItem('sigma_access_token') : null;
 
 	const fetchSubscription = useCallback(async () => {
 		if (!accessToken) {
-			setSubscription({ tier: "free", isActive: false });
+			setSubscription({ tier: 'free', isActive: false });
 			return;
 		}
 
@@ -69,17 +68,17 @@ export function useSubscription(): UseSubscriptionResult {
 				setSubscription(data);
 			} else if (response.status === 401) {
 				// Token expired or invalid
-				setError("Session expired");
-				setSubscription({ tier: "free", isActive: false });
+				setError('Session expired');
+				setSubscription({ tier: 'free', isActive: false });
 			} else if (response.status === 404) {
 				// No BAP identity
-				setSubscription({ tier: "free", isActive: false });
+				setSubscription({ tier: 'free', isActive: false });
 			} else {
-				throw new Error("Failed to fetch subscription status");
+				throw new Error('Failed to fetch subscription status');
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Unknown error");
-			setSubscription({ tier: "free", isActive: false });
+			setError(err instanceof Error ? err.message : 'Unknown error');
+			setSubscription({ tier: 'free', isActive: false });
 		} finally {
 			setLoading(false);
 		}
@@ -90,17 +89,17 @@ export function useSubscription(): UseSubscriptionResult {
 		if (session.isAuthenticated) {
 			fetchSubscription();
 		} else {
-			setSubscription({ tier: "free", isActive: false });
+			setSubscription({ tier: 'free', isActive: false });
 		}
 	}, [session.isAuthenticated, fetchSubscription]);
 
 	// Check if user has at least the specified tier
 	const hasTier = useCallback(
 		(requiredTier: SubscriptionTier): boolean => {
-			const currentTier = subscription?.tier || "free";
+			const currentTier = subscription?.tier || 'free';
 			return TIER_PRIORITY[currentTier] >= TIER_PRIORITY[requiredTier];
 		},
-		[subscription]
+		[subscription],
 	);
 
 	// Check if user can access a specific feature
@@ -110,7 +109,7 @@ export function useSubscription(): UseSubscriptionResult {
 			if (!requiredTier) return true; // Unknown features are accessible
 			return hasTier(requiredTier);
 		},
-		[hasTier]
+		[hasTier],
 	);
 
 	return {
@@ -120,7 +119,7 @@ export function useSubscription(): UseSubscriptionResult {
 		refresh: fetchSubscription,
 		hasTier,
 		canAccess,
-		tier: subscription?.tier || "free",
+		tier: subscription?.tier || 'free',
 	};
 }
 

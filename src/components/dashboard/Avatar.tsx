@@ -54,7 +54,7 @@ const AvatarFallback = styled.div<{ size: string }>`
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: ${({ size }) => `${Number.parseInt(size) / 2.5}px`};
+  font-size: ${({ size }) => `${Number.parseInt(size, 10) / 2.5}px`};
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
@@ -66,8 +66,8 @@ const StatusIndicator = styled.div<{
   position: absolute;
   bottom: -2px;
   right: -2px;
-  width: ${({ size }) => `${Math.max(Number.parseInt(size) * 0.25, 12)}px`};
-  height: ${({ size }) => `${Math.max(Number.parseInt(size) * 0.25, 12)}px`};
+  width: ${({ size }) => `${Math.max(Number.parseInt(size, 10) * 0.25, 12)}px`};
+  height: ${({ size }) => `${Math.max(Number.parseInt(size, 10) * 0.25, 12)}px`};
   border-radius: 50%;
   border: 2px solid var(--background-primary);
   background-color: ${({ status }) => {

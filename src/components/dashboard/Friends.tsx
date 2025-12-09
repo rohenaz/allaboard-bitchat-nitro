@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
 import { Clock, MessageCircle, UserCheck, UserMinus, UserPlus, Users } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { api } from '../../api/fetch';
 import { useHandcash } from '../../context/handcash';
 import { useYours } from '../../context/yours';
 import { loadFriends } from '../../reducers/memberListReducer';
 import type { AppDispatch, RootState } from '../../store';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import Avatar from './Avatar';
 
 interface FriendRequest {
@@ -42,7 +42,7 @@ export const Friends = () => {
 
 	// Get outgoing friend requests from Redux
 	const outgoingRequests = memberList.friendRequests.outgoing;
-	const incomingReduxRequests = memberList.friendRequests.incoming;
+	const _incomingReduxRequests = memberList.friendRequests.incoming;
 
 	const fetchFriendRequests = useCallback(async () => {
 		if (!session.user?.idKey) return;
@@ -243,7 +243,9 @@ export const Friends = () => {
 													/>
 													<div className="flex-1 min-w-0">
 														<div className="font-medium truncate">
-															{signer?.displayName || signer?.paymail?.split('@')[0] || bapId.slice(0, 12)}
+															{signer?.displayName ||
+																signer?.paymail?.split('@')[0] ||
+																bapId.slice(0, 12)}
 														</div>
 														<div className="text-sm text-muted-foreground">Request pending</div>
 													</div>

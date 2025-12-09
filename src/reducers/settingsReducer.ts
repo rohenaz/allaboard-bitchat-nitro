@@ -49,18 +49,6 @@ const settingsSlice = createSlice({
 			);
 		},
 		toggleSettings(state) {
-			// Add debugging to trace calls
-			if (typeof window !== 'undefined') {
-				// biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
-				console.log(
-					'🔧 toggleSettings called, current:',
-					state.isOpen,
-					'-> will be:',
-					!state.isOpen,
-				);
-				// biome-ignore lint/suspicious/noConsole: Debug code to trace modal opening issue
-				console.trace('Call stack:');
-			}
 			state.isOpen = !state.isOpen;
 		},
 		openSettings(state) {

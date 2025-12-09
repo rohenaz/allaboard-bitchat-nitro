@@ -271,7 +271,7 @@ export const LoginPage: FC = () => {
 		<Layout heading="Choose your login method">
 			<ButtonContainer>
 				<LoginButton type="button" onClick={handleSigmaLogin} disabled={isLoading}>
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 						<path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm-1 4v8h2V6h-2zm0 10v2h2v-2h-2z" />
 					</svg>
 					Sign in with Bitcoin

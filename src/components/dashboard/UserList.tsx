@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { useRef, useState } from 'react';
 import { FaComments, FaEllipsisV, FaUserCheck, FaUserMinus, FaUserPlus } from 'react-icons/fa';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import type { RootState } from '../../store';
 import { ContextMenu } from '../ui/ContextMenu';

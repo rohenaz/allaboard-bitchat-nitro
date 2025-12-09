@@ -354,12 +354,15 @@ export const UserPopover: FC<UserPopoverProps> = ({
 
 	return (
 		<>
-			<div
+			<button
+				type="button"
 				style={{
 					position: 'fixed',
 					inset: 0,
 					zIndex: 999,
 					background: 'transparent',
+					border: 'none',
+					cursor: 'default',
 				}}
 				onClick={onClose}
 				onKeyDown={(e) => {
@@ -367,7 +370,6 @@ export const UserPopover: FC<UserPopoverProps> = ({
 						onClose();
 					}
 				}}
-				role="button"
 				tabIndex={-1}
 				aria-label="Close popover"
 			/>

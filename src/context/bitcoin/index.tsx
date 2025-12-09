@@ -1,20 +1,12 @@
 import { ECIES, type PrivateKey, PublicKey, Script, Utils } from '@bsv/sdk';
 import bops from 'bops';
 import { BAP } from 'bsv-bap';
-import { head } from 'lodash';
 import moment from 'moment';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useDispatch, useSelector, useStore } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { Store } from 'redux';
 import type { PendingFile } from '../../components/dashboard/WriteArea';
-import {
-	API_BASE_URL,
-	DROPLIT_API_URL,
-	DROPLIT_FAUCET_NAME,
-	NITRO_API_URL,
-	SIGMA_AUTH_URL,
-} from '../../config/constants';
+import { NITRO_API_URL } from '../../config/constants';
 import { pinPaymentAddress } from '../../reducers/channelsReducer';
 import { receiveNewMessage, receiveNewReaction } from '../../reducers/chatReducer';
 import { FetchStatus } from '../../utils/common';
@@ -24,12 +16,6 @@ import { useHandcash } from '../handcash';
 import { useYours } from '../yours';
 
 const { toArray } = Utils;
-// Add type definitions
-interface DecIdentity {
-	xprv: string;
-	bapId?: string;
-	ids?: { idKey: string }[];
-}
 
 interface SignerState {
 	idKey: string;
@@ -347,22 +333,22 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 				if (userId && content) {
 					const friend = confirmedFriends?.byId?.[userId];
 					if (!friend?.themPublicKey) {
-						throw new Error('Cannot send DM: friend encryption key not found. Add as friend first.');
+						throw new Error(
+							'Cannot send DM: friend encryption key not found. Add as friend first.',
+						);
 					}
 
 					// Use Sigma Auth plugin for encryption (keys stay in auth server)
 					const { authClient } = await import('../../lib/auth');
 					if (!authClient.sigma.isReady()) {
-						throw new Error('Cannot send DM: wallet not unlocked. Please unlock your wallet first.');
+						throw new Error(
+							'Cannot send DM: wallet not unlocked. Please unlock your wallet first.',
+						);
 					}
 
 					// Encrypt using Type42 key derivation via Sigma iframe
 					// If encryption fails, do NOT send - DMs must always be encrypted
-					messageContent = await authClient.sigma.encrypt(
-						content,
-						userId,
-						friend.themPublicKey,
-					);
+					messageContent = await authClient.sigma.encrypt(content, userId, friend.themPublicKey);
 					contentType = 'application/octet-stream';
 					contentEncoding = 'base64';
 					console.log('[Message] Content encrypted via Sigma Auth for DM');
@@ -693,20 +679,7 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 				throw error;
 			}
 		},
-		[
-			authToken,
-			notifyIndexer,
-			dispatch,
-			pandaProfile,
-			utxos,
-			sendBsv,
-			pendingFiles,
-			pendingFilesOutputs,
-			signOpReturnWithAIP,
-			isYoursWallet,
-			decIdentity,
-			confirmedFriends,
-		],
+		[dispatch, pendingFiles, pendingFilesOutputs, isYoursWallet, confirmedFriends],
 	);
 
 	const likeMessage = useCallback(
@@ -798,7 +771,9 @@ const BitcoinProvider: React.FC<BitcoinProviderProps> = ({ children }) => {
 			// Check if sigma identity is ready for key derivation
 			const { authClient } = await import('../../lib/auth');
 			if (!authClient.sigma.isReady()) {
-				throw new Error('Cannot send friend request: wallet not unlocked. Please unlock your wallet first.');
+				throw new Error(
+					'Cannot send friend request: wallet not unlocked. Please unlock your wallet first.',
+				);
 			}
 
 			setFriendRequestStatus(FetchStatus.Loading);

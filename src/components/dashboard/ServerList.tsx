@@ -123,7 +123,7 @@ const ServerList: FC = () => {
 	const navigate = useNavigate();
 
 	const servers = useSelector<RootState, ServerState>((state) => state.servers);
-	const session = useSelector<RootState, SessionState>((state) => state.session);
+	const _session = useSelector<RootState, SessionState>((state) => state.session);
 
 	const handleServerClick = useCallback(
 		(serverId: string) => {

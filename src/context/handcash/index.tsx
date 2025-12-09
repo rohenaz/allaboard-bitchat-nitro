@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import { API_BASE_URL, NITRO_API_URL } from '../../config/constants';
+import { NITRO_API_URL } from '../../config/constants';
 import { FetchStatus } from '../../utils/common';
 import { lsTest, useLocalStorage } from '../../utils/storage';
 

@@ -1,5 +1,5 @@
 import { decryptBackup as decryptBitcoinBackup } from 'bitcoin-backup';
-import { type BackupDetectionResult, BackupType, detectBackupType } from './backupDetector';
+import { type BackupDetectionResult, detectBackupType } from './backupDetector';
 
 export interface DecryptionResult {
 	success: boolean;

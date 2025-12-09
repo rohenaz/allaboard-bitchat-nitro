@@ -49,44 +49,6 @@ const ImportIDModal: React.FC = () => {
 		inputFileRef.current?.click();
 	}, []);
 
-	const handleFileSelect = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (!file) return;
-
-		setIsProcessing(true);
-		setPasswordError('');
-
-		const reader = new FileReader();
-		reader.onload = async (e) => {
-			try {
-				const text = e.target?.result as string;
-				setFileContent(text);
-
-				// Detect backup type
-				const detection = detectBackupType(text);
-				setDetectedType(detection.type);
-
-				// Process the file
-				const result = await processBackupFile(text);
-
-				if (result.needsPassword) {
-					setNeedsPassword(true);
-					setIsProcessing(false);
-				} else if (result.success && result.result) {
-					// Convert to legacy format and process
-					await processDetectedBackup(result.result);
-				} else {
-					throw new Error(result.error || 'Failed to process backup');
-				}
-			} catch (error) {
-				console.error('Failed to read file:', error);
-				setPasswordError(error instanceof Error ? error.message : 'Failed to read file');
-				setIsProcessing(false);
-			}
-		};
-		reader.readAsText(file);
-	}, []);
-
 	const processDetectedBackup = useCallback(
 		async (detectionResult: BackupDetectionResult) => {
 			try {
@@ -108,6 +70,47 @@ const ImportIDModal: React.FC = () => {
 			}
 		},
 		[onFileChange],
+	);
+
+	const handleFileSelect = useCallback(
+		async (event: React.ChangeEvent<HTMLInputElement>) => {
+			const file = event.target.files?.[0];
+			if (!file) return;
+
+			setIsProcessing(true);
+			setPasswordError('');
+
+			const reader = new FileReader();
+			reader.onload = async (e) => {
+				try {
+					const text = e.target?.result as string;
+					setFileContent(text);
+
+					// Detect backup type
+					const detection = detectBackupType(text);
+					setDetectedType(detection.type);
+
+					// Process the file
+					const result = await processBackupFile(text);
+
+					if (result.needsPassword) {
+						setNeedsPassword(true);
+						setIsProcessing(false);
+					} else if (result.success && result.result) {
+						// Convert to legacy format and process
+						await processDetectedBackup(result.result);
+					} else {
+						throw new Error(result.error || 'Failed to process backup');
+					}
+				} catch (error) {
+					console.error('Failed to read file:', error);
+					setPasswordError(error instanceof Error ? error.message : 'Failed to read file');
+					setIsProcessing(false);
+				}
+			};
+			reader.readAsText(file);
+		},
+		[processDetectedBackup],
 	);
 
 	const handlePasswordSubmit = useCallback(async () => {

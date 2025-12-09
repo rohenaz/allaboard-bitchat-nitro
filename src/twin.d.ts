@@ -9,7 +9,7 @@ declare module 'twin.macro' {
 }
 
 declare module 'react' {
-	interface DOMAttributes<T> {
+	interface DOMAttributes<_T> {
 		tw?: string;
 		css?: CSSInterpolation;
 	}

@@ -1,10 +1,9 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { head } from 'lodash';
-import * as channelAPI from '../api/channel';
-import * as userAPI from '../api/user';
+import type { BmapFriendRequest, ConfirmedFriend } from '../api/bmap';
 import * as bmapAPI from '../api/bmap';
-import type { ConfirmedFriend, BmapFriendRequest, FriendsResponse } from '../api/bmap';
-import type { AppDispatch, RootState } from '../store';
+import * as userAPI from '../api/user';
+import type { RootState } from '../store';
 
 // Define Signer interface
 export interface Signer {
