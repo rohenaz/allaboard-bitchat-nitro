@@ -119,13 +119,15 @@ const UserPanel: FC = () => {
 				<UserDetails>
 					<UserName>{user?.paymail || 'Guest'}</UserName>
 					<UserStatus>
-						{user?.wallet === 'yours'
-							? 'Yours Wallet'
-							: user?.wallet === 'handcash'
-								? 'HandCash'
-								: user?.wallet
-									? user.wallet
-									: 'Not connected'}
+						{user?.wallet === 'sigma'
+							? 'Sigma Identity'
+							: user?.wallet === 'yours'
+								? 'Yours Wallet'
+								: user?.wallet === 'handcash'
+									? 'HandCash'
+									: user?.wallet
+										? user.wallet
+										: 'Not connected'}
 					</UserStatus>
 				</UserDetails>
 			</UserInfo>
