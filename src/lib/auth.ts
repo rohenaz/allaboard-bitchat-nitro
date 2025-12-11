@@ -26,7 +26,6 @@ export const sigmaAuth = {
 		}
 		authClient.signIn.sigma({
 			clientId,
-			callbackURL: '/auth/sigma/callback',
 		});
 	},
 
