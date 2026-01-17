@@ -19,10 +19,11 @@ ENV VITE_SIGMA_ISSUER_URL=$VITE_SIGMA_ISSUER_URL
 ENV BITCHAT_MEMBER_WIF=$BITCHAT_MEMBER_WIF
 
 COPY package.json bun.lock ./
-# Install ALL dependencies including devDependencies (needed for build)
-RUN bun install --frozen-lockfile
+# Install ALL dependencies
+RUN bun install
 COPY . .
-RUN bun run build
+# Build with verbose logging
+RUN DEBUG=vite:* bun run vite build --logLevel=info 2>&1
 
 # Production stage
 FROM caddy:alpine
