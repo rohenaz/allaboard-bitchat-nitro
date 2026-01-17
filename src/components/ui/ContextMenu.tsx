@@ -35,7 +35,7 @@ const MenuContainer = styled.div`
   z-index: 10001;
   background-color: var(--popover);
   border-radius: 6px;
-  box-shadow: var(--elevation-high);
+  box-shadow: var(--shadow-xl);
   border: 1px solid var(--border);
   min-width: 180px;
   padding: 6px 0;

@@ -6,9 +6,8 @@ interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
 }
 
 const Button = styled.button<{ disabled?: boolean }>`
-  background-color: ${({ disabled }) =>
-		disabled ? 'var(--button-secondary-background)' : 'var(--button-primary)'};
-  color: ${({ disabled }) => (disabled ? 'var(--muted-foreground)' : 'var(--foreground)')};
+  background-color: ${({ disabled }) => (disabled ? 'var(--secondary)' : 'var(--primary)')};
+  color: ${({ disabled }) => (disabled ? 'var(--muted-foreground)' : 'var(--primary-foreground)')};
   border: none;
   border-radius: 3px;
   padding: 0.5rem 1rem;
@@ -16,10 +15,11 @@ const Button = styled.button<{ disabled?: boolean }>`
   font-weight: 500;
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   transition: background-color 0.2s ease;
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 
   &:hover {
-    background-color: ${({ disabled }) =>
-			disabled ? 'var(--button-secondary-background)' : 'var(--button-primary-hover)'};
+    background-color: ${({ disabled }) => (disabled ? 'var(--secondary)' : 'var(--primary)')};
+    opacity: ${({ disabled }) => (disabled ? 0.5 : 0.9)};
   }
 `;
 

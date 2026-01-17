@@ -20,7 +20,7 @@ const Input = styled.input<InputProps>`
 
   &:focus {
     outline: none;
-    border: 1px solid ${(p) => (p.error ? 'var(--text-danger)' : 'var(--primary)')};
+    border: 1px solid ${(p) => (p.error ? 'var(--destructive)' : 'var(--primary)')};
   }
 
   &::placeholder {

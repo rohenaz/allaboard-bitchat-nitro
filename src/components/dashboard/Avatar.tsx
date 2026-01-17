@@ -22,19 +22,19 @@ const AvatarContainer = styled.div<{ size: string }>`
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  background: var(--background-glass);
-  backdrop-filter: blur(var(--blur-light));
-  -webkit-backdrop-filter: blur(var(--blur-light));
-  border: 2px solid var(--border-subtle);
+  background: var(--muted);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  
+
   &:hover {
-    border-color: var(--border-glass);
-    box-shadow: var(--elevation-medium);
+    border-color: var(--ring);
+    box-shadow: var(--shadow-md);
     transform: scale(1.05);
   }
 `;
@@ -48,8 +48,8 @@ const AvatarImage = styled.img`
 const AvatarFallback = styled.div<{ size: string }>`
   width: ${({ size }) => size};
   height: ${({ size }) => size};
-  background: linear-gradient(135deg, var(--brand-experiment), var(--brand-experiment-darker));
-  color: var(--white);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--primary-foreground);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -75,7 +75,7 @@ const StatusIndicator = styled.div<{
 			case 'online':
 				return 'var(--chart-2)';
 			case 'away':
-				return 'var(--status-warning)';
+				return 'var(--chart-3)';
 			case 'dnd':
 				return 'var(--destructive)';
 			default:
@@ -85,11 +85,11 @@ const StatusIndicator = styled.div<{
   box-shadow: 0 0 8px ${({ status }) => {
 		switch (status) {
 			case 'online':
-				return 'var(--status-positive-glow)';
+				return 'var(--chart-2)';
 			case 'away':
-				return 'var(--status-warning-glow)';
+				return 'var(--chart-3)';
 			case 'dnd':
-				return 'var(--status-danger-glow)';
+				return 'var(--destructive)';
 			default:
 				return 'transparent';
 		}

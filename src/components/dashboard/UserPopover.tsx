@@ -50,7 +50,7 @@ const PopoverContainer = styled.div<{ $placement: string }>`
   z-index: 9999;
   background-color: var(--popover);
   border-radius: 8px;
-  box-shadow: var(--elevation-high);
+  box-shadow: var(--shadow-xl);
   border: 1px solid var(--border);
   min-width: 300px;
   max-width: 350px;

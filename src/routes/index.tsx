@@ -17,7 +17,7 @@ const LoadingSpinner = () => (
 			justifyContent: 'center',
 			alignItems: 'center',
 			height: '100vh',
-			color: 'var(--text-primary)',
+			color: 'var(--foreground)',
 		}}
 	>
 		Loading...

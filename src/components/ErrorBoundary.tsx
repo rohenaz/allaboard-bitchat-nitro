@@ -28,7 +28,7 @@ const ErrorContent = styled.div`
 `;
 
 const ErrorTitle = styled.h1`
-  color: var(--text-danger);
+  color: var(--destructive);
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 24px;
