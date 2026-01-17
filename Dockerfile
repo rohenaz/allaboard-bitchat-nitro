@@ -22,8 +22,7 @@ COPY package.json bun.lock ./
 # Install ALL dependencies
 RUN bun install
 COPY . .
-# Build - run vite directly with bunx
-RUN bunx vite build --debug 2>&1 || { echo "=== VITE BUILD FAILED ===" && ls -la node_modules/.vite 2>/dev/null && exit 1; }
+RUN bun run build
 
 # Production stage
 FROM caddy:alpine
