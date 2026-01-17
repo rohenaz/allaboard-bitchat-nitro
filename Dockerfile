@@ -27,3 +27,4 @@ RUN bun run build
 FROM caddy:alpine
 COPY --from=builder /app/build /srv/
 COPY Caddyfile /etc/caddy/Caddyfile
+# Cache bust Fri Jan 16 19:42:20 EST 2026
