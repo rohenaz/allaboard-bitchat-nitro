@@ -21,7 +21,7 @@ ENV BITCHAT_MEMBER_WIF=$BITCHAT_MEMBER_WIF
 COPY package.json bun.lock ./
 RUN bun install
 COPY . .
-RUN NODE_OPTIONS="--max-old-space-size=4096" bun run build 2>&1 || (echo "Build failed, checking for issues..." && cat /app/node_modules/.vite/deps/_metadata.json 2>/dev/null || true && exit 1)
+RUN NODE_OPTIONS="--max-old-space-size=4096" bun scripts/build.ts
 
 # Production stage
 FROM caddy:alpine
