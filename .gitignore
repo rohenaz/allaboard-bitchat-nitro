@@ -80,3 +80,4 @@ node_modules/
 # mac junk
 .DS_Store
 public/.playwright-mcp/
+# Railway rebuild trigger
