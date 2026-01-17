@@ -22,8 +22,8 @@ COPY package.json bun.lock ./
 # Install ALL dependencies
 RUN bun install
 COPY . .
-# Build with node for better error messages
-RUN NODE_OPTIONS="--enable-source-maps" npx vite build 2>&1
+# Build - run vite directly with bunx
+RUN bunx vite build --debug 2>&1 || { echo "=== VITE BUILD FAILED ===" && ls -la node_modules/.vite 2>/dev/null && exit 1; }
 
 # Production stage
 FROM caddy:alpine
