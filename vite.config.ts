@@ -4,6 +4,7 @@ import { defineConfig } from 'vite';
 import macrosPlugin from 'vite-plugin-babel-macros';
 
 export default defineConfig({
+  logLevel: 'info',
   plugins: [
     react({
       babel: {
@@ -41,6 +42,10 @@ export default defineConfig({
     sourcemap: true,
     chunkSizeWarningLimit: 500,
     rollupOptions: {
+      onwarn(warning, warn) {
+        console.error('Rollup warning:', JSON.stringify(warning, null, 2));
+        warn(warning);
+      },
       output: {
         manualChunks(id) {
           // Core dependencies
