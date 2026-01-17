@@ -7,7 +7,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui
 import { cn } from '@/lib/utils';
 import type { RootState } from '../../store';
 import { ContextMenu } from '../ui/ContextMenu';
-import { Tooltip } from '../ui/Tooltip';
+import { Tooltip } from '../ui/tooltip';
 import Avatar from './Avatar';
 import { UserPopover } from './UserPopover';
 

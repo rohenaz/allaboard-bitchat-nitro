@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { loadChannels } from '../../reducers/channelsReducer';
 import type { AppDispatch, RootState } from '../../store';
