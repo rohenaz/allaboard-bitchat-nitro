@@ -19,7 +19,8 @@ ENV VITE_SIGMA_ISSUER_URL=$VITE_SIGMA_ISSUER_URL
 ENV BITCHAT_MEMBER_WIF=$BITCHAT_MEMBER_WIF
 
 COPY package.json bun.lock ./
-RUN bun install
+# Install ALL dependencies including devDependencies (needed for build)
+RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
@@ -27,4 +28,3 @@ RUN bun run build
 FROM caddy:alpine
 COPY --from=builder /app/build /srv/
 COPY Caddyfile /etc/caddy/Caddyfile
-# Cache bust Fri Jan 16 19:42:20 EST 2026
