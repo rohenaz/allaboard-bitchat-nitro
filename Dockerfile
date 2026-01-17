@@ -22,8 +22,8 @@ COPY package.json bun.lock ./
 # Install ALL dependencies
 RUN bun install
 COPY . .
-# Build with verbose logging
-RUN DEBUG=vite:* bun run vite build --logLevel=info 2>&1
+# Build with node for better error messages
+RUN NODE_OPTIONS="--enable-source-maps" npx vite build 2>&1
 
 # Production stage
 FROM caddy:alpine
