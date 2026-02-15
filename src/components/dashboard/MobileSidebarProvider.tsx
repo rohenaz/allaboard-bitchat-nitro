@@ -15,35 +15,29 @@ export function MobileSidebarProvider({ children }: MobileSidebarProviderProps) 
 	const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
 	const [mobileOpen, setMobileOpen] = useState(false);
 
-	// Handle mobile/desktop state transitions
+	// Sync mobile state when Redux state changes (from hamburger menu click)
 	useEffect(() => {
 		if (isMobile) {
-			// On mobile, use local state for sidebar
-			setMobileOpen(false);
+			// On mobile, the Redux state drives the mobile state
+			setMobileOpen(isOpen);
 		}
-	}, [isMobile]);
+	}, [isOpen, isMobile]);
 
 	const handleOpenChange = (open: boolean) => {
 		if (isMobile) {
+			// On mobile, update local state immediately for responsiveness
 			setMobileOpen(open);
-			// Update Redux state to keep in sync
+			// Then sync Redux state if needed
 			if (open !== isOpen) {
 				dispatch(toggleSidebar());
 			}
 		} else {
-			// On desktop, use Redux state
+			// On desktop, directly toggle Redux state
 			if (open !== isOpen) {
 				dispatch(toggleSidebar());
 			}
 		}
 	};
-
-	// Sync mobile state when Redux state changes (from hamburger menu click)
-	useEffect(() => {
-		if (isMobile) {
-			setMobileOpen(isOpen);
-		}
-	}, [isOpen, isMobile]);
 
 	return (
 		<SidebarProvider

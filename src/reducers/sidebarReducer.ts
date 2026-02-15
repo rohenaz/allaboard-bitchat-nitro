@@ -4,8 +4,14 @@ interface SidebarState {
 	isOpen: boolean;
 }
 
+// Check if mobile on initialization
+const getInitialSidebarState = (): boolean => {
+	if (typeof window === 'undefined') return true;
+	return window.innerWidth >= 768; // Default open on desktop, closed on mobile
+};
+
 const initialState: SidebarState = {
-	isOpen: true, // Default to open on desktop, mobile will handle this differently
+	isOpen: getInitialSidebarState(),
 };
 
 const sidebarSlice = createSlice({

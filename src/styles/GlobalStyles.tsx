@@ -44,20 +44,8 @@ const customStyles = {
 	'h1, h2, h3, h4, h5, h6, p': {
 		margin: 0,
 	},
-	button: {
-		background: 'none',
-		border: 'none',
-		color: 'inherit',
-		font: 'inherit',
-		cursor: 'pointer',
-	},
-	'input, textarea': {
-		background: 'transparent',
-		border: 'none',
-		color: 'inherit',
-		fontFamily: 'inherit',
-		outline: 'none',
-	},
+	// Removed global button reset to avoid interfering with component libraries
+	// Removed global input/textarea reset to avoid interfering with component libraries
 };
 
 export const GlobalStyles = () => <Global styles={customStyles} />;
