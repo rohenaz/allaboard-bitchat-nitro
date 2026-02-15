@@ -72,11 +72,3 @@
   --sidebar-ring: oklch(0.6627 0.0971 286.1989);
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
