@@ -45,6 +45,12 @@ const MessageCard: FC<MessageProps> = ({ message, reactions }) => {
 	// Get raw content
 	const rawContent = useMemo(() => {
 		const firstB = head(message.B);
+		console.log('[MessageCard] Message data:', {
+			messageId: message.tx?.h,
+			B: message.B,
+			firstB,
+			content: firstB?.content,
+		});
 		return firstB?.content || '';
 	}, [message]);
 

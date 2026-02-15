@@ -104,6 +104,11 @@ const Messages: FC = () => {
 		);
 	}
 
+	console.log('[Messages] Rendering messages:', {
+		count: messages.data.length,
+		firstMessage: messages.data[0],
+	});
+
 	return (
 		<div className="flex flex-col flex-1 min-h-0 w-full overflow-hidden bg-background">
 			<div
