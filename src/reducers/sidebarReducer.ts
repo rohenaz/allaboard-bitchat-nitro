@@ -5,7 +5,7 @@ interface SidebarState {
 }
 
 const initialState: SidebarState = {
-	isOpen: false,
+	isOpen: true, // Default to open on desktop, mobile will handle this differently
 };
 
 const sidebarSlice = createSlice({

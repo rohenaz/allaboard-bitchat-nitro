@@ -28,9 +28,9 @@ export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
 	};
 
 	return (
-		<div className="grid grid-cols-[auto_1fr_auto] h-screen w-screen overflow-hidden bg-background md:grid-cols-[auto_1fr_auto]">
+		<div className="flex h-screen w-screen overflow-hidden bg-background">
 			<Sidebar />
-			<div className="flex flex-col min-h-0 h-screen bg-background">
+			<div className="flex flex-col flex-1 min-h-0 h-screen bg-background">
 				<Header isFriendsPage={isFriendsPage} />
 				{renderMainContent()}
 			</div>

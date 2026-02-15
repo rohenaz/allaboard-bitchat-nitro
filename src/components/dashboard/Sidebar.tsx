@@ -1,14 +1,8 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import {
-	Sidebar as ShadcnSidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarProvider,
-} from '@/components/ui/sidebar';
-import type { RootState } from '../../store';
+import { Sidebar as ShadcnSidebar, SidebarContent, SidebarFooter } from '@/components/ui/sidebar';
 import ChannelList from './ChannelList';
+import { MobileSidebarProvider } from './MobileSidebarProvider';
 import ServerList from './ServerList';
 import { UserList } from './UserList';
 import UserPanel from './UserPanel';
@@ -19,14 +13,22 @@ function SidebarInner() {
 	const activeUserId = useMemo(() => params.user, [params]);
 
 	return (
-		<ShadcnSidebar collapsible="none" className="border-r border-border">
-			<SidebarContent className="p-0 gap-0">
-				{!activeUserId && <ChannelList />}
-				{activeUserId && <UserList activeUserId={activeUserId} />}
-			</SidebarContent>
-			<SidebarFooter className="p-0">
-				<UserPanel />
-			</SidebarFooter>
+		<ShadcnSidebar collapsible="offcanvas" className="border-r border-border">
+			<div className="flex h-full">
+				{/* Server list for mobile - shown inside the sidebar */}
+				<div className="flex md:hidden flex-col w-[72px] h-full bg-muted py-3 flex-shrink-0">
+					<ServerList />
+				</div>
+				<div className="flex-1 flex flex-col">
+					<SidebarContent className="p-0 gap-0">
+						{!activeUserId && <ChannelList />}
+						{activeUserId && <UserList activeUserId={activeUserId} />}
+					</SidebarContent>
+					<SidebarFooter className="p-0">
+						<UserPanel />
+					</SidebarFooter>
+				</div>
+			</div>
 		</ShadcnSidebar>
 	);
 }
@@ -34,25 +36,20 @@ function SidebarInner() {
 // Server list sidebar (narrow icons)
 function ServerSidebar() {
 	return (
-		<div className="flex flex-col w-[72px] h-full bg-muted py-3 flex-shrink-0">
+		<div className="hidden md:flex flex-col w-[72px] h-full bg-muted py-3 flex-shrink-0">
 			<ServerList />
 		</div>
 	);
 }
 
 const Sidebar = () => {
-	const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
-
 	return (
-		<SidebarProvider
-			defaultOpen={isOpen}
-			style={{ '--sidebar-width': '240px' } as React.CSSProperties}
-		>
+		<MobileSidebarProvider>
 			<div className="flex h-svh">
 				<ServerSidebar />
 				<SidebarInner />
 			</div>
-		</SidebarProvider>
+		</MobileSidebarProvider>
 	);
 };
 
