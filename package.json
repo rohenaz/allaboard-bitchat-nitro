@@ -7,6 +7,7 @@
     "@bsv/sdk": "^1.10.4",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.2.2",
     "@mui/material": "^7.3.8",
     "@mui/styled-engine-sc": "^7.3.8",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -47,8 +48,10 @@
     "moment": "^2.30.1",
     "path": "^0.12.7",
     "process": "^0.11.10",
+    "radix-ui": "^1.4.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-hook-form": "^7.71.1",
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
     "react-redux": "^9.2.0",
@@ -65,7 +68,8 @@
     "tailwind-merge": "^3.4.1",
     "util": "^0.12.5",
     "uuid": "^13.0.0",
-    "yours-wallet-provider": "^3.7.0"
+    "yours-wallet-provider": "^3.7.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

@@ -4,7 +4,7 @@ import { FaCog, FaGithub, FaSignInAlt, FaSignOutAlt, FaUserFriends } from 'react
 import { ImProfile } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import styled from 'styled-components';
+import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { getBitchatServer } from '../../constants/servers';
 import { useHandcash } from '../../context/handcash';
@@ -14,107 +14,6 @@ import { logout } from '../../reducers/sessionReducer';
 import type { RootState } from '../../store';
 import ArrowTooltip from './ArrowTooltip';
 import { UserSearch } from './UserSearch';
-
-const Container = styled.header`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 48px;
-  min-height: 48px;
-  background-color: var(--background);
-  border-bottom: 1px solid var(--border);
-  padding: 0 16px;
-  position: relative;
-  z-index: 1;
-`;
-
-const LeftSection = styled.div`
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-`;
-
-const MiddleSection = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  max-width: 400px;
-  padding: 0 16px;
-`;
-
-const ChannelInfo = styled.div`
-  display: flex;
-  align-items: center;
-  min-width: 0;
-`;
-
-const ChannelName = styled.h1`
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 20px;
-  color: var(--foreground);
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-interface IconButtonProps {
-	$isActive?: boolean;
-}
-
-const IconButton = styled.button<IconButtonProps>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  color: ${({ $isActive }) => ($isActive ? 'var(--primary)' : 'var(--muted-foreground)')};
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.15s ease-out;
-  font-size: 20px;
-
-  &:hover {
-    color: var(--foreground);
-    background-color: var(--accent);
-  }
-
-  svg {
-    width: 20px;
-    height: 20px;
-  }
-`;
-
-const HashtagIcon = styled.span`
-  color: var(--muted-foreground);
-  font-size: 24px;
-  font-weight: 600;
-  margin-right: 8px;
-  &::before {
-    content: '#';
-  }
-`;
-
-const AtIcon = styled.span`
-  color: var(--muted-foreground);
-  font-size: 24px;
-  font-weight: 600;
-  margin-right: 8px;
-  &::before {
-    content: '@';
-  }
-`;
 
 interface HeaderProps {
 	isFriendsPage?: boolean;
@@ -151,71 +50,101 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
 	]);
 
 	return (
-		<Container>
-			<LeftSection>
+		<header className="flex items-center justify-between h-12 min-h-[48px] bg-background border-b border-border px-4 relative z-10">
+			<div className="flex items-center flex-1 min-w-0">
 				<SidebarTrigger className="md:hidden" />
 
-				<ChannelInfo>
-					{activeChannelId && <HashtagIcon />}
-					{activeUserId && <AtIcon />}
-					<ChannelName>{channelName}</ChannelName>
-				</ChannelInfo>
-			</LeftSection>
+				<div className="flex items-center min-w-0">
+					{activeChannelId && (
+						<span className="text-muted-foreground text-2xl font-semibold mr-2">#</span>
+					)}
+					{activeUserId && (
+						<span className="text-muted-foreground text-2xl font-semibold mr-2">@</span>
+					)}
+					<h1 className="text-base font-semibold leading-5 text-foreground m-0 overflow-hidden text-ellipsis whitespace-nowrap">
+						{channelName}
+					</h1>
+				</div>
+			</div>
 
-			<MiddleSection>{isFriendsPage && <UserSearch />}</MiddleSection>
+			<div className="flex items-center justify-center flex-1 max-w-[400px] px-4">
+				{isFriendsPage && <UserSearch />}
+			</div>
 
-			<ActionButtons>
+			<div className="flex items-center gap-2">
 				<ArrowTooltip title="Settings">
-					<IconButton onClick={() => navigate(`/servers/${getBitchatServer()._id}`)}>
-						<FaCog />
-					</IconButton>
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-6 w-6"
+						onClick={() => navigate(`/servers/${getBitchatServer()._id}`)}
+					>
+						<FaCog className="h-5 w-5" />
+					</Button>
 				</ArrowTooltip>
 
 				<ArrowTooltip title="GitHub Repository">
-					<IconButton
-						as="a"
-						href="https://github.com/rohenaz/allaboard-bitchat-nitro"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<FaGithub />
-					</IconButton>
+					<Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+						<a
+							href="https://github.com/rohenaz/allaboard-bitchat-nitro"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<FaGithub className="h-5 w-5" />
+						</a>
+					</Button>
 				</ArrowTooltip>
 
 				<ArrowTooltip title={`${isMemberListOpen ? 'Hide' : 'Show'} Member List`}>
-					<IconButton $isActive={isMemberListOpen} onClick={() => dispatch(toggleMemberList())}>
-						<FaUserFriends />
-					</IconButton>
+					<Button
+						variant="ghost"
+						size="icon"
+						className={`h-6 w-6 ${isMemberListOpen ? 'text-primary' : ''}`}
+						onClick={() => dispatch(toggleMemberList())}
+					>
+						<FaUserFriends className="h-5 w-5" />
+					</Button>
 				</ArrowTooltip>
 
 				<ArrowTooltip title="Manage Profile on Sigma">
-					<IconButton
-						as="a"
-						href={`https://auth.sigmaidentity.com/account${session.user?.idKey ? `/${session.user.idKey}` : ''}`}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<ImProfile />
-					</IconButton>
+					<Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+						<a
+							href={`https://auth.sigmaidentity.com/account${session.user?.idKey ? `/${session.user.idKey}` : ''}`}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<ImProfile className="h-5 w-5" />
+						</a>
+					</Button>
 				</ArrowTooltip>
 
 				{!guest && (
 					<ArrowTooltip title="Sign Out">
-						<IconButton onClick={() => dispatch(logout())}>
-							<FaSignOutAlt />
-						</IconButton>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-6 w-6"
+							onClick={() => dispatch(logout())}
+						>
+							<FaSignOutAlt className="h-5 w-5" />
+						</Button>
 					</ArrowTooltip>
 				)}
 
 				{guest && (
 					<ArrowTooltip title="Sign In">
-						<IconButton onClick={() => navigate('/login')}>
-							<FaSignInAlt />
-						</IconButton>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-6 w-6"
+							onClick={() => navigate('/login')}
+						>
+							<FaSignInAlt className="h-5 w-5" />
+						</Button>
 					</ArrowTooltip>
 				)}
-			</ActionButtons>
-		</Container>
+			</div>
+		</header>
 	);
 };
 
