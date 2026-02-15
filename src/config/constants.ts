@@ -6,19 +6,22 @@
  */
 
 // BMAP API - for SSE streams, messages, social features
-export const API_BASE_URL = 'https://bmap-api-production.up.railway.app';
+export const API_BASE_URL =
+	import.meta.env.VITE_API_BASE_URL || 'https://bmap-api-production.up.railway.app';
 
 // Sigma API - for identity search, profiles, social overlay
-export const SIGMA_API_URL = 'https://api.sigmaidentity.com';
+export const SIGMA_API_URL = import.meta.env.VITE_SIGMA_API_URL || 'https://api.sigmaidentity.com';
 
 // Nitro API - for Droplit proxy with platform auth
-export const NITRO_API_URL = 'https://api.bitchatnitro.com';
+export const NITRO_API_URL = import.meta.env.VITE_NITRO_API_URL || 'https://api.bitchatnitro.com';
 
 // Sigma Auth - for OAuth authentication only
-export const SIGMA_AUTH_URL = 'https://auth.sigmaidentity.com';
+export const SIGMA_AUTH_URL =
+	import.meta.env.VITE_SIGMA_AUTH_URL || 'https://auth.sigmaidentity.com';
 
 // Droplit API - for transaction creation and funding
-export const DROPLIT_API_URL = 'https://dev-go-faucet-api-mazi.encr.app';
+export const DROPLIT_API_URL =
+	import.meta.env.VITE_DROPLIT_API_URL || 'https://dev-go-faucet-api-mazi.encr.app';
 
 // Droplit faucet name for BitChat
 export const DROPLIT_FAUCET_NAME = 'bitchat';
