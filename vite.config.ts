@@ -2,7 +2,6 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
-import macrosPlugin from 'vite-plugin-babel-macros';
 
 export default defineConfig({
   logLevel: 'info',
@@ -11,7 +10,6 @@ export default defineConfig({
     react({
       babel: {
         plugins: [
-          'babel-plugin-macros',
           [
             'babel-plugin-styled-components',
             {
@@ -22,7 +20,6 @@ export default defineConfig({
         ],
       },
     }),
-    macrosPlugin(),
   ],
   resolve: {
     alias: {
