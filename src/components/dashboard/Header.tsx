@@ -1,17 +1,16 @@
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
-import { FaBars, FaCog, FaGithub, FaSignInAlt, FaSignOutAlt, FaUserFriends } from 'react-icons/fa';
+import { FaCog, FaGithub, FaSignInAlt, FaSignOutAlt, FaUserFriends } from 'react-icons/fa';
 import { ImProfile } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { getBitchatServer } from '../../constants/servers';
 import { useHandcash } from '../../context/handcash';
-import { hideInDesktop } from '../../design/mixins';
 import { useActiveUser } from '../../hooks';
 import { toggleMemberList } from '../../reducers/memberListReducer';
 import { logout } from '../../reducers/sessionReducer';
-import { toggleSidebar } from '../../reducers/sidebarReducer';
 import type { RootState } from '../../store';
 import ArrowTooltip from './ArrowTooltip';
 import { UserSearch } from './UserSearch';
@@ -70,7 +69,6 @@ const ActionButtons = styled.div`
 
 interface IconButtonProps {
 	$isActive?: boolean;
-	$isHamburger?: boolean;
 }
 
 const IconButton = styled.button<IconButtonProps>`
@@ -92,19 +90,9 @@ const IconButton = styled.button<IconButtonProps>`
     background-color: var(--accent);
   }
 
-  ${({ $isHamburger }) => $isHamburger && hideInDesktop};
-
   svg {
     width: 20px;
     height: 20px;
-  }
-`;
-
-const HamburgerButton = styled(IconButton)`
-  margin-right: 16px;
-  
-  @media (min-width: 768px) {
-    display: none;
   }
 `;
 
@@ -165,9 +153,7 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
 	return (
 		<Container>
 			<LeftSection>
-				<HamburgerButton onClick={() => dispatch(toggleSidebar())}>
-					<FaBars />
-				</HamburgerButton>
+				<SidebarTrigger className="md:hidden" />
 
 				<ChannelInfo>
 					{activeChannelId && <HashtagIcon />}

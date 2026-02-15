@@ -8,7 +8,6 @@ import profileReducer from './reducers/profileReducer';
 import serverReducer from './reducers/serverReducer';
 import sessionReducer from './reducers/sessionReducer';
 import settingsReducer from './reducers/settingsReducer';
-import sidebarReducer from './reducers/sidebarReducer';
 
 const store = configureStore({
 	reducer: {
@@ -17,7 +16,6 @@ const store = configureStore({
 		chat: chatReducer,
 		memberList: memberListReducer,
 		servers: serverReducer,
-		sidebar: sidebarReducer,
 		settings: settingsReducer,
 		profile: profileReducer,
 	},

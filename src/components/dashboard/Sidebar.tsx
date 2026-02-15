@@ -1,8 +1,12 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { Sidebar as ShadcnSidebar, SidebarContent, SidebarFooter } from '@/components/ui/sidebar';
+import {
+	Sidebar as ShadcnSidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarProvider,
+} from '@/components/ui/sidebar';
 import ChannelList from './ChannelList';
-import { MobileSidebarProvider } from './MobileSidebarProvider';
 import ServerList from './ServerList';
 import { UserList } from './UserList';
 import UserPanel from './UserPanel';
@@ -13,7 +17,7 @@ function SidebarInner() {
 	const activeUserId = useMemo(() => params.user, [params]);
 
 	return (
-		<ShadcnSidebar collapsible="offcanvas" className="border-r border-border">
+		<ShadcnSidebar>
 			<div className="flex h-full">
 				{/* Server list for mobile - shown inside the sidebar */}
 				<div className="flex md:hidden flex-col w-[72px] h-full bg-muted py-3 flex-shrink-0">
@@ -44,12 +48,10 @@ function ServerSidebar() {
 
 const Sidebar = () => {
 	return (
-		<MobileSidebarProvider>
-			<div className="flex h-svh">
-				<ServerSidebar />
-				<SidebarInner />
-			</div>
-		</MobileSidebarProvider>
+		<div className="flex h-full">
+			<ServerSidebar />
+			<SidebarInner />
+		</div>
 	);
 };
 
