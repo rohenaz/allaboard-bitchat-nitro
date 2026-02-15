@@ -6,8 +6,7 @@
  */
 
 // BMAP API - for SSE streams, messages, social features
-export const API_BASE_URL =
-	import.meta.env.VITE_API_BASE_URL || 'https://bmap-api-production.up.railway.app';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Sigma API - for identity search, profiles, social overlay
 export const SIGMA_API_URL = import.meta.env.VITE_SIGMA_API_URL || 'https://api.sigmaidentity.com';
