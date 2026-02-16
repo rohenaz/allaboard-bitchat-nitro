@@ -17,8 +17,8 @@ export const SigmaCallback = React.lazy(() =>
 
 // Dashboard components
 export const Dashboard = React.lazy(() =>
-	import('../components/dashboard/Dashboard').then((module) => ({
-		default: module.Dashboard,
+	import('../components/dashboard/SimpleDashboard').then((module) => ({
+		default: module.SimpleDashboard,
 	})),
 );
 

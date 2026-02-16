@@ -7,41 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BitChat Nitro</title>
     <style>
-      /* CRITICAL: Force Discord-like layout */
+      /* Reset */
       * { box-sizing: border-box; }
-      html, body, #root { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-
-      /* Force server list to be vertical */
-      [data-server-list],
-      .server-list-container,
-      div[class*="w-[72px]"] {
-        display: flex !important;
-        flex-direction: column !important;
-        width: 72px !important;
-        height: 100% !important;
-        flex-shrink: 0 !important;
-      }
-
-      [data-server-nav],
-      .server-nav,
-      nav[class*="flex-col"] {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        gap: 8px !important;
-        padding: 12px 0 !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        height: 100% !important;
-      }
-
-      /* Ensure main layout container is horizontal */
-      .dashboard-container,
-      div[class*="flex h-screen"] {
-        display: flex !important;
-        flex-direction: row !important;
-        height: 100vh !important;
-        overflow: hidden !important;
+      html, body, #root {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
       }
     </style>
   </head>

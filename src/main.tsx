@@ -10,7 +10,6 @@ import { BmapProvider } from './context/bmap';
 import { HandcashProvider } from './context/handcash';
 import { ThemeProvider } from './context/theme';
 import { AutoYoursProvider } from './context/yours';
-import './critical.css';
 import './index.css';
 import store from './store';
 
