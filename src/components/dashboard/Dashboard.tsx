@@ -44,7 +44,7 @@ export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
 
 	return (
 		<div
-			className="flex h-screen bg-background"
+			className="dashboard-container flex h-screen bg-background"
 			style={{
 				display: 'flex',
 				height: '100vh',
@@ -53,7 +53,7 @@ export const Dashboard: FC<DashboardProps> = ({ isFriendsPage }) => {
 		>
 			{/* Server List */}
 			<div
-				className="flex w-[72px] flex-shrink-0 bg-muted border-r"
+				className="server-list-container flex w-[72px] flex-shrink-0 bg-muted border-r"
 				style={{
 					display: 'flex',
 					width: '72px',

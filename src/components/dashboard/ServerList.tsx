@@ -71,7 +71,7 @@ const ServerList: FC = () => {
 			>
 				<nav
 					data-server-nav
-					className="flex flex-col items-center py-3 gap-2 overflow-y-auto overflow-x-hidden scrollbar-none"
+					className="server-nav flex flex-col items-center py-3 gap-2 overflow-y-auto overflow-x-hidden scrollbar-none"
 					style={{
 						display: 'flex',
 						flexDirection: 'column',
