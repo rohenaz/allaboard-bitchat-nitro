@@ -3,8 +3,9 @@ import type { FC } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import styled, { keyframes } from 'styled-components';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 import { api } from '../../api/fetch';
 import { useBitcoin } from '../../context/bitcoin';
 import { useHandcash } from '../../context/handcash';
@@ -33,214 +34,6 @@ interface UserPopoverProps {
 	onClose: () => void;
 	placement?: 'top' | 'bottom' | 'left' | 'right';
 }
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-`;
-
-const PopoverContainer = styled.div<{ $placement: string }>`
-  position: absolute;
-  z-index: 9999;
-  background-color: var(--popover);
-  border-radius: 8px;
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--border);
-  min-width: 300px;
-  max-width: 350px;
-  animation: ${fadeIn} 0.15s ease-out;
-  overflow: hidden;
-
-  ${({ $placement }) => {
-		switch ($placement) {
-			case 'top':
-				return 'bottom: 100%; margin-bottom: 8px;';
-			case 'bottom':
-				return 'top: 100%; margin-top: 8px;';
-			case 'left':
-				return 'right: 100%; margin-right: 8px;';
-			case 'right':
-				return 'left: 100%; margin-left: 8px;';
-			default:
-				return 'top: 100%; margin-top: 8px;';
-		}
-	}}
-`;
-
-const PopoverHeader = styled.div`
-  position: relative;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary) 100%);
-  padding: 16px;
-  color: var(--primary-foreground);
-`;
-
-const UserInfoSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-`;
-
-const UserDetails = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const DisplayName = styled.div`
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--primary-foreground);
-  margin-bottom: 2px;
-  word-break: break-word;
-`;
-
-const Username = styled.div`
-  font-size: 14px;
-  color: var(--primary-foreground);
-  font-weight: 500;
-  opacity: 0.8;
-`;
-
-const StatusSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const StatusIndicator = styled.div<{ $status: string }>`
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: ${({ $status }) => {
-		switch ($status) {
-			case 'online':
-				return 'var(--chart-2)';
-			case 'away':
-				return 'var(--status-warning)';
-			case 'dnd':
-				return 'var(--destructive)';
-			default:
-				return 'var(--muted-foreground)';
-		}
-	}};
-  border: 2px solid var(--primary-foreground);
-`;
-
-const StatusText = styled.div`
-  font-size: 12px;
-  color: var(--primary-foreground);
-  font-weight: 500;
-  opacity: 0.9;
-`;
-
-const CustomStatus = styled.div`
-  font-size: 12px;
-  color: var(--primary-foreground);
-  margin-top: 4px;
-  font-style: italic;
-  opacity: 0.7;
-`;
-
-const PopoverBody = styled.div`
-  padding: 16px;
-`;
-
-const InfoSection = styled.div`
-  margin-bottom: 16px;
-`;
-
-const InfoLabel = styled.div`
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted-foreground);
-  text-transform: uppercase;
-  margin-bottom: 4px;
-`;
-
-const InfoValue = styled.div`
-  font-size: 14px;
-  color: var(--foreground);
-  word-break: break-word;
-`;
-
-const ActionButtons = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-`;
-
-const ActionButton = styled.button<{
-	$variant?: 'primary' | 'secondary' | 'danger';
-}>`
-  flex: 1;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  ${({ $variant = 'secondary' }) => {
-		switch ($variant) {
-			case 'primary':
-				return `
-          background-color: var(--primary);
-          color: var(--primary-foreground);
-          &:hover {
-            background-color: var(--primary);
-            opacity: 0.9;
-          }
-        `;
-			case 'danger':
-				return `
-          background-color: var(--destructive);
-          color: var(--destructive-foreground);
-          &:hover {
-            background-color: var(--destructive);
-            opacity: 0.9;
-          }
-        `;
-			default:
-				return `
-          background-color: var(--card);
-          color: var(--foreground);
-          &:hover {
-            background-color: var(--accent);
-          }
-        `;
-		}
-	}}
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  background-color: var(--border);
-  margin: 12px 0;
-`;
-
-const RoleTag = styled.span`
-  display: inline-block;
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 3px;
-  margin-right: 4px;
-  margin-bottom: 4px;
-`;
 
 export const UserPopover: FC<UserPopoverProps> = ({
 	user,
@@ -353,6 +146,40 @@ export const UserPopover: FC<UserPopoverProps> = ({
 
 	if (!isVisible) return null;
 
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case 'online':
+				return 'bg-chart-2';
+			case 'away':
+				return 'bg-yellow-500';
+			case 'dnd':
+				return 'bg-destructive';
+			default:
+				return 'bg-muted-foreground';
+		}
+	};
+
+	const getStatusText = (status?: string) => {
+		switch (status) {
+			case 'online':
+				return 'Online';
+			case 'away':
+				return 'Away';
+			case 'dnd':
+				return 'Do Not Disturb';
+			default:
+				return 'Offline';
+		}
+	};
+
+	// Get placement styles
+	const placementStyles = {
+		top: 'bottom-full mb-2',
+		bottom: 'top-full mt-2',
+		left: 'right-full mr-2',
+		right: 'left-full ml-2',
+	};
+
 	return (
 		<>
 			<Button
@@ -367,91 +194,119 @@ export const UserPopover: FC<UserPopoverProps> = ({
 				tabIndex={-1}
 				aria-label="Close popover"
 			/>
-			<PopoverContainer
+			<div
 				data-user-popover
-				$placement={placement}
+				className={cn(
+					'fixed z-[9999] bg-popover rounded-lg shadow-xl border min-w-[300px] max-w-[350px] overflow-hidden',
+					'animate-in fade-in-0 zoom-in-95 duration-150',
+					placementStyles[placement],
+				)}
 				style={{
 					position: 'fixed',
 					top: position.top,
 					left: position.left,
 				}}
 			>
-				<PopoverHeader>
-					<UserInfoSection>
+				{/* Header */}
+				<div className="relative bg-gradient-to-br from-primary to-primary p-4 text-primary-foreground">
+					{/* User Info */}
+					<div className="flex items-center gap-3 mb-3">
 						<Avatar size="64px" paymail={user.paymail} icon={user.logo} />
-						<UserDetails>
-							<DisplayName>
+						<div className="flex-1 min-w-0">
+							<div className="text-lg font-bold break-words mb-0.5">
 								{user.alternateName || user.name || user.paymail?.split('@')[0] || 'Anonymous'}
-							</DisplayName>
-							<Username>@{user.paymail}</Username>
-						</UserDetails>
-					</UserInfoSection>
+							</div>
+							<div className="text-sm font-medium opacity-80">@{user.paymail}</div>
+						</div>
+					</div>
 
-					<StatusSection>
-						<StatusIndicator $status={user.status || 'offline'} />
-						<StatusText>
-							{user.status === 'online'
-								? 'Online'
-								: user.status === 'away'
-									? 'Away'
-									: user.status === 'dnd'
-										? 'Do Not Disturb'
-										: 'Offline'}
-						</StatusText>
-					</StatusSection>
+					{/* Status */}
+					<div className="flex items-center gap-2">
+						<div
+							className={cn(
+								'w-3 h-3 rounded-full border-2 border-primary-foreground',
+								getStatusColor(user.status || 'offline'),
+							)}
+						/>
+						<div className="text-xs font-medium opacity-90">{getStatusText(user.status)}</div>
+					</div>
 
-					{user.customStatus && <CustomStatus>"{user.customStatus}"</CustomStatus>}
-				</PopoverHeader>
+					{user.customStatus && (
+						<div className="text-xs italic opacity-70 mt-1">"{user.customStatus}"</div>
+					)}
+				</div>
 
-				<PopoverBody>
-					<InfoSection>
-						<InfoLabel>Member Since</InfoLabel>
-						<InfoValue>
+				{/* Body */}
+				<div className="p-4">
+					{/* Member Since */}
+					<div className="mb-4">
+						<div className="text-xs font-bold text-muted-foreground uppercase mb-1">
+							Member Since
+						</div>
+						<div className="text-sm break-words">
 							{user.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : 'Unknown'}
-						</InfoValue>
-					</InfoSection>
+						</div>
+					</div>
 
+					{/* Roles */}
 					{user.roles && user.roles.length > 0 && (
-						<InfoSection>
-							<InfoLabel>Roles</InfoLabel>
-							<div>
+						<div className="mb-4">
+							<div className="text-xs font-bold text-muted-foreground uppercase mb-1">Roles</div>
+							<div className="flex flex-wrap gap-1">
 								{user.roles.map((role) => (
-									<RoleTag key={role}>{role}</RoleTag>
+									<span
+										key={role}
+										className="inline-block bg-primary text-primary-foreground text-[11px] font-semibold px-1.5 py-0.5 rounded"
+									>
+										{role}
+									</span>
 								))}
 							</div>
-						</InfoSection>
+						</div>
 					)}
 
-					<Divider />
+					<Separator className="my-3" />
 
+					{/* Actions */}
 					{!isOwnProfile && isAuthenticated && (
-						<ActionButtons>
-							<ActionButton
-								$variant="primary"
+						<div className="flex gap-2 mb-4">
+							<Button
+								variant="default"
+								size="sm"
 								onClick={handleSendMessage}
 								disabled={actionLoading === 'message'}
 								title="Send Direct Message"
+								className="flex-1"
 							>
 								{actionLoading === 'message' ? '...' : 'Message'}
-							</ActionButton>
+							</Button>
 
-							<ActionButton
+							<Button
+								variant="secondary"
+								size="sm"
 								onClick={handleAddFriend}
 								disabled={actionLoading === 'friend'}
 								title="Send Friend Request"
+								className="flex-1"
 							>
 								{actionLoading === 'friend' ? '...' : 'Add Friend'}
-							</ActionButton>
-						</ActionButtons>
+							</Button>
+						</div>
 					)}
 
-					<ActionButtons>
-						<ActionButton onClick={handleViewProfile} title="View Full Profile">
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handleViewProfile}
+							title="View Full Profile"
+							className="w-full"
+						>
 							View Profile
-						</ActionButton>
-					</ActionButtons>
-				</PopoverBody>
-			</PopoverContainer>
+						</Button>
+					</div>
+				</div>
+			</div>
 		</>
 	);
 };

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Tooltip } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { loadChannels } from '../../reducers/channelsReducer';
 import type { AppDispatch, RootState } from '../../store';
@@ -58,63 +58,97 @@ const ServerList: FC = () => {
 	}, [session.isAuthenticated, dispatch]);
 
 	return (
-		<nav className="flex flex-col items-center bg-muted py-3 gap-2 overflow-y-auto overflow-x-hidden scrollbar-none">
-			{/* Home/Friends Button */}
-			<Tooltip content="Friends" placement="right">
-				<Button
-					variant="ghost"
-					size="icon"
-					onClick={handleHomeClick}
-					className="w-12 h-12 rounded-2xl bg-primary hover:bg-primary/90 overflow-hidden p-0"
+		<TooltipProvider>
+			<div
+				data-server-list
+				className="w-full h-full bg-muted flex flex-col"
+				style={{
+					width: '100%',
+					height: '100%',
+					display: 'flex',
+					flexDirection: 'column',
+				}}
+			>
+				<nav
+					data-server-nav
+					className="flex flex-col items-center py-3 gap-2 overflow-y-auto overflow-x-hidden scrollbar-none"
+					style={{
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						padding: '12px 0',
+						gap: '8px',
+						overflowY: 'auto',
+						overflowX: 'hidden',
+					}}
 				>
-					<Avatar
-						size="48px"
-						paymail="bitchat@bitchatnitro.com"
-						icon="/images/blockpost-logo.svg"
-					/>
-				</Button>
-			</Tooltip>
+					{/* Home/Friends Button */}
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={handleHomeClick}
+								className="w-12 h-12 rounded-2xl bg-primary hover:bg-primary/90 overflow-hidden p-0"
+							>
+								<Avatar
+									size="48px"
+									paymail="bitchat@bitchatnitro.com"
+									icon="/images/blockpost-logo.svg"
+								/>
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="right">Friends</TooltipContent>
+					</Tooltip>
 
-			<Separator className="w-8 my-1" />
+					<Separator className="w-8 my-1" />
 
-			{/* Server List */}
-			{servers.data.map((server) => (
-				<Tooltip key={server._id} content={server.name} placement="right">
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => handleServerClick(server._id)}
-						className={cn(
-							'w-12 h-12 rounded-full bg-background overflow-hidden p-0',
-							'hover:rounded-2xl hover:bg-primary transition-all duration-150',
-						)}
-					>
-						{server.icon ? (
-							<Avatar size="48px" paymail={server.name} icon={server.icon} />
-						) : (
-							<span className="text-lg font-medium text-foreground">
-								{server.name.charAt(0).toUpperCase()}
-							</span>
-						)}
-					</Button>
-				</Tooltip>
-			))}
+					{/* Server List */}
+					{servers.data.map((server) => (
+						<Tooltip key={server._id}>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => handleServerClick(server._id)}
+									className={cn(
+										'w-12 h-12 rounded-full bg-background overflow-hidden p-0',
+										'hover:rounded-2xl hover:bg-primary transition-all duration-150',
+									)}
+								>
+									{server.icon ? (
+										<Avatar size="48px" paymail={server.name} icon={server.icon} />
+									) : (
+										<span className="text-lg font-medium text-foreground">
+											{server.name.charAt(0).toUpperCase()}
+										</span>
+									)}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent side="right">{server.name}</TooltipContent>
+						</Tooltip>
+					))}
 
-			{/* Add Server Button */}
-			<Tooltip content="Add Server" placement="right">
-				<Button
-					variant="ghost"
-					size="icon"
-					onClick={handleAddServer}
-					className={cn(
-						'w-12 h-12 rounded-full bg-background text-chart-2',
-						'hover:rounded-2xl hover:bg-chart-2 hover:text-foreground transition-all duration-150',
-					)}
-				>
-					<Plus className="w-6 h-6" />
-				</Button>
-			</Tooltip>
-		</nav>
+					{/* Add Server Button */}
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={handleAddServer}
+								className={cn(
+									'w-12 h-12 rounded-full bg-background text-chart-2',
+									'hover:rounded-2xl hover:bg-chart-2 hover:text-foreground transition-all duration-150',
+								)}
+							>
+								<Plus className="w-6 h-6" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="right">Add Server</TooltipContent>
+					</Tooltip>
+				</nav>
+			</div>
+		</TooltipProvider>
 	);
 };
 

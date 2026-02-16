@@ -1,51 +1,12 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { Button } from '@/components/ui/button';
 import { useAppDispatch } from '../../hooks';
 import { sigmaAuth } from '../../lib/auth';
 import { loadChannels } from '../../reducers/channelsReducer';
 import { setSigmaUser } from '../../reducers/sessionReducer';
 import Layout from './Layout';
-
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 24px;
-`;
-
-const LoadingSpinner = styled.div`
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border);
-  border-top: 3px solid var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
-
-const ErrorMessage = styled.div`
-  margin-top: 16px;
-  padding: 12px;
-  background-color: color-mix(in oklch, var(--destructive) 10%, transparent);
-  border: 1px solid var(--destructive);
-  border-radius: 4px;
-  color: var(--destructive);
-  font-size: 14px;
-  text-align: center;
-`;
-
-const LoadingText = styled.p`
-  color: var(--foreground);
-  font-size: 16px;
-  text-align: center;
-`;
 
 export const SigmaCallback: FC = () => {
 	const dispatch = useAppDispatch();
@@ -120,10 +81,10 @@ export const SigmaCallback: FC = () => {
 	if (isLoading) {
 		return (
 			<Layout heading="Completing Bitcoin Authentication">
-				<LoadingContainer>
-					<LoadingSpinner />
-					<LoadingText>Verifying your Bitcoin identity...</LoadingText>
-				</LoadingContainer>
+				<div className="flex flex-col items-center gap-4 p-6">
+					<div className="w-10 h-10 border-[3px] border-border border-t-primary rounded-full animate-spin" />
+					<p className="text-foreground text-center">Verifying your Bitcoin identity...</p>
+				</div>
 			</Layout>
 		);
 	}
@@ -131,25 +92,16 @@ export const SigmaCallback: FC = () => {
 	if (error) {
 		return (
 			<Layout heading="Authentication Error">
-				<ErrorMessage>{error}</ErrorMessage>
-				<LoadingContainer>
-					<div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-						<button
-							type="button"
-							onClick={handleBackToLogin}
-							style={{
-								padding: '12px 24px',
-								backgroundColor: 'var(--border)',
-								color: 'var(--foreground)',
-								border: '1px solid var(--border)',
-								borderRadius: '4px',
-								cursor: 'pointer',
-							}}
-						>
+				<div className="mt-4 p-3 bg-destructive/10 border border-destructive rounded text-destructive text-sm text-center">
+					{error}
+				</div>
+				<div className="flex flex-col items-center gap-4 p-6">
+					<div className="flex gap-3 mt-4">
+						<Button variant="outline" onClick={handleBackToLogin}>
 							Back to Login
-						</button>
+						</Button>
 					</div>
-				</LoadingContainer>
+				</div>
 			</Layout>
 		);
 	}

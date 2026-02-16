@@ -3,15 +3,7 @@ import type { FC } from 'react';
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import {
-	Sidebar,
-	SidebarContent,
-	SidebarGroup,
-	SidebarGroupContent,
-	SidebarGroupLabel,
-	SidebarHeader,
-	SidebarProvider,
-} from '@/components/ui/sidebar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { loadFriends, loadUsers } from '../../reducers/memberListReducer';
 import type { AppDispatch, RootState } from '../../store';
 import { UserList } from './UserList';
@@ -23,7 +15,6 @@ export const MemberList: FC = () => {
 	const memberList = useSelector((state: RootState) => state.memberList);
 	const session = useSelector((state: RootState) => state.session);
 	const chat = useSelector((state: RootState) => state.chat);
-	const isOpen = memberList.isOpen;
 	const activeChannel = params.channel;
 
 	// Filter users based on active channel
@@ -80,37 +71,29 @@ export const MemberList: FC = () => {
 		fetchMemberList();
 	}, [fetchMemberList]);
 
-	if (!isOpen) {
-		return null;
-	}
-
 	return (
-		<SidebarProvider
-			defaultOpen={isOpen}
-			style={{ '--sidebar-width': '240px' } as React.CSSProperties}
-		>
-			<Sidebar side="right" collapsible="none" className="border-l border-border hidden md:flex">
-				<SidebarHeader className="p-4 border-b border-border">
-					<div className="flex items-center gap-2 text-sm font-semibold">
-						<Users className="h-4 w-4" />
-						{activeChannel ? `#${activeChannel}` : 'Friends'}
+		<div className="flex flex-col h-full bg-background">
+			{/* Header */}
+			<div className="p-4 border-b">
+				<div className="flex items-center gap-2 text-sm font-semibold">
+					<Users className="h-4 w-4" />
+					{activeChannel ? `#${activeChannel}` : 'Friends'}
+				</div>
+			</div>
+
+			{/* User List */}
+			<ScrollArea className="flex-1">
+				<div className="p-2">
+					<div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
+						{activeChannel ? 'Members' : 'Online'} — {filteredUsers.length}
 					</div>
-				</SidebarHeader>
-				<SidebarContent>
-					<SidebarGroup>
-						<SidebarGroupLabel>
-							{activeChannel ? 'Members' : 'Online'} — {filteredUsers.length}
-						</SidebarGroupLabel>
-						<SidebarGroupContent>
-							<UserList
-								users={filteredUsers}
-								loading={memberList.loading && session.isAuthenticated}
-								showFriendRequests={!activeChannel && !!session.user?.idKey}
-							/>
-						</SidebarGroupContent>
-					</SidebarGroup>
-				</SidebarContent>
-			</Sidebar>
-		</SidebarProvider>
+					<UserList
+						users={filteredUsers}
+						loading={memberList.loading && session.isAuthenticated}
+						showFriendRequests={!activeChannel && !!session.user?.idKey}
+					/>
+				</div>
+			</ScrollArea>
+		</div>
 	);
 };

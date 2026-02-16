@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Debug</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        .server-list {
+            width: 72px;
+            background: #2a2a2a;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .server-nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 8px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            height: 100%;
+        }
+        .server-icon {
+            width: 48px;
+            height: 48px;
+            background: #4a4a4a;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .server-icon:hover {
+            border-radius: 16px;
+            background: #5a5a5a;
+        }
+        .separator {
+            width: 32px;
+            height: 2px;
+            background: #444;
+            margin: 4px 0;
+        }
+        .sidebar {
+            width: 240px;
+            background: #2e2e2e;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            flex: 1;
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            height: 48px;
+            border-bottom: 1px solid #333;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+        }
+        .chat-area {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Server List (Discord-style vertical) -->
+        <div class="server-list">
+            <nav class="server-nav">
+                <div class="server-icon">H</div>
+                <div class="separator"></div>
+                <div class="server-icon">1</div>
+                <div class="server-icon">2</div>
+                <div class="server-icon">3</div>
+                <div class="server-icon">+</div>
+            </nav>
+        </div>
+
+        <!-- Channel Sidebar -->
+        <div class="sidebar">
+            <div class="header">BitChat Nitro</div>
+            <div style="padding: 16px;">
+                <div>Channel 1</div>
+                <div>Channel 2</div>
+                <div>Channel 3</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">Current Channel</div>
+            <div class="chat-area">
+                <p>Chat messages would appear here...</p>
+                <p>The server list should be vertical on the left (72px wide)</p>
+                <p>If you see this layout correctly, the issue is with CSS loading in production.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -10,11 +10,9 @@ const LoadingSpinner = () => (
 const App = () => {
 	return (
 		<ErrorBoundary>
-			<div className="min-h-screen bg-background text-foreground">
-				<Suspense fallback={<LoadingSpinner />}>
-					<RouterProvider router={router} />
-				</Suspense>
-			</div>
+			<Suspense fallback={<LoadingSpinner />}>
+				<RouterProvider router={router} />
+			</Suspense>
 		</ErrorBoundary>
 	);
 };

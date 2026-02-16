@@ -1,6 +1,5 @@
 import type React from 'react';
 import { useMemo } from 'react';
-import styled from 'styled-components';
 import { getBase64Url } from '../../utils/file';
 import FileRenderer, { type MediaType } from './FileRenderer';
 
@@ -11,28 +10,6 @@ interface MessageFileProps {
 	};
 	onClick?: () => void;
 }
-
-const Container = styled.div`
-  flex: 1;
-  border-radius: 8px;
-  overflow: hidden;
-  min-width: 260px;
-  max-width: 100%;
-  max-height: 100%;
-  position: relative;
-  cursor: pointer;
-  aspect-ratio: 16/9;
-
-  @media (min-width: 768px) {
-    max-width: 320px;
-    max-height: 320px;
-  }
-
-  img {
-    width: 100%;
-    object-fit: contain;
-  }
-`;
 
 const MessageFile: React.FC<MessageFileProps> = ({ file, onClick }) => {
 	const b64 = useMemo(() => getBase64Url(file), [file]);
@@ -45,9 +22,9 @@ const MessageFile: React.FC<MessageFileProps> = ({ file, onClick }) => {
 	const fileType = contentType?.split('/')[0];
 
 	return (
-		<Container>
+		<div className="flex-1 rounded-lg overflow-hidden min-w-[260px] max-w-full max-h-full relative cursor-pointer aspect-video md:max-w-[320px] md:max-h-[320px] [&>img]:w-full [&>img]:object-contain">
 			<FileRenderer type={fileType as MediaType} data={b64} onClick={onClick} />
-		</Container>
+		</div>
 	);
 };
 

@@ -1,173 +1,14 @@
+import { ArrowLeft } from 'lucide-react';
 import type { FC } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import styled from 'styled-components';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { getServerById } from '../constants/servers';
 import { toggleHideUnverifiedMessages } from '../reducers/settingsReducer';
 import type { RootState } from '../store';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: var(--background);
-  overflow: hidden;
-`;
-
-const Header = styled.header`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 24px;
-  background-color: var(--card);
-  border-bottom: 1px solid var(--border);
-  box-shadow: var(--elevation-low);
-`;
-
-const BackButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: transparent;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--foreground);
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: var(--accent);
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-`;
-
-const HeaderInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-`;
-
-const ServerIcon = styled.img`
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: var(--background);
-  padding: 8px;
-`;
-
-const ServerInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const ServerName = styled.h1`
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--foreground);
-  margin: 0;
-`;
-
-const ServerDescription = styled.p`
-  font-size: 14px;
-  color: var(--muted-foreground);
-  margin: 4px 0 0 0;
-`;
-
-const Content = styled.main`
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-`;
-
-const Section = styled.section`
-  background-color: var(--card);
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  border: 1px solid var(--border);
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--foreground);
-  margin: 0 0 16px 0;
-`;
-
-const SettingRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--border);
-  }
-`;
-
-const SettingInfo = styled.div`
-  flex: 1;
-`;
-
-const SettingLabel = styled.label`
-  display: block;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--foreground);
-  margin-bottom: 4px;
-  cursor: pointer;
-`;
-
-const SettingDescription = styled.p`
-  font-size: 13px;
-  color: var(--muted-foreground);
-  margin: 0;
-`;
-
-const Toggle = styled.input.attrs({ type: 'checkbox' })`
-  position: relative;
-  width: 44px;
-  height: 24px;
-  appearance: none;
-  background-color: var(--border);
-  border-radius: 12px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:checked {
-    background-color: var(--primary);
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 16px;
-    height: 16px;
-    background-color: var(--background);
-    border-radius: 50%;
-    transition: transform 0.2s ease;
-  }
-
-  &:checked::before {
-    transform: translateX(20px);
-  }
-
-  &:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-  }
-`;
 
 export const ServerSettings: FC = () => {
 	const dispatch = useDispatch();
@@ -179,29 +20,29 @@ export const ServerSettings: FC = () => {
 
 	if (!server) {
 		return (
-			<Container>
-				<Header>
-					<BackButton onClick={() => navigate('/channels')}>
-						<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M15 19l-7-7 7-7"
-							/>
-						</svg>
+			<div className="flex flex-col h-screen bg-background overflow-hidden">
+				<header className="flex items-center gap-4 p-4 px-6 bg-card border-b shadow-sm">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => navigate('/channels')}
+						className="gap-2"
+					>
+						<ArrowLeft className="h-4 w-4" />
 						Back
-					</BackButton>
-					<HeaderInfo>
-						<ServerName>Server Not Found</ServerName>
-					</HeaderInfo>
-				</Header>
-				<Content>
-					<Section>
-						<p>The server "{serverId}" could not be found.</p>
-					</Section>
-				</Content>
-			</Container>
+					</Button>
+					<div className="flex items-center gap-3 flex-1">
+						<h1 className="text-xl font-semibold text-foreground">Server Not Found</h1>
+					</div>
+				</header>
+				<main className="flex-1 overflow-y-auto p-6">
+					<Card>
+						<CardContent className="pt-6">
+							<p className="text-muted-foreground">The server "{serverId}" could not be found.</p>
+						</CardContent>
+					</Card>
+				</main>
+			</div>
 		);
 	}
 
@@ -210,72 +51,79 @@ export const ServerSettings: FC = () => {
 	};
 
 	return (
-		<Container>
-			<Header>
-				<BackButton onClick={handleBack}>
-					<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M15 19l-7-7 7-7"
-						/>
-					</svg>
+		<div className="flex flex-col h-screen bg-background overflow-hidden">
+			<header className="flex items-center gap-4 p-4 px-6 bg-card border-b shadow-sm">
+				<Button variant="outline" size="sm" onClick={handleBack} className="gap-2">
+					<ArrowLeft className="h-4 w-4" />
 					Back
-				</BackButton>
-				<HeaderInfo>
-					<ServerIcon src={server.icon} alt={server.name} />
-					<ServerInfo>
-						<ServerName>{server.name} Settings</ServerName>
-						<ServerDescription>{server.description}</ServerDescription>
-					</ServerInfo>
-				</HeaderInfo>
-			</Header>
+				</Button>
+				<div className="flex items-center gap-3 flex-1">
+					<img
+						src={server.icon}
+						alt={server.name}
+						className="w-12 h-12 rounded-full bg-background p-2"
+					/>
+					<div className="flex flex-col">
+						<h1 className="text-xl font-semibold text-foreground">{server.name} Settings</h1>
+						<p className="text-sm text-muted-foreground mt-1">{server.description}</p>
+					</div>
+				</div>
+			</header>
 
-			<Content>
-				<Section>
-					<SectionTitle>Messages</SectionTitle>
-					<SettingRow>
-						<SettingInfo>
-							<SettingLabel htmlFor="hide-unverified">Hide unverified messages</SettingLabel>
-							<SettingDescription>
-								Only show messages that have been verified on the blockchain
-							</SettingDescription>
-						</SettingInfo>
-						<Toggle
-							id="hide-unverified"
-							checked={hideUnverifiedMessages}
-							onChange={() => dispatch(toggleHideUnverifiedMessages())}
-						/>
-					</SettingRow>
-				</Section>
+			<main className="flex-1 overflow-y-auto p-6">
+				<Card className="mb-4">
+					<CardHeader>
+						<CardTitle>Messages</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="flex items-center justify-between gap-4 py-3">
+							<div className="flex-1">
+								<Label htmlFor="hide-unverified" className="text-base font-medium cursor-pointer">
+									Hide unverified messages
+								</Label>
+								<p className="text-sm text-muted-foreground mt-1">
+									Only show messages that have been verified on the blockchain
+								</p>
+							</div>
+							<Switch
+								id="hide-unverified"
+								checked={hideUnverifiedMessages}
+								onCheckedChange={() => dispatch(toggleHideUnverifiedMessages())}
+							/>
+						</div>
+					</CardContent>
+				</Card>
 
-				<Section>
-					<SectionTitle>Server Information</SectionTitle>
-					<SettingRow>
-						<SettingInfo>
-							<SettingLabel>Server ID</SettingLabel>
-							<SettingDescription>{server._id}</SettingDescription>
-						</SettingInfo>
-					</SettingRow>
-					<SettingRow>
-						<SettingInfo>
-							<SettingLabel>Type</SettingLabel>
-							<SettingDescription>
-								{server.isNative ? 'Native Interface' : 'External Server (iframe)'}
-							</SettingDescription>
-						</SettingInfo>
-					</SettingRow>
-					{server.paymail && (
-						<SettingRow>
-							<SettingInfo>
-								<SettingLabel>Paymail</SettingLabel>
-								<SettingDescription>{server.paymail}</SettingDescription>
-							</SettingInfo>
-						</SettingRow>
-					)}
-				</Section>
-			</Content>
-		</Container>
+				<Card>
+					<CardHeader>
+						<CardTitle>Server Information</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="py-3 border-b">
+							<div className="flex-1">
+								<h3 className="text-base font-medium">Server ID</h3>
+								<p className="text-sm text-muted-foreground mt-1">{server._id}</p>
+							</div>
+						</div>
+						<div className="py-3 border-b">
+							<div className="flex-1">
+								<h3 className="text-base font-medium">Type</h3>
+								<p className="text-sm text-muted-foreground mt-1">
+									{server.isNative ? 'Native Interface' : 'External Server (iframe)'}
+								</p>
+							</div>
+						</div>
+						{server.paymail && (
+							<div className="py-3">
+								<div className="flex-1">
+									<h3 className="text-base font-medium">Paymail</h3>
+									<p className="text-sm text-muted-foreground mt-1">{server.paymail}</p>
+								</div>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</main>
+		</div>
 	);
 };

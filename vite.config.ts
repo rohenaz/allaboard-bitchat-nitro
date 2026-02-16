@@ -7,19 +7,7 @@ export default defineConfig({
   logLevel: 'info',
   plugins: [
     tailwindcss(),
-    react({
-      babel: {
-        plugins: [
-          [
-            'babel-plugin-styled-components',
-            {
-              displayName: true,
-              ssr: false,
-            },
-          ],
-        ],
-      },
-    }),
+    react(),
   ],
   resolve: {
     alias: {
@@ -71,10 +59,6 @@ export default defineConfig({
             return 'redux';
           }
 
-          // UI and styling
-          if (id.includes('node_modules/styled-components')) {
-            return 'styling';
-          }
 
           // Bitcoin/BSV related
           if (

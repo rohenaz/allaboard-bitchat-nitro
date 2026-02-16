@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import styled from 'styled-components';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface Props {
 	children?: ReactNode;
@@ -10,91 +11,6 @@ interface State {
 	error?: Error;
 	errorInfo?: ErrorInfo;
 }
-
-const ErrorContainer = styled.div`
-  min-height: 100vh;
-  background-color: var(--background);
-  color: var(--foreground);
-  padding: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const ErrorContent = styled.div`
-  max-width: 800px;
-  width: 100%;
-  text-align: center;
-`;
-
-const ErrorTitle = styled.h1`
-  color: var(--destructive);
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 24px;
-`;
-
-const ErrorDetails = styled.div`
-  background-color: var(--card);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-  border: 1px solid var(--border);
-`;
-
-const ErrorText = styled.pre`
-  white-space: pre-wrap;
-  color: var(--muted-foreground);
-  font-size: 14px;
-  overflow-x: auto;
-  text-align: left;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-`;
-
-const Button = styled.button<{ $variant?: 'primary' | 'secondary' }>`
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  min-width: 120px;
-
-  ${({ $variant = 'primary' }) => {
-		switch ($variant) {
-			case 'primary':
-				return `
-          background-color: var(--primary);
-          color: var(--primary-foreground);
-          &:hover {
-            background-color: var(--primary);
-            opacity: 0.9;
-          }
-        `;
-			default:
-				return `
-          background-color: var(--card);
-          color: var(--foreground);
-          border: 1px solid var(--border);
-          &:hover {
-            background-color: var(--accent);
-          }
-        `;
-		}
-	}}
-
-  &:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-  }
-`;
 
 class ErrorBoundary extends Component<Props, State> {
 	public state: State = {
@@ -113,22 +29,36 @@ class ErrorBoundary extends Component<Props, State> {
 	public render() {
 		if (this.state.hasError) {
 			return (
-				<ErrorContainer>
-					<ErrorContent>
-						<ErrorTitle>Sorry.. there was an error</ErrorTitle>
-						<ErrorDetails>
-							<ErrorText>{this.state.error?.toString()}</ErrorText>
-						</ErrorDetails>
-						<ButtonGroup>
-							<Button type="button" $variant="primary" onClick={() => window.location.reload()}>
+				<div className="min-h-screen bg-background text-foreground p-8 flex items-center justify-center">
+					<div className="max-w-2xl w-full text-center">
+						<h1 className="text-destructive text-4xl font-bold mb-6">Sorry.. there was an error</h1>
+
+						<Card className="mb-6">
+							<CardContent className="p-4">
+								<pre className="whitespace-pre-wrap text-muted-foreground text-sm overflow-x-auto text-left">
+									{this.state.error?.toString()}
+								</pre>
+							</CardContent>
+						</Card>
+
+						<div className="flex gap-4 justify-center flex-wrap">
+							<Button
+								variant="default"
+								onClick={() => window.location.reload()}
+								className="min-w-[120px]"
+							>
 								Reload Page
 							</Button>
-							<Button type="button" $variant="secondary" onClick={() => window.history.back()}>
+							<Button
+								variant="outline"
+								onClick={() => window.history.back()}
+								className="min-w-[120px]"
+							>
 								Go Back
 							</Button>
-						</ButtonGroup>
-					</ErrorContent>
-				</ErrorContainer>
+						</div>
+					</div>
+				</div>
 			);
 		}
 

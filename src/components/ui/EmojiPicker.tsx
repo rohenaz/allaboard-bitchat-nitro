@@ -1,143 +1,56 @@
 import { EmojiPicker as FrimoussePicker } from 'frimousse';
 import type { FC } from 'react';
-import styled from 'styled-components';
-
-const StyledEmojiPicker = styled.div`
-  .frimousse-root {
-    display: flex;
-    height: 368px;
-    width: fit-content;
-    flex-direction: column;
-    background-color: var(--card);
-    border-radius: 8px;
-    border: 1px solid var(--border);
-  }
-
-  .frimousse-search {
-    z-index: 10;
-    margin: 8px;
-    margin-bottom: 4px;
-    appearance: none;
-    border-radius: 6px;
-    background-color: var(--input);
-    padding: 8px 10px;
-    font-size: 14px;
-    border: none;
-    color: var(--foreground);
-
-    &:focus {
-      outline: 2px solid var(--primary);
-      outline-offset: -2px;
-    }
-  }
-
-  .frimousse-viewport {
-    position: relative;
-    flex: 1;
-    outline: none;
-    overflow: hidden;
-  }
-
-  .frimousse-loading,
-  .frimousse-empty {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--muted-foreground);
-    font-size: 14px;
-  }
-
-  .frimousse-list {
-    user-select: none;
-    padding-bottom: 6px;
-    overflow-y: auto;
-    height: 100%;
-  }
-
-  .frimousse-category-header {
-    background-color: var(--card);
-    padding: 12px 12px 6px;
-    font-weight: 600;
-    color: var(--muted-foreground);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-
-  .frimousse-row {
-    scroll-margin: 6px;
-    padding: 0 6px;
-  }
-
-  .frimousse-emoji {
-    display: flex;
-    width: 32px;
-    height: 32px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    font-size: 18px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    transition: background-color 0.1s;
-
-    &:hover,
-    &[data-active] {
-      background-color: var(--accent);
-    }
-  }
-`;
 
 interface EmojiPickerProps {
-  onEmojiSelect: (emoji: string) => void;
+	onEmojiSelect: (emoji: string) => void;
 }
 
 export const EmojiPicker: FC<EmojiPickerProps> = ({ onEmojiSelect }) => {
-  return (
-    <StyledEmojiPicker>
-      <FrimoussePicker.Root className="frimousse-root">
-        <FrimoussePicker.Search
-          className="frimousse-search"
-          placeholder="Search for emoji..."
-        />
-        <FrimoussePicker.Viewport className="frimousse-viewport">
-          <FrimoussePicker.Loading className="frimousse-loading">
-            Loading emojis...
-          </FrimoussePicker.Loading>
-          <FrimoussePicker.Empty className="frimousse-empty">
-            No emoji found.
-          </FrimoussePicker.Empty>
-          <FrimoussePicker.List
-            className="frimousse-list"
-            components={{
-              CategoryHeader: ({ category, ...props }) => (
-                <div className="frimousse-category-header" {...props}>
-                  {category.label}
-                </div>
-              ),
-              Row: ({ children, ...props }) => (
-                <div className="frimousse-row" {...props}>
-                  {children}
-                </div>
-              ),
-              Emoji: ({ emoji, ...props }) => (
-                <button
-                  type="button"
-                  onClick={() => onEmojiSelect(emoji.emoji)}
-                  className="frimousse-emoji"
-                  title={emoji.label}
-                  {...props}
-                >
-                  {emoji.emoji}
-                </button>
-              ),
-            }}
-          />
-        </FrimoussePicker.Viewport>
-      </FrimoussePicker.Root>
-    </StyledEmojiPicker>
-  );
+	return (
+		<div className="emoji-picker">
+			<FrimoussePicker.Root className="flex h-[368px] w-fit flex-col bg-card rounded-lg border">
+				<FrimoussePicker.Search
+					className="z-10 mx-2 mt-2 mb-1 appearance-none rounded-md bg-input px-2.5 py-2 text-sm border-none text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0"
+					placeholder="Search for emoji..."
+				/>
+				<FrimoussePicker.Viewport className="relative flex-1 outline-none overflow-hidden">
+					<FrimoussePicker.Loading className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
+						Loading emojis...
+					</FrimoussePicker.Loading>
+					<FrimoussePicker.Empty className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
+						No emoji found.
+					</FrimoussePicker.Empty>
+					<FrimoussePicker.List
+						className="select-none pb-1.5 overflow-y-auto h-full"
+						components={{
+							CategoryHeader: ({ category, ...props }) => (
+								<div
+									className="bg-card px-3 pt-3 pb-1.5 font-semibold text-muted-foreground text-xs uppercase tracking-wider"
+									{...props}
+								>
+									{category.label}
+								</div>
+							),
+							Row: ({ children, ...props }) => (
+								<div className="px-1.5" {...props}>
+									{children}
+								</div>
+							),
+							Emoji: ({ emoji, ...props }) => (
+								<button
+									type="button"
+									onClick={() => onEmojiSelect(emoji.emoji)}
+									className="flex w-8 h-8 items-center justify-center rounded-md text-lg border-none bg-transparent cursor-pointer transition-colors hover:bg-accent data-[active]:bg-accent"
+									title={emoji.label}
+									{...props}
+								>
+									{emoji.emoji}
+								</button>
+							),
+						}}
+					/>
+				</FrimoussePicker.Viewport>
+			</FrimoussePicker.Root>
+		</div>
+	);
 };
