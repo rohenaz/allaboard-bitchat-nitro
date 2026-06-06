@@ -46,7 +46,6 @@ export const UserList: FC<UserListProps> = ({
 	activeUserId,
 	users = [],
 	loading = false,
-	title,
 	showFriendRequests = false,
 }) => {
 	const [activePopover, setActivePopover] = useState<string | null>(null);

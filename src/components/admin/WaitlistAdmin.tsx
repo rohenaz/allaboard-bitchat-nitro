@@ -74,7 +74,9 @@ export function WaitlistAdmin() {
 					<tbody>
 						{rows.map((r) => (
 							<tr key={r.id} className="border-b border-border last:border-0">
-								<td className="px-4 py-2 tabular-nums text-muted-foreground">{r.position ?? '—'}</td>
+								<td className="px-4 py-2 tabular-nums text-muted-foreground">
+									{r.position ?? '—'}
+								</td>
 								<td className="px-4 py-2">{r.email}</td>
 								<td className="px-4 py-2">{r.status}</td>
 								<td className="px-4 py-2 text-muted-foreground">

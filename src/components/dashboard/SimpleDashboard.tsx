@@ -15,7 +15,6 @@ interface SimpleDashboardProps {
 
 export const SimpleDashboard: FC<SimpleDashboardProps> = ({ isFriendsPage }) => {
 	const params = useParams<{ user?: string; channel?: string }>();
-	const isUserPage = Boolean(params.user);
 
 	return (
 		<div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
