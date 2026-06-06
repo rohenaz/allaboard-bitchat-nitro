@@ -2,10 +2,12 @@ import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { YoursProvider } from 'yours-wallet-provider';
-import ErrorBoundary from '../components/ErrorBoundary';
+import { WaitlistAdmin } from '../components/admin/WaitlistAdmin';
 import { RequireAccess } from '../components/auth/RequireAccess';
-import { SignIn } from '../components/auth/SignIn';
+import { Settings } from '../components/auth/Settings';
 import { SigmaCallback } from '../components/auth/SigmaCallback';
+import { SignIn } from '../components/auth/SignIn';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { Landing } from '../components/waitlist/Landing';
 import { BapProvider } from '../context/bap';
 import { BitcoinProvider } from '../context/bitcoin';
@@ -48,9 +50,7 @@ const withProviders = (element: ReactNode) => (
 
 // Gate the app surface: must be signed in AND approved off the waitlist. The
 // wallet providers are only mounted for gated (in-app) routes.
-const gated = (element: ReactNode) => (
-	<RequireAccess>{withProviders(element)}</RequireAccess>
-);
+const gated = (element: ReactNode) => <RequireAccess>{withProviders(element)}</RequireAccess>;
 
 const router = createBrowserRouter([
 	{
@@ -68,6 +68,14 @@ const router = createBrowserRouter([
 	{
 		path: '/auth/sigma/callback',
 		element: <SigmaCallback />,
+	},
+	{
+		path: '/settings',
+		element: <Settings />,
+	},
+	{
+		path: '/admin',
+		element: <WaitlistAdmin />,
 	},
 	{
 		path: '/channels',

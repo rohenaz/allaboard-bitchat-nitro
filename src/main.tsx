@@ -6,13 +6,13 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { YoursProvider } from 'yours-wallet-provider';
 import App from './App';
-import { authClient } from './lib/auth-client';
 import { BapProvider } from './context/bap';
 import { BitcoinProvider } from './context/bitcoin';
 import { BmapProvider } from './context/bmap';
 import { HandcashProvider } from './context/handcash';
 import { ThemeProvider } from './context/theme';
 import { AutoYoursProvider } from './context/yours';
+import { authClient } from './lib/auth-client';
 import './index.css';
 import store from './store';
 
