@@ -1,11 +1,21 @@
 import type { ReactElement } from 'react';
 import { useMemo } from 'react';
-import { FaCog, FaGithub, FaSignInAlt, FaSignOutAlt, FaUserFriends } from 'react-icons/fa';
+import {
+	FaCog,
+	FaGithub,
+	FaSignInAlt,
+	FaSignOutAlt,
+	FaUserCog,
+	FaUserFriends,
+	FaUserShield,
+} from 'react-icons/fa';
 import { ImProfile } from 'react-icons/im';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { authClient } from '@/lib/auth-client';
+import { useAccess } from '@/lib/use-access';
 import { getBitchatServer } from '../../constants/servers';
 import { useHandcash } from '../../context/handcash';
 import { useActiveUser } from '../../hooks';
@@ -28,6 +38,12 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
 	const activeUser = useActiveUser();
 	const navigate = useNavigate();
 	const { authToken, profile } = useHandcash();
+	const { isAdmin } = useAccess();
+
+	// Sign out of both the better-auth identity session and the legacy wallet session.
+	const signOutAll = () => {
+		authClient.signOut().finally(() => dispatch(logout()));
+	};
 
 	const activeChannelId = useMemo(() => params.channel, [params]);
 	const activeUserId = useMemo(() => params.user, [params]);
@@ -118,14 +134,33 @@ const Header = ({ isFriendsPage = false }: HeaderProps): ReactElement => {
 					</Button>
 				</ArrowTooltip>
 
-				{!guest && (
-					<ArrowTooltip title="Sign Out">
+				<ArrowTooltip title="Account settings">
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-6 w-6"
+						onClick={() => navigate('/settings')}
+					>
+						<FaUserCog className="h-5 w-5" />
+					</Button>
+				</ArrowTooltip>
+
+				{isAdmin && (
+					<ArrowTooltip title="Admin">
 						<Button
 							variant="ghost"
 							size="icon"
 							className="h-6 w-6"
-							onClick={() => dispatch(logout())}
+							onClick={() => navigate('/admin')}
 						>
+							<FaUserShield className="h-5 w-5" />
+						</Button>
+					</ArrowTooltip>
+				)}
+
+				{!guest && (
+					<ArrowTooltip title="Sign Out">
+						<Button variant="ghost" size="icon" className="h-6 w-6" onClick={signOutAll}>
 							<FaSignOutAlt className="h-5 w-5" />
 						</Button>
 					</ArrowTooltip>

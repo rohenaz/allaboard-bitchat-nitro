@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { authComponent } from "./auth";
+import { internal } from "./_generated/api";
 import type { QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 
@@ -53,7 +54,13 @@ export const join = mutation({
       status: "pending",
       createdAt,
     });
-    return { status: "joined" as const, ...(await pendingPlace(ctx, createdAt)) };
+    const place = await pendingPlace(ctx, createdAt);
+    await ctx.scheduler.runAfter(0, internal.emails.sendWaitlistConfirmation, {
+      email: e,
+      position: place.position,
+      total: place.total,
+    });
+    return { status: "joined" as const, ...place };
   },
 });
 
@@ -139,6 +146,7 @@ export const invite = mutation({
       .unique();
     if (!entry) throw new Error("Not found");
     await ctx.db.patch(entry._id, { status: "invited", invitedAt: Date.now() });
+    await ctx.scheduler.runAfter(0, internal.emails.sendInvite, { email: e });
     return { ok: true };
   },
 });
