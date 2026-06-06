@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/.well-known/vercel/flags",
+      "destination": "/api/flags-discovery"
+    },
+    {
+      "source": "/((?!api/|.well-known/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

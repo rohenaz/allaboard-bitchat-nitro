@@ -81,3 +81,4 @@ node_modules/
 .DS_Store
 public/.playwright-mcp/
 # Railway rebuild trigger
+.vercel

@@ -3,6 +3,10 @@ import { Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { YoursProvider } from 'yours-wallet-provider';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { RequireAccess } from '../components/auth/RequireAccess';
+import { SignIn } from '../components/auth/SignIn';
+import { SigmaCallback } from '../components/auth/SigmaCallback';
+import { Landing } from '../components/waitlist/Landing';
 import { BapProvider } from '../context/bap';
 import { BitcoinProvider } from '../context/bitcoin';
 import { BmapProvider } from '../context/bmap';
@@ -42,46 +46,52 @@ const withProviders = (element: ReactNode) => (
 	</ErrorBoundary>
 );
 
+// Gate the app surface: must be signed in AND approved off the waitlist. The
+// wallet providers are only mounted for gated (in-app) routes.
+const gated = (element: ReactNode) => (
+	<RequireAccess>{withProviders(element)}</RequireAccess>
+);
+
 const router = createBrowserRouter([
 	{
 		path: '/',
-		element: withProviders(<LazyComponents.LoginPage />),
+		element: <Landing />,
 	},
 	{
 		path: '/login',
-		element: withProviders(<LazyComponents.LoginPage />),
+		element: <SignIn />,
 	},
 	{
 		path: '/signup',
-		element: withProviders(<LazyComponents.SignupPage />),
+		element: <SignIn />,
 	},
 	{
 		path: '/auth/sigma/callback',
-		element: withProviders(<LazyComponents.SigmaCallback />),
+		element: <SigmaCallback />,
 	},
 	{
 		path: '/channels',
-		element: withProviders(<LazyComponents.Dashboard isFriendsPage={false} />),
+		element: gated(<LazyComponents.Dashboard isFriendsPage={false} />),
 	},
 	{
 		path: '/friends',
-		element: withProviders(<LazyComponents.Dashboard isFriendsPage={true} />),
+		element: gated(<LazyComponents.Dashboard isFriendsPage={true} />),
 	},
 	{
 		path: '/channels/:channel',
-		element: withProviders(<LazyComponents.Dashboard isFriendsPage={false} />),
+		element: gated(<LazyComponents.Dashboard isFriendsPage={false} />),
 	},
 	{
 		path: '/@/:user',
-		element: withProviders(<LazyComponents.Dashboard isFriendsPage={false} />),
+		element: gated(<LazyComponents.Dashboard isFriendsPage={false} />),
 	},
 	{
 		path: '/servers/new',
-		element: withProviders(<LazyComponents.NewServerPage />),
+		element: gated(<LazyComponents.NewServerPage />),
 	},
 	{
 		path: '/servers/:serverId',
-		element: withProviders(<LazyComponents.ServerSettings />),
+		element: gated(<LazyComponents.ServerSettings />),
 	},
 ]);
 
